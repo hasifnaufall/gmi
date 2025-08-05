@@ -1,0 +1,205 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'quiz_category.dart';
+import 'signup.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final auth = FirebaseAuth.instance;
+
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      showError("Please fill in both fields.");
+      return;
+    }
+
+    try {
+      await auth.signInWithEmailAndPassword(email: email, password: password);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'invalid-email':
+          message = "The email address is badly formatted.";
+          break;
+        case 'user-not-found':
+          message = "No user found for that email.";
+          break;
+        case 'wrong-password':
+          message = "Wrong password provided.";
+          break;
+        case 'network-request-failed':
+          message = "Network error. Please check your connection.";
+          break;
+        case 'user-disabled':
+          message = "This account has been disabled.";
+          break;
+        default:
+          message = "[${e.code}] ${e.message}";
+      }
+      showError(message);
+    } catch (e) {
+      showError("An unexpected error occurred.\n${e.toString()}");
+    }
+  }
+
+  void showError(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Login Failed"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade100, Colors.blue.shade300],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 50),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 20,
+                  children: [
+                    Image.asset('assets/mfd.jpeg', height: 120),
+                    Image.asset('assets/logo.png', height: 100),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "WaveAct",
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Pacifico',
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.person_outline),
+                      hintText: "Email",
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.9),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      hintText: "Password",
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.9),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                    elevation: 5,
+                  ),
+                  child: const Text(
+                    "LOGIN",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                    );
+                  },
+                  child: const Text(
+                    "Don't have an account? Sign Up",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {}, // Language action (optional)
+                  child: Text(
+                    "LANGUAGE",
+                    style: TextStyle(
+                      color: Colors.blue.shade900,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

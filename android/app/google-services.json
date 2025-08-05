@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764137362860",
+    "project_id": "waveact-e419c",
+    "storage_bucket": "waveact-e419c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764137362860:android:be9414f9b0d37410831609",
+        "android_client_info": {
+          "package_name": "com.gmi.waveact"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA0NS71lBtAeUa7MdgfKzflnmTBuxT-hE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
