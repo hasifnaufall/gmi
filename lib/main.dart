@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'login.dart';
 import 'quiz_category.dart';
 import 'quiz.dart';
@@ -24,14 +25,52 @@ class WaveActApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Arial',
       ),
-      initialRoute: '/login', // ✅ First screen
+      home: const SplashScreen(), // ✅ Start with SplashScreen
       routes: {
         '/login': (context) => const LoginScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/quiz': (context) => const QuizScreen(),
         '/quests': (context) => const QuestScreen(),
-        // You can also add '/home': (_) => HomePage() if you want to push there after login
       },
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      final user = FirebaseAuth.instance.currentUser;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+          user != null ?  QuizCategoryScreen() : const LoginScreen(),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Image(
+          image: AssetImage('assets/images/logo.png'), // ✅ Your WaveAct logo
+          width: 180,
+        ),
+      ),
     );
   }
 }

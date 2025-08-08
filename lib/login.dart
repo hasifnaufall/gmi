@@ -91,24 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 20,
-                  children: [
-                    Image.asset('assets/mfd.jpeg', height: 120),
-                    Image.asset('assets/logo.png', height: 100),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "WaveAct",
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Pacifico',
-                    color: Colors.blue.shade900,
-                  ),
-                ),
+                // Centered WaveAct logo only
+                Image.asset('assets/images/logo.png', height: 120),
+
                 const SizedBox(height: 40),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -186,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: () {}, // Language action (optional)
+                  onTap: () {},
                   child: Text(
                     "LANGUAGE",
                     style: TextStyle(

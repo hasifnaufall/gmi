@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'quest.dart';
 import 'alphabet_q.dart';
+import 'quest_status.dart';
 
 class QuizCategoryScreen extends StatefulWidget {
   @override
@@ -10,6 +11,7 @@ class QuizCategoryScreen extends StatefulWidget {
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   int _selectedIndex = 0;
+  bool isNumberUnlocked = false; // ✅ Track unlock state
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
@@ -20,7 +22,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     switch (index) {
       case 0:
-        break; // Stay on current page
+        break;
       case 1:
         Navigator.pushReplacement(
           context,
@@ -34,6 +36,29 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         );
         break;
     }
+  }
+
+  void _showUnlockDialog(String levelName, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Unlock $levelName?"),
+        content: const Text("Spend 200 keys to unlock this level?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm();
+            },
+            child: const Text("Unlock"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,10 +77,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(children: [
-                    const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
+                    const Icon(Icons.key, color: Colors.amber, size: 24),
                     const SizedBox(width: 6),
-                    const Text('200',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(
+                      '${QuestStatus.userPoints}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                   ]),
                   Row(children: [
                     const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
@@ -76,7 +103,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, fontFamily: 'Cursive'),
           ),
           const SizedBox(height: 20),
-          // ALPHABET - unlocked and navigates to AlphabetQPage
+
+          // ✅ ALPHABET - Always unlocked
           buildCategoryTile(
             context,
             "ALPHABET",
@@ -90,33 +118,41 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               );
             },
           ),
-          // NUMBER
+
+          // 🔒 NUMBER - Unlockable by 200 keys
           buildCategoryTile(
             context,
             "NUMBER",
             Icons.looks_3,
-            Colors.lightBlue.shade200,
-            true,
+            isNumberUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
+            isNumberUnlocked,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Opening NUMBER Quiz...')),
-              );
+              if (isNumberUnlocked) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Opening NUMBER Quiz...')),
+                );
+              } else {
+                if (QuestStatus.userPoints >= 200) {
+                  _showUnlockDialog("NUMBER", () {
+                    setState(() {
+                      isNumberUnlocked = true;
+                      QuestStatus.userPoints -= 200;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('NUMBER level unlocked!')),
+                    );
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Not enough keys to unlock NUMBER.')),
+                  );
+                }
+              }
             },
           ),
-          // GREETINGS
-          buildCategoryTile(
-            context,
-            "GREETINGS",
-            Icons.person,
-            Colors.lightBlue.shade200,
-            true,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Opening GREETINGS Quiz...')),
-              );
-            },
-          ),
-          // LOCKED categories (no onTap)
+
+          // 🔒 LOCKED CATEGORIES
+          buildCategoryTile(context, "GREETINGS", Icons.person, Colors.grey.shade300, false),
           buildCategoryTile(context, "COLOUR", Icons.lock, Colors.grey.shade300, false),
           buildCategoryTile(context, "COMMON VERBS", Icons.lock, Colors.grey.shade300, false),
         ],
@@ -142,7 +178,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         VoidCallback? onTap,
       }) {
     return GestureDetector(
-      onTap: unlocked ? onTap : null,
+      onTap: unlocked ? onTap : onTap, // Still call onTap to trigger unlock logic
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

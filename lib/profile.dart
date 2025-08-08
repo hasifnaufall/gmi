@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'quiz_category.dart';
 import 'quest.dart';
+import 'login.dart';
+import 'quest_status.dart'; // ✅ For dynamic key count
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,40 +13,37 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedTab = 0; // 0 = Profile tab, 1 = Achievement tab
+  int _selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double padding = width * 0.05;
+    final user = FirebaseAuth.instance.currentUser;
+    final username = user?.email?.split('@').first ?? 'User';
 
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
-            );
-          },
-        ),
+        automaticallyImplyLeading: false, // ✅ No back button
         title: Padding(
           padding: EdgeInsets.symmetric(horizontal: padding),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.monetization_on, color: Colors.amber, size: 28),
-                  SizedBox(width: 4),
+                children: [
+                  const Icon(Icons.key, color: Colors.amber, size: 28), // ✅ Key icon
+                  const SizedBox(width: 4),
                   Text(
-                    '200',
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                    '${QuestStatus.userPoints}', // ✅ Dynamic key count
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ],
               ),
@@ -64,17 +64,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: const Icon(Icons.person, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 12),
-            const Text("Hello, Sam!", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              "Hello, $username!",
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-
-            // Tab row: PROFILE vs ACHIEVEMENT
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedTab = 0);
-                  },
+                  onTap: () => setState(() => _selectedTab = 0),
                   child: Text(
                     "PROFILE",
                     style: TextStyle(
@@ -85,9 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(width: 20),
                 GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedTab = 1);
-                  },
+                  onTap: () => setState(() => _selectedTab = 1),
                   child: Text(
                     "ACHIEVEMENT",
                     style: TextStyle(
@@ -98,11 +95,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // Conditionally render profile or achievement content
-            if (_selectedTab == 0) ..._buildProfileContent(context) else ..._buildAchievementContent(),
+            if (_selectedTab == 0)
+              ..._buildProfileContent(context, user)
+            else
+              ..._buildAchievementContent(),
           ],
         ),
       ),
@@ -122,7 +119,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               MaterialPageRoute(builder: (_) => const QuestScreen()),
             );
           }
-          // index == 2 stays on Profile
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -133,10 +129,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Build the profile details section
-  List<Widget> _buildProfileContent(BuildContext context) {
+  List<Widget> _buildProfileContent(BuildContext context, User? user) {
     return [
-      // Level and progress bar
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -180,20 +174,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       const SizedBox(height: 20),
-
-      // Achievement icons (streak, chest, medals)
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-          AchievementIcon(
-              icon: Icons.local_fire_department, label: "3 DAYS\nSTREAK", color: Colors.orange),
+          AchievementIcon(icon: Icons.local_fire_department, label: "3 DAYS\nSTREAK", color: Colors.orange),
           AchievementIcon(icon: Icons.lock_open, label: "3 CHEST\nOPENED", color: Colors.brown),
           AchievementIcon(icon: Icons.emoji_events, label: "2 MEDALS", color: Colors.pink),
         ],
       ),
       const SizedBox(height: 20),
-
-      // Settings section
       const Align(
         alignment: Alignment.centerLeft,
         child: Text("SETTINGS", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -213,17 +202,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Google:", style: TextStyle(fontWeight: FontWeight.bold)),
-                Text("m********g@gmail.com", style: TextStyle(color: Colors.grey[700])),
+                Text(
+                  user?.email ?? "No email linked",
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
               ],
             )
           ],
+        ),
+      ),
+      const SizedBox(height: 20),
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () async {
+            await FirebaseAuth.instance.signOut();
+            if (!mounted) return;
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+            );
+          },
+          icon: const Icon(Icons.logout),
+          label: const Text("Logout"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
       ),
       const SizedBox(height: 40),
     ];
   }
 
-  // Build the achievement cards section
   List<Widget> _buildAchievementContent() {
     return [
       buildMedalCard("MEDAL 1", "Description of medal 1"),
@@ -233,7 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
-  // Helper to build medal cards
   Widget buildMedalCard(String title, String description) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

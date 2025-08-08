@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'quest_status.dart'; // ✅ Add this import
 
 class AlphabetQuizScreen extends StatefulWidget {
   const AlphabetQuizScreen({super.key});
@@ -10,17 +11,11 @@ class AlphabetQuizScreen extends StatefulWidget {
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
   int currentQuestion = 0;
-  int selectedOption = -1;
   int score = 0;
+  bool isOptionSelected = false;
+
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
-
-  final List<Color> kahootColors = [
-    Colors.red,
-    Colors.blue,
-    Colors.orange,
-    Colors.green,
-  ];
 
   final List<Map<String, dynamic>> questions = [
     {
@@ -36,95 +31,135 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     {
       "image": "assets/images/Q3.jpg",
       "options": ["K", "O", "R", "H"],
-      "correctIndex": 0,
+      "correctIndex": 3,
     },
     {
       "image": "assets/images/Q4.jpg",
-      "options": ["A", "C", "B", "Z"],
+      "options": ["U", "Y", "N", "L"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/Q5.jpg",
+      "options": ["J", "L", "I", "O"],
       "correctIndex": 2,
     },
+  ];
+
+  final List<Color> kahootColors = [
+    Colors.redAccent,
+    Colors.blueAccent,
+    Colors.orangeAccent,
+    Colors.greenAccent,
   ];
 
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(1.0, 0.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
     _controller.forward();
   }
 
-  void submitAnswer() {
-    final correctIndex = questions[currentQuestion]['correctIndex'];
-    final isCorrect = selectedOption == correctIndex;
+  void handleAnswer(int selectedIndex) async {
+    if (isOptionSelected) return;
 
-    // Increase score if correct
+    setState(() {
+      isOptionSelected = true;
+    });
+
+    final isCorrect = selectedIndex == questions[currentQuestion]['correctIndex'];
     if (isCorrect) score++;
 
-    // Show feedback GIF
+    // ✅ Update quest progress
+    QuestStatus.completedQuestions++;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: Text(isCorrect ? "Correct!" : "Wrong!"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              isCorrect
-                  ? 'assets/gifs/correct.gif'
-                  : 'assets/gifs/wrong.gif',
-              height: 150,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // close GIF dialog
-                // move to next question or show final score
-                if (currentQuestion < questions.length - 1) {
-                  setState(() {
-                    currentQuestion++;
-                    selectedOption = -1;
-                    _controller.reset();
-                    _controller.forward();
-                  });
-                } else {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => AlertDialog(
-                      title: const Text("Quiz Complete"),
-                      content: Text("You’ve completed the Alphabet Level!\n\nScore: $score / ${questions.length}"),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.pop(context);
-                          },
-                          child: const Text("OK"),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
-              child: const Text("Next"),
-            ),
-          ],
+      barrierColor: Colors.transparent,
+      builder: (_) => Center(
+        child: Image.asset(
+          isCorrect ? 'assets/gifs/correct.gif' : 'assets/gifs/wrong.gif',
+          height: 180,
         ),
       ),
     );
-  }
 
+    await Future.delayed(const Duration(seconds: 2));
+    Navigator.of(context).pop();
+
+    if (currentQuestion < questions.length - 1) {
+      setState(() {
+        currentQuestion++;
+        isOptionSelected = false;
+        _controller.reset();
+        _controller.forward();
+      });
+    } else {
+      // ✅ Mark level as completed
+      QuestStatus.level1Completed = true;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: const Text("Quiz Complete"),
+          content: Text("You’ve completed the Alphabet Level!\n\nScore: $score / ${questions.length}"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Widget kahootButton(String label, Color color, int index) {
+    return GestureDetector(
+      onTap: () => handleAnswer(index),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(2, 4),
+            )
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -137,90 +172,39 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         title: const Text("Alphabet Level"),
         backgroundColor: Colors.blue.shade700,
       ),
-      body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height -
-                AppBar().preferredSize.height -
-                MediaQuery.of(context).padding.top,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SlideTransition(
-              position: _offsetAnimation,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Question ${currentQuestion + 1} of ${questions.length}",
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Image.asset(
-                    question['image'],
-                    height: 200,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 30),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: options.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 2,
-                    ),
-                    itemBuilder: (context, index) {
-                      final isSelected = selectedOption == index;
-                      final bgColor = isSelected
-                          ? kahootColors[index].withOpacity(0.7)
-                          : kahootColors[index];
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedOption = index;
-                          });
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(2, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            options[index],
-                            style: const TextStyle(
-                              fontSize: 24,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+      body: Container(
+        color: Colors.blue.shade100,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SlideTransition(
+            position: _offsetAnimation,
+            child: Column(
+              children: [
+                Text(
+                  "Question ${currentQuestion + 1} of ${questions.length}",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Image.asset(
+                  question['image'],
+                  fit: BoxFit.contain,
+                  height: 180,
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.3,
+                    children: List.generate(options.length, (index) {
+                      return kahootButton(
+                        options[index],
+                        kahootColors[index],
+                        index,
                       );
-                    },
+                    }),
                   ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: selectedOption != -1 ? submitAnswer : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    ),
-                    child: const Text("SUBMIT", style: TextStyle(fontSize: 16)),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
