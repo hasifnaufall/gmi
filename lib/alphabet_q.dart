@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'quest_status.dart'; // ✅ Add this import
+import 'quest_status.dart'; // ✅ keeps track of completedQuestions & level1Completed
 
 class AlphabetQuizScreen extends StatefulWidget {
-  const AlphabetQuizScreen({super.key});
+  /// If null, we auto-resume from QuestStatus.completedQuestions
+  final int? startIndex;
+
+  const AlphabetQuizScreen({super.key, this.startIndex});
 
   @override
   State<AlphabetQuizScreen> createState() => _AlphabetQuizScreenState();
@@ -10,7 +13,7 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
-  int currentQuestion = 0;
+  late int currentQuestion;
   int score = 0;
   bool isOptionSelected = false;
 
@@ -55,6 +58,16 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
+
+    // ✅ Decide where to start:
+    // 1) Use explicit startIndex if provided
+    // 2) Otherwise, auto-resume from QuestStatus.completedQuestions
+    int start = widget.startIndex ?? QuestStatus.completedQuestions;
+
+    // clamp to [0, lastQuestion]
+    start = start.clamp(0, questions.length - 1);
+    currentQuestion = start;
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -64,6 +77,18 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
+
+    // Small hint so you know it resumed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (currentQuestion > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Resumed at Question ${currentQuestion + 1}'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
+    });
   }
 
   void handleAnswer(int selectedIndex) async {
@@ -73,11 +98,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       isOptionSelected = true;
     });
 
-    final isCorrect = selectedIndex == questions[currentQuestion]['correctIndex'];
+    final isCorrect =
+        selectedIndex == questions[currentQuestion]['correctIndex'];
     if (isCorrect) score++;
 
-    // ✅ Update quest progress
-    QuestStatus.completedQuestions++;
+    // ✅ Update quest progress (max = number of questions)
+    QuestStatus.completedQuestions += 1;
+    if (QuestStatus.completedQuestions > questions.length) {
+      QuestStatus.completedQuestions = questions.length;
+    }
 
     showDialog(
       context: context,
@@ -92,7 +121,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
 
     await Future.delayed(const Duration(seconds: 2));
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
 
     if (currentQuestion < questions.length - 1) {
       setState(() {
@@ -105,17 +134,20 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       // ✅ Mark level as completed
       QuestStatus.level1Completed = true;
 
+      if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
           title: const Text("Quiz Complete"),
-          content: Text("You’ve completed the Alphabet Level!\n\nScore: $score / ${questions.length}"),
+          content: Text(
+            "You’ve completed the Alphabet Level!\n\nScore: $score / ${questions.length}",
+          ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
+                Navigator.pop(context); // close dialog
+                Navigator.pop(context); // go back to previous screen
               },
               child: const Text("OK"),
             ),
@@ -182,7 +214,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
               children: [
                 Text(
                   "Question ${currentQuestion + 1} of ${questions.length}",
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Image.asset(
