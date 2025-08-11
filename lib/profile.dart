@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'quiz_category.dart';
 import 'quest.dart';
 import 'login.dart';
-import 'quest_status.dart'; // ✅ For dynamic key count
+import 'quest_status.dart'; // ✅ Dynamic keys + XP/Level
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.key, color: Colors.amber, size: 28), // ✅ Key icon
+                  const Icon(Icons.key, color: Colors.amber, size: 28),
                   const SizedBox(width: 4),
                   Text(
                     '${QuestStatus.userPoints}', // ✅ Dynamic key count
@@ -47,7 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              const Text("APPEARANCE", style: TextStyle(color: Colors.black, fontSize: 14)),
+              const Text("APPEARANCE",
+                  style: TextStyle(color: Colors.black, fontSize: 14)),
             ],
           ),
         ),
@@ -130,7 +131,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _buildProfileContent(BuildContext context, User? user) {
+    // Pull dynamic level/xp from QuestStatus
+    final level = QuestStatus.level;
+    final xp = QuestStatus.xp;
+    final xpToNext = QuestStatus.xpToNext;
+    final progress = QuestStatus.xpProgress.clamp(0.0, 1.0);
+
     return [
+      // -------- Level / XP Card (dynamic) --------
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -139,9 +147,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Column(
           children: [
-            const Row(
+            Row(
               children: [
-                Text("LEVEL 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text("LEVEL $level",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 12),
@@ -155,39 +165,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                Container(
-                  height: 16,
-                  width: MediaQuery.of(context).size.width * 0.6,
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                    borderRadius: BorderRadius.circular(20),
+                FractionallySizedBox(
+                  widthFactor: progress, // ✅ dynamic progress 0..1
+                  child: Container(
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
-              child: Text("70/500 XP", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "$xp / $xpToNext XP", // ✅ dynamic xp text
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
       ),
       const SizedBox(height: 20),
+
+      // -------- Achievements row (static placeholders) --------
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-          AchievementIcon(icon: Icons.local_fire_department, label: "3 DAYS\nSTREAK", color: Colors.orange),
-          AchievementIcon(icon: Icons.lock_open, label: "3 CHEST\nOPENED", color: Colors.brown),
-          AchievementIcon(icon: Icons.emoji_events, label: "2 MEDALS", color: Colors.pink),
+          AchievementIcon(
+              icon: Icons.local_fire_department,
+              label: "3 DAYS\nSTREAK",
+              color: Colors.orange),
+          AchievementIcon(
+              icon: Icons.lock_open, label: "3 CHEST\nOPENED", color: Colors.brown),
+          AchievementIcon(
+              icon: Icons.emoji_events, label: "2 MEDALS", color: Colors.pink),
         ],
       ),
       const SizedBox(height: 20),
+
       const Align(
         alignment: Alignment.centerLeft,
         child: Text("SETTINGS", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const SizedBox(height: 12),
+
+      // -------- Account row --------
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -201,7 +226,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Google:", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text("Google:",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(
                   user?.email ?? "No email linked",
                   style: TextStyle(color: Colors.grey[700]),
@@ -212,6 +238,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       const SizedBox(height: 20),
+
+      // -------- Logout --------
       SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
@@ -273,7 +301,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Text(description),
             ],

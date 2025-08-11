@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
 import 'quest_status.dart';
+import 'xp_popups.dart'; // NEW: fancy XP popup
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -19,140 +20,115 @@ class _QuestScreenState extends State<QuestScreen> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => QuizCategoryScreen()));
         break;
       case 1:
-        break; // stay on Quest
+        break;
       case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
         break;
     }
   }
 
-  // ✅ Progress is based on COMPLETION (not claim)
-  // Each objective contributes 50% (15/30 previously = visual only),
-  // but we’ll keep your 30 scale for the label to match your UI text.
-  double _chestProgress() {
-    final int earned = (QuestStatus.completedQuestions >= 3 ? 15 : 0) +
-        (QuestStatus.level1Completed ? 15 : 0);
-    return earned / 30.0;
-  }
-
-  String _chestProgressLabel() {
-    final int earned = (QuestStatus.completedQuestions >= 3 ? 15 : 0) +
-        (QuestStatus.level1Completed ? 15 : 0);
-    return '$earned/30';
-  }
-
-  bool get _isChestUnlocked => _chestProgress() >= 1.0;
+  double get _targetProgress =>
+      (QuestStatus.claimedPoints / QuestStatus.levelGoalPoints).clamp(0, 1);
+  bool get _isChestUnlocked => QuestStatus.claimedPoints >= QuestStatus.levelGoalPoints;
 
   void _openChest() {
-    if (! _isChestUnlocked || QuestStatus.chestClaimed) return;
+    if (!_isChestUnlocked) return;
 
     setState(() {
       QuestStatus.userPoints += QuestStatus.chestReward;
-      QuestStatus.chestClaimed = true;
+      final levels = QuestStatus.addXp(200);
+      // show celebratory popup
+      showXpCelebration(context, xp: 200, leveledUp: levels);
     });
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Chest Opened!'),
-        content: Text(
-          'Congrats! You earned ${QuestStatus.chestReward} keys.',
-        ),
+        content: Text('Congrats! You earned ${QuestStatus.chestReward} keys.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Awesome'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Awesome')),
         ],
       ),
-    );
+    ).then((_) {
+      // advance tier (e.g., 30 -> 50; keep progress at 30/50)
+      setState(() {
+        QuestStatus.advanceChestTier();
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool chestEnabled = _isChestUnlocked && !QuestStatus.chestClaimed;
+    final bool chestEnabled = _isChestUnlocked;
 
     return Scaffold(
       backgroundColor: Colors.white,
-
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(80),
-        child: _TopBar(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: _TopBar(points: QuestStatus.userPoints, streak: 0),
       ),
-
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Chest progress + claim button
+          // Chest progress + animated bar + button
           Container(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                const SizedBox(height: 6),
                 const Text(
                   'COMPLETE QUEST TO UNLOCK CHEST!!',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16.0),
                 Icon(
-                  QuestStatus.chestClaimed
-                      ? Icons.lock_open_rounded
-                      : (_isChestUnlocked ? Icons.card_giftcard : Icons.lock_outline),
-                  // If `Icons.treasure_chest_outlined` isn’t available in your Flutter version,
-                  // replace it with Icons.card_giftcard
+                  chestEnabled ? Icons.card_giftcard : Icons.lock_outline,
                   size: 100,
-                  color: QuestStatus.chestClaimed
-                      ? Colors.amber
-                      : (_isChestUnlocked ? Colors.orange : Colors.brown),
+                  color: chestEnabled ? Colors.orange : Colors.brown,
                 ),
                 const SizedBox(height: 16.0),
-                LinearProgressIndicator(
-                  value: _chestProgress(),
-                  backgroundColor: Colors.grey.shade300,
-                  color: Colors.blue,
-                  minHeight: 10,
+                TweenAnimationBuilder<double>(
+                  key: ValueKey('${QuestStatus.claimedPoints}/${QuestStatus.levelGoalPoints}'),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeInOut,
+                  tween: Tween<double>(begin: 0, end: _targetProgress),
+                  builder: (context, value, _) {
+                    final shown = (value * QuestStatus.levelGoalPoints).round();
+                    return Column(
+                      children: [
+                        LinearProgressIndicator(
+                          value: value,
+                          backgroundColor: Colors.grey.shade300,
+                          color: Colors.blue,
+                          minHeight: 10,
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text('$shown/${QuestStatus.levelGoalPoints}'),
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 8.0),
-                Text(_chestProgressLabel()),
-
                 const SizedBox(height: 12.0),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: chestEnabled ? _openChest : null,
                     icon: const Icon(Icons.card_giftcard),
-                    label: Text(
-                      QuestStatus.chestClaimed
-                          ? 'Chest Claimed'
-                          : (_isChestUnlocked ? 'Open Chest' : 'Chest Locked'),
-                    ),
+                    label: Text(chestEnabled ? 'Open Chest' : 'Chest Locked'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor:
-                      chestEnabled ? Colors.blue : Colors.grey,
+                      backgroundColor: chestEnabled ? Colors.blue : Colors.grey,
                     ),
                   ),
                 ),
-                if (!QuestStatus.chestClaimed && _isChestUnlocked)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 6),
-                    child: Text(
-                      'You can claim your chest now!',
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                  ),
               ],
             ),
           ),
-
-          // Quest list
+          // Quests
           Expanded(
             child: ListView(
               children: [
@@ -164,10 +140,12 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.completedQuestions >= 3,
                   onClaim: () {
                     setState(() {
-                      if (!QuestStatus.quest1Claimed &&
-                          QuestStatus.completedQuestions >= 3) {
+                      if (!QuestStatus.quest1Claimed && QuestStatus.completedQuestions >= 3) {
                         QuestStatus.quest1Claimed = true;
                         QuestStatus.userPoints += 100;
+                        QuestStatus.claimedPoints += 15;
+                        final levels = QuestStatus.addXp(80);
+                        showXpCelebration(context, xp: 80, leveledUp: levels);
                       }
                     });
                   },
@@ -180,10 +158,12 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level1Completed,
                   onClaim: () {
                     setState(() {
-                      if (!QuestStatus.quest2Claimed &&
-                          QuestStatus.level1Completed) {
+                      if (!QuestStatus.quest2Claimed && QuestStatus.level1Completed) {
                         QuestStatus.quest2Claimed = true;
                         QuestStatus.userPoints += 100;
+                        QuestStatus.claimedPoints += 15;
+                        final levels = QuestStatus.addXp(120);
+                        showXpCelebration(context, xp: 120, leveledUp: levels);
                       }
                     });
                   },
@@ -193,7 +173,6 @@ class _QuestScreenState extends State<QuestScreen> {
           ),
         ],
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -207,9 +186,10 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 }
 
-// Top bar (same placement/style as category page)
 class _TopBar extends StatelessWidget {
-  const _TopBar();
+  final int points;
+  final int streak;
+  const _TopBar({required this.points, required this.streak});
 
   @override
   Widget build(BuildContext context) {
@@ -225,18 +205,12 @@ class _TopBar extends StatelessWidget {
               Row(children: [
                 const Icon(Icons.key, color: Colors.amber, size: 24),
                 const SizedBox(width: 6),
-                Text(
-                  '${QuestStatus.userPoints}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+                Text('$points', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ]),
-              Row(children: const [
-                Icon(Icons.local_fire_department, color: Colors.red, size: 24),
-                SizedBox(width: 6),
-                Text(
-                  '0', // streak placeholder
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+              Row(children: [
+                const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
+                const SizedBox(width: 6),
+                Text('$streak', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ]),
             ],
           ),
