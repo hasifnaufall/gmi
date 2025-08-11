@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
-import 'quest_status.dart'; // ✅ import for quest tracking
-import 'alphabet_q.dart';  // ✅ import your alphabet quiz screen to pass startIndex
+import 'quest_status.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -12,189 +11,236 @@ class QuestScreen extends StatefulWidget {
 }
 
 class _QuestScreenState extends State<QuestScreen> {
-  // 🔢 Configure Level 1 (Alphabet) length here
-  static const int level1TotalQuestions = 5;
+  int _selectedIndex = 1;
 
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
+        );
+        break;
+      case 1:
+        break; // stay on Quest
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        );
+        break;
+    }
+  }
+
+  // ✅ Progress is based on COMPLETION (not claim)
+  // Each objective contributes 50% (15/30 previously = visual only),
+  // but we’ll keep your 30 scale for the label to match your UI text.
   double _chestProgress() {
-    // each claim = 15, total target = 30 (based on your UI text)
-    final int earned = (QuestStatus.quest1Claimed ? 15 : 0) + (QuestStatus.quest2Claimed ? 15 : 0);
+    final int earned = (QuestStatus.completedQuestions >= 3 ? 15 : 0) +
+        (QuestStatus.level1Completed ? 15 : 0);
     return earned / 30.0;
   }
 
   String _chestProgressLabel() {
-    final int earned = (QuestStatus.quest1Claimed ? 15 : 0) + (QuestStatus.quest2Claimed ? 15 : 0);
+    final int earned = (QuestStatus.completedQuestions >= 3 ? 15 : 0) +
+        (QuestStatus.level1Completed ? 15 : 0);
     return '$earned/30';
   }
 
-  bool get _hasStartedLevel1 =>
-      QuestStatus.completedQuestions > 0 && QuestStatus.completedQuestions < level1TotalQuestions;
+  bool get _isChestUnlocked => _chestProgress() >= 1.0;
 
-  int get _nextUnansweredIndex {
-    // Clamp to valid range [0, total-1]
-    final c = QuestStatus.completedQuestions;
-    if (c <= 0) return 0;
-    if (c >= level1TotalQuestions) return level1TotalQuestions - 1;
-    return c; // next unanswered equals number completed
-  }
+  void _openChest() {
+    if (! _isChestUnlocked || QuestStatus.chestClaimed) return;
 
-  void _continueLevel1() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AlphabetQuizScreen(
-          startIndex: _nextUnansweredIndex, // 👈 resume here
+    setState(() {
+      QuestStatus.userPoints += QuestStatus.chestReward;
+      QuestStatus.chestClaimed = true;
+    });
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Chest Opened!'),
+        content: Text(
+          'Congrats! You earned ${QuestStatus.chestReward} keys.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Awesome'),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool chestEnabled = _isChestUnlocked && !QuestStatus.chestClaimed;
+
     return Scaffold(
-      body: Stack(
+      backgroundColor: Colors.white,
+
+      appBar: const PreferredSize(
+        preferredSize: Size.fromHeight(80),
+        child: _TopBar(),
+      ),
+
+      body: Column(
         children: [
-          Column(
-            children: [
-              // 🔐 Top bar: keys + streak (consistent placement)
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                color: Colors.grey[200],
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.key, color: Colors.amber),
-                        const SizedBox(width: 8.0),
-                        Text(
-                          '${QuestStatus.userPoints}',
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: const [
-                        Icon(Icons.local_fire_department, color: Colors.red),
-                        SizedBox(width: 8.0),
-                        Text('0', style: TextStyle(fontSize: 18)),
-                      ],
-                    ),
-                  ],
+          // Chest progress + claim button
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const Text(
+                  'COMPLETE QUEST TO UNLOCK CHEST!!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-
-              // 🧰 Chest progress + "Continue Level 1" CTA
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'COMPLETE QUEST TO UNLOCK CHEST!!',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16.0),
-                    const Icon(Icons.lock_outline, size: 100, color: Colors.brown),
-                    const SizedBox(height: 16.0),
-
-                    // ✅ Fixed progress calculation (parentheses + division)
-                    LinearProgressIndicator(
-                      value: _chestProgress(),
-                      backgroundColor: Colors.grey,
-                      color: Colors.blue,
-                      minHeight: 10,
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(_chestProgressLabel()),
-
-                    // ▶️ Continue button appears only if started but not completed
-                    if (_hasStartedLevel1 && !QuestStatus.level1Completed) ...[
-                      const SizedBox(height: 16.0),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _continueLevel1,
-                          icon: const Icon(Icons.play_arrow),
-                          label: Text('Continue Level 1 (Question ${_nextUnansweredIndex + 1}/$level1TotalQuestions)'),
-                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                        ),
-                      ),
-                    ],
-                  ],
+                const SizedBox(height: 16.0),
+                Icon(
+                  QuestStatus.chestClaimed
+                      ? Icons.lock_open_rounded
+                      : (_isChestUnlocked ? Icons.card_giftcard : Icons.lock_outline),
+                  // If `Icons.treasure_chest_outlined` isn’t available in your Flutter version,
+                  // replace it with Icons.card_giftcard
+                  size: 100,
+                  color: QuestStatus.chestClaimed
+                      ? Colors.amber
+                      : (_isChestUnlocked ? Colors.orange : Colors.brown),
                 ),
-              ),
-
-              // 📜 Quest list
-              Expanded(
-                child: ListView(
-                  children: [
-                    QuestItem(
-                      title: 'Quest 1',
-                      subtitle: 'Complete 3 Questions',
-                      points: 100,
-                      isClaimed: QuestStatus.quest1Claimed,
-                      isCompleted: QuestStatus.completedQuestions >= 3,
-                      onClaim: () {
-                        setState(() {
-                          if (!QuestStatus.quest1Claimed && QuestStatus.completedQuestions >= 3) {
-                            QuestStatus.quest1Claimed = true;
-                            QuestStatus.userPoints += 100;
-                          }
-                        });
-                      },
-                    ),
-                    QuestItem(
-                      title: 'Quest 2',
-                      subtitle: 'Complete Level 1',
-                      points: 100,
-                      isClaimed: QuestStatus.quest2Claimed,
-                      isCompleted: QuestStatus.level1Completed,
-                      onClaim: () {
-                        setState(() {
-                          if (!QuestStatus.quest2Claimed && QuestStatus.level1Completed) {
-                            QuestStatus.quest2Claimed = true;
-                            QuestStatus.userPoints += 100;
-                          }
-                        });
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 16.0),
+                LinearProgressIndicator(
+                  value: _chestProgress(),
+                  backgroundColor: Colors.grey.shade300,
+                  color: Colors.blue,
+                  minHeight: 10,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8.0),
+                Text(_chestProgressLabel()),
+
+                const SizedBox(height: 12.0),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: chestEnabled ? _openChest : null,
+                    icon: const Icon(Icons.card_giftcard),
+                    label: Text(
+                      QuestStatus.chestClaimed
+                          ? 'Chest Claimed'
+                          : (_isChestUnlocked ? 'Open Chest' : 'Chest Locked'),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor:
+                      chestEnabled ? Colors.blue : Colors.grey,
+                    ),
+                  ),
+                ),
+                if (!QuestStatus.chestClaimed && _isChestUnlocked)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Text(
+                      'You can claim your chest now!',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ),
+              ],
+            ),
           ),
 
-          // ⬇️ Bottom navigation (Home, Quest, Profile)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color: Colors.grey[200],
-              padding: const EdgeInsets.all(8.0),
-              child: BottomNavigationBar(
-                currentIndex: 1,
-                onTap: (index) {
-                  if (index == 0) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
-                    );
-                  } else if (index == 2) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                    );
-                  }
-                },
-                items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                  BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Quest'),
-                  BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-                ],
-              ),
+          // Quest list
+          Expanded(
+            child: ListView(
+              children: [
+                QuestItem(
+                  title: 'Quest 1',
+                  subtitle: 'Complete 3 Questions',
+                  points: 100,
+                  isClaimed: QuestStatus.quest1Claimed,
+                  isCompleted: QuestStatus.completedQuestions >= 3,
+                  onClaim: () {
+                    setState(() {
+                      if (!QuestStatus.quest1Claimed &&
+                          QuestStatus.completedQuestions >= 3) {
+                        QuestStatus.quest1Claimed = true;
+                        QuestStatus.userPoints += 100;
+                      }
+                    });
+                  },
+                ),
+                QuestItem(
+                  title: 'Quest 2',
+                  subtitle: 'Complete Level 1',
+                  points: 100,
+                  isClaimed: QuestStatus.quest2Claimed,
+                  isCompleted: QuestStatus.level1Completed,
+                  onClaim: () {
+                    setState(() {
+                      if (!QuestStatus.quest2Claimed &&
+                          QuestStatus.level1Completed) {
+                        QuestStatus.quest2Claimed = true;
+                        QuestStatus.userPoints += 100;
+                      }
+                    });
+                  },
+                ),
+              ],
             ),
           ),
         ],
+      ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Task"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
+      ),
+    );
+  }
+}
+
+// Top bar (same placement/style as category page)
+class _TopBar extends StatelessWidget {
+  const _TopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      flexibleSpace: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(children: [
+                const Icon(Icons.key, color: Colors.amber, size: 24),
+                const SizedBox(width: 6),
+                Text(
+                  '${QuestStatus.userPoints}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ]),
+              Row(children: const [
+                Icon(Icons.local_fire_department, color: Colors.red, size: 24),
+                SizedBox(width: 6),
+                Text(
+                  '0', // streak placeholder
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'quest_status.dart'; // ✅ keeps track of completedQuestions & level1Completed
+import 'quest_status.dart';
 
 class AlphabetQuizScreen extends StatefulWidget {
-  /// If null, we auto-resume from QuestStatus.completedQuestions
+  /// If null, auto-resume at the first unanswered question.
   final int? startIndex;
 
   const AlphabetQuizScreen({super.key, this.startIndex});
@@ -14,7 +14,6 @@ class AlphabetQuizScreen extends StatefulWidget {
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
   late int currentQuestion;
-  int score = 0;
   bool isOptionSelected = false;
 
   late AnimationController _controller;
@@ -55,16 +54,34 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     Colors.greenAccent,
   ];
 
+  // ---------- Helpers ----------
+  int _firstUnansweredIndex() {
+    for (int i = 0; i < questions.length; i++) {
+      if (QuestStatus.level1Answers[i] == null) return i;
+    }
+    return questions.length - 1;
+  }
+
+  bool _allAnswered() =>
+      QuestStatus.level1Answers.every((e) => e != null);
+
+  int? _nextUnansweredAfter(int from) {
+    for (int i = from + 1; i < questions.length; i++) {
+      if (QuestStatus.level1Answers[i] == null) return i;
+    }
+    return null;
+  }
+  // -----------------------------
+
   @override
   void initState() {
     super.initState();
 
-    // ✅ Decide where to start:
-    // 1) Use explicit startIndex if provided
-    // 2) Otherwise, auto-resume from QuestStatus.completedQuestions
-    int start = widget.startIndex ?? QuestStatus.completedQuestions;
+    // Make sure storage matches quiz size
+    QuestStatus.ensureLevel1Length(questions.length);
 
-    // clamp to [0, lastQuestion]
+    // Start at provided index or first unanswered
+    int start = widget.startIndex ?? _firstUnansweredIndex();
     start = start.clamp(0, questions.length - 1);
     currentQuestion = start;
 
@@ -78,35 +95,33 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
 
-    // Small hint so you know it resumed
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentQuestion > 0) {
+      if (currentQuestion > 0 && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Resumed at Question ${currentQuestion + 1}'),
-            duration: const Duration(seconds: 1),
+          const SnackBar(
+            content: Text('Resumed where you left off'),
+            duration: Duration(seconds: 1),
           ),
         );
       }
     });
   }
 
-  void handleAnswer(int selectedIndex) async {
+  Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
+
+    // Prevent re-answering if already answered (e.g., after resume)
+    if (QuestStatus.level1Answers[currentQuestion] != null) return;
 
     setState(() {
       isOptionSelected = true;
     });
 
-    final isCorrect =
-        selectedIndex == questions[currentQuestion]['correctIndex'];
-    if (isCorrect) score++;
+    final correctIndex = questions[currentQuestion]['correctIndex'] as int;
+    final isCorrect = selectedIndex == correctIndex;
 
-    // ✅ Update quest progress (max = number of questions)
-    QuestStatus.completedQuestions += 1;
-    if (QuestStatus.completedQuestions > questions.length) {
-      QuestStatus.completedQuestions = questions.length;
-    }
+    // ✅ Record this question's result
+    QuestStatus.level1Answers[currentQuestion] = isCorrect;
 
     showDialog(
       context: context,
@@ -123,17 +138,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) Navigator.of(context).pop();
 
-    if (currentQuestion < questions.length - 1) {
-      setState(() {
-        currentQuestion++;
-        isOptionSelected = false;
-        _controller.reset();
-        _controller.forward();
-      });
-    } else {
-      // ✅ Mark level as completed
-      QuestStatus.level1Completed = true;
-
+    if (_allAnswered()) {
       if (!mounted) return;
       showDialog(
         context: context,
@@ -141,19 +146,30 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         builder: (_) => AlertDialog(
           title: const Text("Quiz Complete"),
           content: Text(
-            "You’ve completed the Alphabet Level!\n\nScore: $score / ${questions.length}",
+            "You’ve completed the Alphabet Level!\n\n"
+                "Score: ${QuestStatus.level1Score} / ${questions.length}",
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // close dialog
-                Navigator.pop(context); // go back to previous screen
+                Navigator.pop(context); // back to previous screen
               },
               child: const Text("OK"),
             ),
           ],
         ),
       );
+    } else {
+      // Jump to next unanswered (skip already-answered)
+      final next = _nextUnansweredAfter(currentQuestion);
+      setState(() {
+        currentQuestion = (next ?? (currentQuestion + 1))
+            .clamp(0, questions.length - 1);
+        isOptionSelected = false;
+        _controller.reset();
+        _controller.forward();
+      });
     }
   }
 
@@ -164,29 +180,34 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   }
 
   Widget kahootButton(String label, Color color, int index) {
+    final alreadyAnswered = QuestStatus.level1Answers[currentQuestion] != null;
+
     return GestureDetector(
-      onTap: () => handleAnswer(index),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              offset: Offset(2, 4),
-            )
-          ],
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      onTap: alreadyAnswered ? null : () => handleAnswer(index),
+      child: Opacity(
+        opacity: alreadyAnswered ? 0.6 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(2, 4),
+              )
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -214,10 +235,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
               children: [
                 Text(
                   "Question ${currentQuestion + 1} of ${questions.length}",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 Image.asset(
@@ -230,15 +248,16 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                   child: GridView.count(
                     crossAxisCount: 2,
                     childAspectRatio: 1.3,
-                    children: List.generate(options.length, (index) {
+                    children: List.generate(options.length, (i) {
                       return kahootButton(
-                        options[index],
-                        kahootColors[index],
-                        index,
+                        options[i],
+                        kahootColors[i],
+                        i,
                       );
                     }),
                   ),
                 ),
+                // ✅ Removed the "Current score: …" Text widget
               ],
             ),
           ),
