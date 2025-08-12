@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'quest_status.dart';
-import 'xp_popups.dart'; // NEW: fancy XP popup
+import 'xp_popups.dart'; // for XP + completion celebration
 
 class AlphabetQuizScreen extends StatefulWidget {
+  /// If null, auto-resume at the first unanswered question.
   final int? startIndex;
+
   const AlphabetQuizScreen({super.key, this.startIndex});
 
   @override
@@ -52,6 +54,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
+
     QuestStatus.ensureLevel1Length(questions.length);
 
     int start = widget.startIndex ?? _firstUnansweredIndex();
@@ -81,52 +84,32 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     final correctIndex = questions[currentQuestion]['correctIndex'] as int;
     final isCorrect = selectedIndex == correctIndex;
 
-    // Save result
+    // Record result for resume/score logic
     QuestStatus.level1Answers[currentQuestion] = isCorrect;
 
-    // XP for correct answers
+    // Optional: XP popup on correct
     if (isCorrect) {
       final levels = QuestStatus.addXp(20);
       await showXpCelebration(context, xp: 20, leveledUp: levels);
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      builder: (_) => Center(
-        child: Image.asset(
-          isCorrect ? 'assets/gifs/correct.gif' : 'assets/gifs/wrong.gif',
-          height: 180,
-        ),
-      ),
-    );
-
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) Navigator.of(context).pop();
+    // Small pause for tactile feedback
+    await Future.delayed(const Duration(milliseconds: 400));
 
     if (_allAnswered()) {
       if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          title: const Text("Quiz Complete"),
-          content: Text(
-            "You’ve completed the Alphabet Level!\n\n"
-                "Score: ${QuestStatus.level1Score} / ${questions.length}",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        ),
+
+      // Stylish completion popup (sparkles + gradient score)
+      await showQuizCompleteCelebration(
+        context,
+        score: QuestStatus.level1Score,
+        total: questions.length,
+        subtitle: "You’ve completed the Alphabet Level!",
+        buttonText: "OK",
       );
+
+      if (!mounted) return;
+      Navigator.pop(context); // back to previous screen
     } else {
       final next = _nextUnansweredAfter(currentQuestion);
       setState(() {
@@ -157,12 +140,18 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 4))],
+            boxShadow: const [
+              BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 4)),
+            ],
           ),
           child: Center(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ),

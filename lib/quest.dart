@@ -34,32 +34,28 @@ class _QuestScreenState extends State<QuestScreen> {
       (QuestStatus.claimedPoints / QuestStatus.levelGoalPoints).clamp(0, 1);
   bool get _isChestUnlocked => QuestStatus.claimedPoints >= QuestStatus.levelGoalPoints;
 
-  void _openChest() {
+  // Removed the old AlertDialog; now just reward + celebration, then advance tier.
+  Future<void> _openChest() async {
     if (!_isChestUnlocked) return;
 
+    // Give keys + XP immediately
+    int leveled = 0; // ✅ initialize first
     setState(() {
       QuestStatus.userPoints += QuestStatus.chestReward;
-      final levels = QuestStatus.addXp(200);
-      // show celebratory popup
-      showXpCelebration(context, xp: 200, leveledUp: levels);
+      leveled = QuestStatus.addXp(200);
     });
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Chest Opened!'),
-        content: Text('Congrats! You earned ${QuestStatus.chestReward} keys.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Awesome')),
-        ],
-      ),
-    ).then((_) {
-      // advance tier (e.g., 30 -> 50; keep progress at 30/50)
+    // Show celebratory popup (no extra dialog)
+    await showXpCelebration(context, xp: 200, leveledUp: leveled);
+
+    // Advance the chest tier (e.g., 30 -> 50), keep current progress
+    if (mounted) {
       setState(() {
         QuestStatus.advanceChestTier();
       });
-    });
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

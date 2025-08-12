@@ -43,6 +43,55 @@ Future<Object?> showXpCelebration(
   );
 }
 
+/// Celebration for quiz completion — same style as XP popup.
+Future<Object?> showQuizCompleteCelebration(
+    BuildContext context, {
+      required int score,
+      required int total,
+      String title = 'Quiz Complete!',
+      String subtitle = 'Nice work! You’ve finished the level.',
+      String buttonText = 'Continue',
+    }) {
+  HapticFeedback.mediumImpact();
+
+  return showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'quiz-complete',
+    barrierColor: Colors.black.withOpacity(0.45),
+    transitionDuration: const Duration(milliseconds: 380),
+    pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+    transitionBuilder: (ctx, anim, _, __) {
+      final scale = Tween<double>(begin: 0.85, end: 1.0)
+          .chain(CurveTween(curve: Curves.easeOutBack))
+          .animate(anim);
+
+      return Stack(
+        children: [
+          Center(
+            child: Transform.scale(
+              scale: scale.value,
+              child: _QuizCompleteCard(
+                title: title,
+                subtitle: subtitle,
+                score: score,
+                total: total,
+                buttonText: buttonText,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: true,
+              child: _Sparkles(progress: anim.value),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class _XpCard extends StatelessWidget {
   final int xp;
   final int leveledUp;
@@ -71,29 +120,15 @@ class _XpCard extends StatelessWidget {
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.auto_awesome, color: Colors.amber.shade700),
               const SizedBox(width: 8),
-              Text(
-                'Nice!',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
+              Text('Nice!',
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
             ]),
             const SizedBox(height: 10),
+            // Gradient XP amount
             ShaderMask(
-              shaderCallback: (r) => const LinearGradient(
-                colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-              ).createShader(r),
-              child: const Text(
-                '+XP', // placeholder masked by gradient; replaced below with real text
-                style: TextStyle(
-                  fontSize: 1, // not used; see RichText below
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            // Use RichText to keep gradient look but show the actual number
-            ShaderMask(
-              shaderCallback: (r) => const LinearGradient(
-                colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-              ).createShader(r),
+              shaderCallback: (r) =>
+                  const LinearGradient(colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)])
+                      .createShader(r),
               child: Text(
                 '+$xp XP',
                 style: const TextStyle(
@@ -141,6 +176,89 @@ class _XpCard extends StatelessWidget {
   }
 }
 
+class _QuizCompleteCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final int score;
+  final int total;
+  final String buttonText;
+
+  const _QuizCompleteCard({
+    required this.title,
+    required this.subtitle,
+    required this.score,
+    required this.total,
+    required this.buttonText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 22, offset: Offset(0, 8)),
+          ],
+          border: Border.all(color: Colors.purple.withOpacity(0.25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.emoji_events, color: Colors.amber.shade700),
+              const SizedBox(width: 8),
+              Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 10),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.black54),
+            ),
+            const SizedBox(height: 14),
+            // Big gradient score text: "5 / 5"
+            ShaderMask(
+              shaderCallback: (r) =>
+                  const LinearGradient(colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)])
+                      .createShader(r),
+              child: Text(
+                '$score / $total',
+                style: const TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(buttonText),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Simple sparkle effect using emoji particles.
 class _Sparkles extends StatelessWidget {
   final double progress; // 0..1
   const _Sparkles({required this.progress});
