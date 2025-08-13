@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'quest_status.dart';
-import 'xp_popups.dart'; // for XP + completion celebration
 
 class AlphabetQuizScreen extends StatefulWidget {
-  /// If null, auto-resume at the first unanswered question.
   final int? startIndex;
 
   const AlphabetQuizScreen({super.key, this.startIndex});
@@ -54,7 +52,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
-
     QuestStatus.ensureLevel1Length(questions.length);
 
     int start = widget.startIndex ?? _firstUnansweredIndex();
@@ -83,33 +80,42 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     final correctIndex = questions[currentQuestion]['correctIndex'] as int;
     final isCorrect = selectedIndex == correctIndex;
-
-    // Record result for resume/score logic
     QuestStatus.level1Answers[currentQuestion] = isCorrect;
 
-    // Optional: XP popup on correct
     if (isCorrect) {
       final levels = QuestStatus.addXp(20);
-      await showXpCelebration(context, xp: 20, leveledUp: levels);
+      showAnimatedPopup(
+        icon: Icons.star,
+        iconColor: Colors.yellow.shade700,
+        title: "Correct!",
+        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
+        bgColor: Colors.green.shade600,
+      );
+    } else {
+      final correctLetter = (questions[currentQuestion]['options'] as List<String>)[correctIndex];
+      showAnimatedPopup(
+        icon: Icons.close,
+        iconColor: Colors.redAccent,
+        title: "Incorrect",
+        subtitle: "Correct: $correctLetter",
+        bgColor: Colors.red.shade600,
+      );
     }
 
-    // Small pause for tactile feedback
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 250));
 
     if (_allAnswered()) {
       if (!mounted) return;
-
-      // Stylish completion popup (sparkles + gradient score)
-      await showQuizCompleteCelebration(
-        context,
-        score: QuestStatus.level1Score,
-        total: questions.length,
-        subtitle: "You’ve completed the Alphabet Level!",
-        buttonText: "OK",
+      showAnimatedPopup(
+        icon: Icons.emoji_events,
+        iconColor: Colors.amber,
+        title: "Quiz Complete!",
+        subtitle: "Score: ${QuestStatus.level1Score}/${questions.length}",
+        bgColor: Colors.blue.shade600,
       );
-
+      await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return;
-      Navigator.pop(context); // back to previous screen
+      Navigator.pop(context);
     } else {
       final next = _nextUnansweredAfter(currentQuestion);
       setState(() {
@@ -121,15 +127,38 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  // ---------- Custom Animated Popup ----------
+  void showAnimatedPopup({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required Color bgColor,
+  }) {
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        top: 60,
+        right: 16,
+        child: SlideInPopup(
+          icon: icon,
+          iconColor: iconColor,
+          title: title,
+          subtitle: subtitle,
+          bgColor: bgColor,
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 2), () {
+      entry.remove();
+    });
   }
 
+  // ---------- Kahoot Button ----------
   Widget kahootButton(String label, Color color, int index) {
     final alreadyAnswered = QuestStatus.level1Answers[currentQuestion] != null;
-
     return GestureDetector(
       onTap: alreadyAnswered ? null : () => handleAnswer(index),
       child: Opacity(
@@ -140,18 +169,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 4)),
-            ],
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 4))],
           ),
           child: Center(
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
         ),
@@ -190,6 +213,81 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- Popup Widget ----------
+class SlideInPopup extends StatefulWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final Color bgColor;
+
+  const SlideInPopup({
+    super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.bgColor,
+  });
+
+  @override
+  State<SlideInPopup> createState() => _SlideInPopupState();
+}
+
+class _SlideInPopupState extends State<SlideInPopup>
+    with SingleTickerProviderStateMixin {
+  late AnimationController controller;
+  late Animation<Offset> offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    offsetAnimation = Tween<Offset>(begin: const Offset(1.2, 0), end: Offset.zero)
+        .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+    controller.forward();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: offsetAnimation,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(12),
+        color: widget.bgColor,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          width: 280,
+          child: Row(
+            children: [
+              Icon(widget.icon, color: widget.iconColor, size: 32),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.title,
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(widget.subtitle,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
