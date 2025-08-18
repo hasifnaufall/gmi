@@ -11,14 +11,11 @@ class QuizCategoryScreen extends StatefulWidget {
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   int _selectedIndex = 0;
-  bool isNumberUnlocked = false; // ✅ Track unlock state
+  bool isNumberUnlocked = false; // 🔓 example
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
-
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
 
     switch (index) {
       case 0:
@@ -63,6 +60,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final points = QuestStatus.userPoints;
+    final streak = QuestStatus.streakDays; // 🔥 use live streak
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
@@ -70,9 +70,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         child: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
+          automaticallyImplyLeading: false,
           flexibleSpace: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -80,15 +82,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     const Icon(Icons.key, color: Colors.amber, size: 24),
                     const SizedBox(width: 6),
                     Text(
-                      '${QuestStatus.userPoints}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      '$points',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                   ]),
                   Row(children: [
-                    const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
+                    const Icon(Icons.local_fire_department,
+                        color: Colors.red, size: 24),
                     const SizedBox(width: 6),
-                    const Text('0',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    // 🔥 show live streak here
+                    Text(
+                      '$streak',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                   ]),
                 ],
               ),
@@ -100,7 +108,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         children: [
           const Text(
             "WaveAct",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, fontFamily: 'Cursive'),
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cursive',
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -111,11 +123,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             Icons.abc,
             Colors.lightBlue.shade200,
             true,
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              // Important: wait for the quiz screen to close, then rebuild
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
               );
+              if (!mounted) return;
+              setState(() {}); // refresh keys/streak after returning
             },
           ),
 
@@ -144,7 +159,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Not enough keys to unlock NUMBER.')),
+                    const SnackBar(
+                        content: Text('Not enough keys to unlock NUMBER.')),
                   );
                 }
               }
@@ -152,9 +168,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
 
           // 🔒 LOCKED CATEGORIES
-          buildCategoryTile(context, "GREETINGS", Icons.person, Colors.grey.shade300, false),
-          buildCategoryTile(context, "COLOUR", Icons.lock, Colors.grey.shade300, false),
-          buildCategoryTile(context, "COMMON VERBS", Icons.lock, Colors.grey.shade300, false),
+          buildCategoryTile(
+              context, "GREETINGS", Icons.person, Colors.grey.shade300, false),
+          buildCategoryTile(
+              context, "COLOUR", Icons.lock, Colors.grey.shade300, false),
+          buildCategoryTile(context, "COMMON VERBS", Icons.lock,
+              Colors.grey.shade300, false),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -178,7 +197,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         VoidCallback? onTap,
       }) {
     return GestureDetector(
-      onTap: unlocked ? onTap : onTap, // Still call onTap to trigger unlock logic
+      onTap: onTap, // keep unlock logic in the handler
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

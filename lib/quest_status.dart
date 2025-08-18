@@ -74,6 +74,34 @@ class QuestStatus {
     }
     return levelsUp;
   }
+  // ================= Streak (24h window) =================
+  static int streakDays = 0;
+  static int longestStreak = 0;
+  static DateTime? lastStreakUtc;
+
+  /// Call this when the user COMPLETES a level.
+  /// Returns true if the streak actually increased (i.e., 24h passed since last increment).
+  static bool addStreakForLevel({DateTime? now}) {
+    final n = (now ?? DateTime.now()).toUtc();
+
+    if (lastStreakUtc == null ||
+        n.difference(lastStreakUtc!).inHours >= 24) {
+      streakDays += 1;
+      if (streakDays > longestStreak) longestStreak = streakDays;
+      lastStreakUtc = n;
+      return true;
+    }
+    // Not enough time passed → no increment
+    return false;
+  }
+
+  /// Optional: reset streak (useful for debugging or account reset)
+  static void resetStreak() {
+    streakDays = 0;
+    longestStreak = 0;
+    lastStreakUtc = null;
+  }
+
 
   // ================= Resets =================
   static void resetLevel1Answers() {

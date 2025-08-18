@@ -1,26 +1,24 @@
-// android/build.gradle.kts
+// android/build.gradle.kts  (project-level)
 
-// ✅ Apply Google Services plugin (for Firebase)
-plugins {
-    id("com.google.gms.google-services") version "4.4.3" apply false
-}
+// ❌ Do NOT declare com.google.gms.google-services here via the plugins DSL
+// plugins { id("com.google.gms.google-services") version "4.4.3" apply false }  <-- remove
 
-// ✅ Required repositories and dependencies
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
-
     dependencies {
+        // Android Gradle & Kotlin plugins
         classpath("com.android.tools.build:gradle:8.4.0")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
-        classpath ("com.google.gms:google-services:4.4.0") // Or latest version
 
+        // ✅ Declare ONE google-services version on the classpath.
+        // Match the version Gradle reported is already on the classpath (4.3.15).
+        classpath("com.google.gms:google-services:4.3.15")
     }
 }
 
-// ✅ Repositories for all modules
 allprojects {
     repositories {
         google()
@@ -28,7 +26,6 @@ allprojects {
     }
 }
 
-// ✅ Custom build directory logic (keep as-is)
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
@@ -41,7 +38,6 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// ✅ Clean task remains
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

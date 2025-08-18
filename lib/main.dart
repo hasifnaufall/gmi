@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 import 'login.dart';
 import 'quiz_category.dart';
 import 'quiz.dart';
@@ -9,9 +10,12 @@ import 'quest.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const WaveActApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(WaveActApp());
 }
+
 
 class WaveActApp extends StatelessWidget {
   const WaveActApp({super.key});
@@ -25,7 +29,7 @@ class WaveActApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Arial',
       ),
-      home: const SplashScreen(), // ✅ Start with SplashScreen
+      home: const SplashScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/profile': (context) => const ProfileScreen(),
@@ -55,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-          user != null ?  QuizCategoryScreen() : const LoginScreen(),
+          user != null ? QuizCategoryScreen() : const LoginScreen(),
         ),
       );
     });
@@ -67,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image(
-          image: AssetImage('assets/images/logo.png'), // ✅ Your WaveAct logo
+          image: AssetImage('assets/images/logo.png'),
           width: 180,
         ),
       ),

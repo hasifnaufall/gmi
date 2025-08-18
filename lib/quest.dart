@@ -57,12 +57,6 @@ class _QuestScreenState extends State<QuestScreen> {
     // 🎉 XP toast
     _showXpToast(xp: 200, leveledUp: leveled);
 
-    // Optional snack if achievement just unlocked
-    if (unlockedWelcome && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Achievement unlocked: Welcome')),
-      );
-    }
 
     // Advance chest tier (e.g., 30 -> 50 -> 100 -> ...)
     if (!mounted) return;

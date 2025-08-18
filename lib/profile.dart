@@ -96,7 +96,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        // ✅ Logout icon on the right
         actions: [
           IconButton(
             tooltip: 'Logout',
@@ -152,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (_selectedTab == 0)
               ..._buildProfileContent(context, user, chestLabel)
             else
-              ..._buildAchievementContent(), // ⬅️ horizontal list lives here
+              ..._buildAchievementContent(),
           ],
         ),
       ),
@@ -182,6 +181,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // One source of truth for medals
+  List<_Medal> _allMedals() {
+    return [
+      _Medal(
+        name: 'Welcome',
+        title: 'Welcome',
+        description: 'Unlocked a chest for the first time.',
+        icon: Icons.emoji_emotions,
+        color: Colors.amber,
+        unlocked: QuestStatus.achievements.contains('Welcome'),
+      ),
+      _Medal(
+        name: 'Quiz Novice',
+        title: 'Quiz Novice',
+        description: 'Finish your first quiz.',
+        icon: Icons.school,
+        color: Colors.blue,
+        unlocked: QuestStatus.level1Completed,
+      ),
+      _Medal(
+        name: 'Treasure Hunter',
+        title: 'Treasure Hunter',
+        description: 'Open 3 chests.',
+        icon: Icons.card_giftcard,
+        color: Colors.deepOrange,
+        unlocked: QuestStatus.chestsOpened >= 3,
+      ),
+    ];
+  }
+
   List<Widget> _buildProfileContent(
       BuildContext context,
       User? user,
@@ -191,6 +220,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final xp = QuestStatus.xp;
     final xpToNext = QuestStatus.xpToNext;
     final progress = QuestStatus.xpProgress.clamp(0.0, 1.0);
+
+    // ✅ Dynamic streak label
+    final int streak = QuestStatus.streakDays;
+    final String streakLabel =
+        "$streak DAY${streak == 1 ? '' : 'S'}\nSTREAK";
+
+    // ✅ Medal count from same list used by Achievements tab
+    final medals = _allMedals();
+    final unlockedCount = medals.where((m) => m.unlocked).length;
 
     return [
       // -------- Level / XP Card --------
@@ -249,13 +287,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       const SizedBox(height: 20),
 
-      // -------- Small stats row --------
+      // -------- Dynamic stats row (streak/chests/medals) --------
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          const _TinyStat(
+          _TinyStat(
             icon: Icons.local_fire_department,
-            label: "3 DAYS\nSTREAK",
+            label: streakLabel,           // 🔥 dynamic streak here
             color: Colors.orange,
           ),
           _TinyStat(
@@ -265,8 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           _TinyStat(
             icon: Icons.emoji_events,
-            label:
-            "${QuestStatus.achievements.length} MEDAL${QuestStatus.achievements.length == 1 ? '' : 'S'}",
+            label: "$unlockedCount MEDAL${unlockedCount == 1 ? '' : 'S'}",
             color: Colors.pink,
           ),
         ],
@@ -306,34 +343,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
-  // ========= ACHIEVEMENTS TAB =========
   List<Widget> _buildAchievementContent() {
-    final medals = <_Medal>[
-      _Medal(
-        name: 'Welcome',
-        title: 'Welcome',
-        description: 'Unlocked a chest for the first time.',
-        icon: Icons.emoji_emotions,
-        color: Colors.amber,
-        unlocked: QuestStatus.achievements.contains('Welcome'),
-      ),
-      _Medal(
-        name: 'Quiz Novice',
-        title: 'Quiz Novice',
-        description: 'Finish your first quiz.',
-        icon: Icons.school,
-        color: Colors.blue,
-        unlocked: QuestStatus.level1Completed,
-      ),
-      _Medal(
-        name: 'Treasure Hunter',
-        title: 'Treasure Hunter',
-        description: 'Open 3 chests.',
-        icon: Icons.card_giftcard,
-        color: Colors.deepOrange,
-        unlocked: QuestStatus.chestsOpened >= 3,
-      ),
-    ];
+    final medals = _allMedals();
 
     return [
       const SizedBox(height: 8),

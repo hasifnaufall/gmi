@@ -113,6 +113,21 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         subtitle: "Score: ${QuestStatus.level1Score}/${questions.length}",
         bgColor: Colors.blue.shade600,
       );
+      // ✅ NEW: add streak for finishing a level (once per 24h)
+      final didIncrease = QuestStatus.addStreakForLevel();
+      if (didIncrease) {
+        // Optional: tiny toast to celebrate the streak bump
+        showAnimatedPopup(
+          icon: Icons.local_fire_department,
+          iconColor: Colors.orange,
+          title: "Streak +1!",
+          subtitle: "Current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays == 1 ? '' : 's'}",
+          bgColor: Colors.deepOrange.shade600,
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        Navigator.pop(context);
+      }
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return;
       Navigator.pop(context);
