@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'quest_status.dart';
 
 class AlphabetQuizScreen extends StatefulWidget {
+  /// startIndex = slot inside the 5-question session (0..4)
   final int? startIndex;
 
   const AlphabetQuizScreen({super.key, this.startIndex});
@@ -12,18 +13,48 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
-  late int currentQuestion;
+  // ---- CONFIG ----
+  static const int sessionSize = 5; // Level 1 = 5 random questions per run
+
+  // ---- SESSION STATE ----
+  late List<int> activeIndices; // the 5 chosen indices from the full pool
+  late int currentSlot;         // 0..activeIndices.length-1 (position in session)
   bool isOptionSelected = false;
+
+  // answers for THIS playthrough (key = index in FULL pool)
+  final Map<int, bool> _sessionAnswers = {};
 
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 
+  // Full question pool (as you provided)
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/Q1.jpg", "options": ["M", "P", "E", "S"], "correctIndex": 2},
-    {"image": "assets/images/Q2.jpg", "options": ["X", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/Q3.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 3},
-    {"image": "assets/images/Q4.jpg", "options": ["U", "Y", "N", "L"], "correctIndex": 0},
-    {"image": "assets/images/Q5.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 2},
+    {"image": "assets/images/Q1.jpg",  "options": ["P", "A", "E", "S"], "correctIndex": 1},
+    {"image": "assets/images/Q2.jpg",  "options": ["W", "U", "F", "B"], "correctIndex": 3},
+    {"image": "assets/images/Q3.jpg",  "options": ["C", "Z", "R", "H"], "correctIndex": 0},
+    {"image": "assets/images/Q4.jpg",  "options": ["U", "Y", "D", "L"], "correctIndex": 2},
+    {"image": "assets/images/Q5.jpg",  "options": ["J", "E", "I", "O"], "correctIndex": 1},
+    {"image": "assets/images/Q6.jpg",  "options": ["M", "F", "E", "S"], "correctIndex": 1},
+    {"image": "assets/images/Q7.jpg",  "options": ["X", "N", "G", "D"], "correctIndex": 2},
+    {"image": "assets/images/Q8.jpg",  "options": ["H", "O", "R", "Q"], "correctIndex": 0},
+    {"image": "assets/images/Q9.jpg",  "options": ["U", "Y", "N", "I"], "correctIndex": 3},
+    {"image": "assets/images/Q10.jpg", "options": ["J", "L", "I", "J"], "correctIndex": 3},
+    {"image": "assets/images/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1},
+    {"image": "assets/images/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0},
+    {"image": "assets/images/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2},
+    {"image": "assets/images/Q14.jpg", "options": ["N", "Y", "N", "L"], "correctIndex": 2},
+    {"image": "assets/images/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3},
+    {"image": "assets/images/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1},
+    {"image": "assets/images/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0},
+    {"image": "assets/images/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2},
+    {"image": "assets/images/Q19.jpg", "options": ["C", "Y", "N", "R"], "correctIndex": 3},
+    {"image": "assets/images/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1},
+    {"image": "assets/images/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0},
+    {"image": "assets/images/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0},
+    {"image": "assets/images/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3},
+    {"image": "assets/images/Q24.jpg", "options": ["U", "Y", "B", "L"], "correctIndex": 2},
+    {"image": "assets/images/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1},
+    {"image": "assets/images/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3},
   ];
 
   final List<Color> kahootColors = [
@@ -33,18 +64,26 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     Colors.greenAccent,
   ];
 
-  int _firstUnansweredIndex() {
-    for (int i = 0; i < questions.length; i++) {
-      if (QuestStatus.level1Answers[i] == null) return i;
+  // ---------- Session helpers ----------
+  bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
+
+  int _firstUnansweredSlot() {
+    for (int s = 0; s < activeIndices.length; s++) {
+      if (!_isAnsweredInSession(activeIndices[s])) return s;
     }
-    return questions.length - 1;
+    return 0;
   }
 
-  bool _allAnswered() => QuestStatus.level1Answers.every((e) => e != null);
+  bool _allAnsweredInSession() {
+    for (final i in activeIndices) {
+      if (!_sessionAnswers.containsKey(i)) return false;
+    }
+    return true;
+  }
 
-  int? _nextUnansweredAfter(int from) {
-    for (int i = from + 1; i < questions.length; i++) {
-      if (QuestStatus.level1Answers[i] == null) return i;
+  int? _nextUnansweredSlotAfter(int fromSlot) {
+    for (int s = fromSlot + 1; s < activeIndices.length; s++) {
+      if (!_isAnsweredInSession(activeIndices[s])) return s;
     }
     return null;
   }
@@ -52,19 +91,28 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
-    QuestStatus.ensureLevel1Length(questions.length);
 
-    int start = widget.startIndex ?? _firstUnansweredIndex();
-    start = start.clamp(0, questions.length - 1);
-    currentQuestion = start;
+    // 1) Pick a fresh random set of 5
+    final all = List<int>.generate(questions.length, (i) => i)..shuffle();
+    activeIndices = all.take(sessionSize).toList();
 
+    // 2) Make Level 1 progress exactly 5 slots and reset it (so quests see this run)
+    QuestStatus.ensureLevel1Length(activeIndices.length); // = 5
+    QuestStatus.resetLevel1Answers();                     // all -> null
+
+    // 3) Where to start in the 5
+    int startSlot = widget.startIndex ?? _firstUnansweredSlot();
+    startSlot = startSlot.clamp(0, activeIndices.length - 1);
+    currentSlot = startSlot;
+
+    // 4) Animations
     _controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentQuestion > 0 && mounted) {
+      if (currentSlot > 0 && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resumed where you left off'), duration: Duration(seconds: 1)),
         );
@@ -74,16 +122,23 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
-    if (QuestStatus.level1Answers[currentQuestion] != null) return;
+
+    final qIdx = activeIndices[currentSlot];
+    if (_sessionAnswers.containsKey(qIdx)) return; // already answered this one in THIS session
 
     setState(() => isOptionSelected = true);
 
-    final correctIndex = questions[currentQuestion]['correctIndex'] as int;
+    final correctIndex = questions[qIdx]['correctIndex'] as int;
     final isCorrect = selectedIndex == correctIndex;
-    QuestStatus.level1Answers[currentQuestion] = isCorrect;
+
+    // Save for this run
+    _sessionAnswers[qIdx] = isCorrect;
+
+    // 🔗 Mirror into the 5-slot Level 1 progress so quests/medals can see it
+    QuestStatus.level1Answers[currentSlot] = isCorrect;
 
     if (isCorrect) {
-      final levels = QuestStatus.addXp(20);
+      final levels = QuestStatus.addXp(20); // XP every playthrough
       showAnimatedPopup(
         icon: Icons.star,
         iconColor: Colors.yellow.shade700,
@@ -92,7 +147,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         bgColor: Colors.green.shade600,
       );
     } else {
-      final correctLetter = (questions[currentQuestion]['options'] as List<String>)[correctIndex];
+      final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
       showAnimatedPopup(
         icon: Icons.close,
         iconColor: Colors.redAccent,
@@ -104,19 +159,35 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     await Future.delayed(const Duration(milliseconds: 250));
 
-    if (_allAnswered()) {
+    if (_allAnsweredInSession()) {
       if (!mounted) return;
+
+      final sessionScore = activeIndices.where((i) => _sessionAnswers[i] == true).length;
+
       showAnimatedPopup(
         icon: Icons.emoji_events,
         iconColor: Colors.amber,
         title: "Quiz Complete!",
-        subtitle: "Score: ${QuestStatus.level1Score}/${questions.length}",
+        subtitle: "Score: $sessionScore/${activeIndices.length}",
         bgColor: Colors.blue.shade600,
       );
-      // ✅ NEW: add streak for finishing a level (once per 24h)
+
+      // 🏅 One-time medal (persisted)
+      final justEarned = await QuestStatus.markFirstQuizMedalEarned();
+      if (justEarned && mounted) {
+        showAnimatedPopup(
+          icon: Icons.military_tech,
+          iconColor: Colors.amber,
+          title: "Medal unlocked!",
+          subtitle: "Finish your first quiz",
+          bgColor: Colors.indigo.shade600,
+        );
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      // 🔥 Streak bump (once per 24h)
       final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease) {
-        // Optional: tiny toast to celebrate the streak bump
+      if (didIncrease && mounted) {
         showAnimatedPopup(
           icon: Icons.local_fire_department,
           iconColor: Colors.orange,
@@ -125,16 +196,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           bgColor: Colors.deepOrange.shade600,
         );
         await Future.delayed(const Duration(seconds: 2));
-        if (!mounted) return;
-        Navigator.pop(context);
       }
-      await Future.delayed(const Duration(seconds: 2));
+
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pop(context); // back to previous screen
     } else {
-      final next = _nextUnansweredAfter(currentQuestion);
+      final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
-        currentQuestion = (next ?? (currentQuestion + 1)).clamp(0, questions.length - 1);
+        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
         isOptionSelected = false;
         _controller.reset();
         _controller.forward();
@@ -173,7 +242,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   // ---------- Kahoot Button ----------
   Widget kahootButton(String label, Color color, int index) {
-    final alreadyAnswered = QuestStatus.level1Answers[currentQuestion] != null;
+    final qIdx = activeIndices[currentSlot];
+    final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
+
     return GestureDetector(
       onTap: alreadyAnswered ? null : () => handleAnswer(index),
       child: Opacity(
@@ -199,7 +270,8 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   @override
   Widget build(BuildContext context) {
-    final question = questions[currentQuestion];
+    final qIdx = activeIndices[currentSlot];
+    final question = questions[qIdx];
     final options = question['options'] as List<String>;
 
     return Scaffold(
@@ -212,8 +284,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             position: _offsetAnimation,
             child: Column(
               children: [
-                Text("Question ${currentQuestion + 1} of ${questions.length}",
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  "Question ${currentSlot + 1} of ${activeIndices.length}",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 20),
                 Image.asset(question['image'], fit: BoxFit.contain, height: 180),
                 const SizedBox(height: 20),
