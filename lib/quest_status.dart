@@ -1,10 +1,10 @@
-import 'package:shared_preferences/shared_preferences.dart';
+// quest_status.dart
+// In-memory only: no persistence. Perfect for testing.
+// Everything resets when the app restarts.
 
 class QuestStatus {
   // ================= Level 1 (Alphabet) =================
-  /// Per-question results: null = unanswered, true = correct, false = wrong
   static List<bool?> level1Answers = List<bool?>.filled(5, null);
-
   static int get completedQuestions => level1Answers.where((e) => e != null).length;
   static bool get level1Completed => level1Answers.every((e) => e != null);
   static int get level1Score => level1Answers.where((e) => e == true).length;
@@ -20,88 +20,149 @@ class QuestStatus {
   }
 
   // ================= Keys / Quests =================
-  static int userPoints = 0;            // keys (quests may still award these)
+  static int userPoints = 0;            // in-app currency ("keys")
   static bool quest1Claimed = false;    // "Complete 3 Questions"
   static bool quest2Claimed = false;    // "Complete Level 1"
 
-  // ================= Chest Progress (CLAIMS-based) =================
-  /// Progress points from claims (Quest1 +15, Quest2 +15, ...)
+  static bool canClaimQuest1() => completedQuestions >= 3 && !quest1Claimed;
+  static int claimQuest1({int reward = 100, int progress = 15}) {
+    if (!canClaimQuest1()) return 0;
+    quest1Claimed = true;
+    userPoints += reward;
+    claimedPoints += progress;
+    return reward;
+  }
+
+  static bool canClaimQuest2() => level1Completed && !quest2Claimed;
+  static int claimQuest2({int reward = 100, int progress = 15}) {
+    if (!canClaimQuest2()) return 0;
+    quest2Claimed = true;
+    userPoints += reward;
+    claimedPoints += progress;
+    return reward;
+  }
+
+  // ================= Chest Progress =================
   static int claimedPoints = 0;
-
-  /// Current chest tier target (starts at 30; after chest -> 50; then +50 each time)
   static int levelGoalPoints = 30;
-
-  /// Count of opened chests
   static int chestsOpened = 0;
-
-  /// Advance chest tier size (30 -> 50 -> 100 -> 150 ...)
   static void advanceChestTier() {
     if (levelGoalPoints < 50) {
-      levelGoalPoints = 50; // 30 -> 50
+      levelGoalPoints = 50;
     } else {
-      levelGoalPoints += 50; // 50 -> 100 -> 150 ...
+      levelGoalPoints += 50;
     }
-    // If you want to reset progress after each chest, uncomment:
-    // claimedPoints = 0;
+    // claimedPoints = 0; // optional reset after open
   }
 
   // ================= Achievements =================
-  /// Store unlocked achievement names (session memory). We also persist important ones.
   static Set<String> achievements = <String>{};
-
-  /// Returns true if it's newly unlocked (in-memory only)
   static bool awardAchievement(String name) {
     if (achievements.contains(name)) return false;
     achievements.add(name);
     return true;
   }
 
-  // ------- One-time Medal: "Finish your first quiz" (persisted) -------
-  static const String _kMedalFirstQuiz = 'medal_first_quiz_level1';
+  // ------- One-time Medal (session only; no persistence) -------
+  static bool _medalFirstQuiz = false;
+  static Future<bool> hasFirstQuizMedal() async => _medalFirstQuiz;
 
-  /// Check if the medal was already earned (persisted).
-  static Future<bool> hasFirstQuizMedal() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_kMedalFirstQuiz) == true;
-  }
-
-  /// Mark the medal as earned once. Returns true only the FIRST time.
-  /// Also adds the text into the in-memory `achievements` set.
   static Future<bool> markFirstQuizMedalEarned() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_kMedalFirstQuiz) == true) {
-      return false; // already awarded earlier
-    }
-    await prefs.setBool(_kMedalFirstQuiz, true);
+    if (_medalFirstQuiz) return false;
+    _medalFirstQuiz = true;
     achievements.add("Finish your first quiz");
     return true;
   }
 
-  // Optional helper to clear the medal (for debugging / full reset flows)
-  static Future<void> _clearFirstQuizMedal() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kMedalFirstQuiz);
-  }
-
   // ================= XP / Level =================
-  static int xp = 0;      // XP toward next level (rollover kept here)
+  static int xp = 0;
   static int level = 1;
-
-  /// XP required per level (simple linear curve)
   static int xpForLevel(int lvl) => 100 + (lvl - 1) * 50;
   static int get xpToNext => xpForLevel(level);
   static double get xpProgress => xpToNext == 0 ? 0 : xp / xpToNext;
 
-  /// Add XP, handle rollovers, and return how many levels were gained
+  /// Returns how many levels were gained
   static int addXp(int amount) {
     int levelsUp = 0;
     xp += amount;
     while (xp >= xpToNext) {
-      xp -= xpToNext; // rollover to next level
+      xp -= xpToNext;
       level += 1;
       levelsUp += 1;
     }
     return levelsUp;
+  }
+
+  // ================= Content Keys & Level Thresholds =================
+  static const String levelAlphabet   = 'alphabet';
+  static const String levelNumbers    = 'numbers';
+  static const String levelGreetings  = 'greetings';
+  static const String levelColour     = 'colour';
+  static const String levelCommonVerb = 'commonVerb';
+
+  static const Map<String, int> _unlockAtLevel = {
+    levelAlphabet  : 1,   // always accessible (no purchase)
+    levelNumbers   : 5,
+    levelGreetings : 10,
+    levelColour    : 15,
+    levelCommonVerb: 25,
+  };
+
+  static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
+  static bool meetsLevelRequirement(String key) => level >= requiredLevelFor(key);
+
+  // Helper for UI popups after levelling up
+  static List<String> unlockedBetween(int fromLevel, int toLevel) {
+    final List<String> hits = [];
+    _unlockAtLevel.forEach((key, need) {
+      if (need > fromLevel && need <= toLevel) hits.add(key);
+    });
+    return hits;
+  }
+
+  static String titleFor(String key) {
+    switch (key) {
+      case levelAlphabet:   return "Alphabet";
+      case levelNumbers:    return "Numbers";
+      case levelGreetings:  return "Greetings";
+      case levelColour:     return "Colour";
+      case levelCommonVerb: return "Common Verbs";
+      default:              return key;
+    }
+  }
+
+  // ================= Manual unlock (Level + 200 keys) — In-Memory Only =================
+  static const int unlockCost = 200;
+  static Set<String> _unlockedContent = <String>{}; // session only
+
+  /// Alphabet is always playable; others require manual unlock.
+  static bool isContentUnlocked(String key) {
+    if (key == levelAlphabet) return true;
+    return _unlockedContent.contains(key);
+  }
+
+  /// No-op; kept for compatibility with screens that call it.
+  static Future<void> ensureUnlocksLoaded() async {
+    return; // nothing to load (no persistence)
+  }
+
+  /// No-op; kept for compatibility.
+  static Future<void> _saveUnlocks() async {
+    return; // nothing to save (no persistence)
+  }
+
+  /// Attempt to unlock content. Requires BOTH: level >= required AND 200 keys.
+  /// Unlock exists only for current session (resets on app restart).
+  static Future<UnlockStatus> attemptUnlock(String key) async {
+    if (key == levelAlphabet) return UnlockStatus.alreadyUnlocked;
+    if (_unlockedContent.contains(key)) return UnlockStatus.alreadyUnlocked;
+
+    if (level < requiredLevelFor(key)) return UnlockStatus.needLevel;
+    if (userPoints < unlockCost) return UnlockStatus.needKeys;
+
+    userPoints -= unlockCost;
+    _unlockedContent.add(key);
+    return UnlockStatus.success;
   }
 
   // ================= Streak (24h window) =================
@@ -109,22 +170,17 @@ class QuestStatus {
   static int longestStreak = 0;
   static DateTime? lastStreakUtc;
 
-  /// Call this when the user COMPLETES a level (or session).
-  /// Returns true if the streak actually increased (i.e., 24h passed since last increment).
   static bool addStreakForLevel({DateTime? now}) {
     final n = (now ?? DateTime.now()).toUtc();
-
     if (lastStreakUtc == null || n.difference(lastStreakUtc!).inHours >= 24) {
       streakDays += 1;
       if (streakDays > longestStreak) longestStreak = streakDays;
       lastStreakUtc = n;
       return true;
     }
-    // Not enough time passed → no increment
     return false;
   }
 
-  /// Optional: reset streak (useful for debugging or account reset)
   static void resetStreak() {
     streakDays = 0;
     longestStreak = 0;
@@ -149,7 +205,6 @@ class QuestStatus {
     level = 1;
   }
 
-  /// In-memory reset only
   static void resetAll() {
     resetLevel1Answers();
     quest1Claimed = false;
@@ -158,11 +213,15 @@ class QuestStatus {
     achievements.clear();
     resetChestProgress();
     resetXp();
+    _unlockedContent.clear();
+    _medalFirstQuiz = false;
+    resetStreak();
   }
 
-  /// Full reset including persisted medals (debug/admin use).
+  /// Compatibility placeholder (no persistence). Same as resetAll.
   static Future<void> resetAllPersistent() async {
     resetAll();
-    await _clearFirstQuizMedal();
   }
 }
+
+enum UnlockStatus { success, alreadyUnlocked, needLevel, needKeys }

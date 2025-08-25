@@ -13,21 +13,20 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
-  // ---- CONFIG ----
-  static const int sessionSize = 5; // Level 1 = 5 random questions per run
+  static const int sessionSize = 5; // Level 1: 5 random questions per run
 
-  // ---- SESSION STATE ----
-  late List<int> activeIndices; // the 5 chosen indices from the full pool
-  late int currentSlot;         // 0..activeIndices.length-1 (position in session)
+  // Session
+  late List<int> activeIndices; // the 5 chosen indices from full pool
+  late int currentSlot;         // 0..activeIndices.length-1
   bool isOptionSelected = false;
 
-  // answers for THIS playthrough (key = index in FULL pool)
+  // Per-playthrough answers (key=index in FULL pool)
   final Map<int, bool> _sessionAnswers = {};
 
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 
-  // Full question pool (as you provided)
+  // Full pool (your data)
   final List<Map<String, dynamic>> questions = [
     {"image": "assets/images/Q1.jpg",  "options": ["P", "A", "E", "S"], "correctIndex": 1},
     {"image": "assets/images/Q2.jpg",  "options": ["W", "U", "F", "B"], "correctIndex": 3},
@@ -38,7 +37,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     {"image": "assets/images/Q7.jpg",  "options": ["X", "N", "G", "D"], "correctIndex": 2},
     {"image": "assets/images/Q8.jpg",  "options": ["H", "O", "R", "Q"], "correctIndex": 0},
     {"image": "assets/images/Q9.jpg",  "options": ["U", "Y", "N", "I"], "correctIndex": 3},
-    {"image": "assets/images/Q10.jpg", "options": ["J", "L", "I", "J"], "correctIndex": 3},
+    {"image": "assets/images/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3},
     {"image": "assets/images/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1},
     {"image": "assets/images/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0},
     {"image": "assets/images/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2},
@@ -47,12 +46,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     {"image": "assets/images/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1},
     {"image": "assets/images/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0},
     {"image": "assets/images/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2},
-    {"image": "assets/images/Q19.jpg", "options": ["C", "Y", "N", "R"], "correctIndex": 3},
+    {"image": "assets/images/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3},
     {"image": "assets/images/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1},
     {"image": "assets/images/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0},
     {"image": "assets/images/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0},
     {"image": "assets/images/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3},
-    {"image": "assets/images/Q24.jpg", "options": ["U", "Y", "B", "L"], "correctIndex": 2},
+    {"image": "assets/images/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2},
     {"image": "assets/images/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1},
     {"image": "assets/images/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3},
   ];
@@ -96,7 +95,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
     activeIndices = all.take(sessionSize).toList();
 
-    // 2) Make Level 1 progress exactly 5 slots and reset it (so quests see this run)
+    // 2) Make Level 1 progress exactly 5 slots and reset it (so quests/medal see this run)
     QuestStatus.ensureLevel1Length(activeIndices.length); // = 5
     QuestStatus.resetLevel1Answers();                     // all -> null
 
@@ -124,7 +123,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     if (isOptionSelected) return;
 
     final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return; // already answered this one in THIS session
+    if (_sessionAnswers.containsKey(qIdx)) return; // answered in THIS session
 
     setState(() => isOptionSelected = true);
 
@@ -134,11 +133,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     // Save for this run
     _sessionAnswers[qIdx] = isCorrect;
 
-    // 🔗 Mirror into the 5-slot Level 1 progress so quests/medals can see it
+    // Mirror into the 5-slot Level 1 progress so quests/medal align
     QuestStatus.level1Answers[currentSlot] = isCorrect;
 
     if (isCorrect) {
+      final oldLvl = QuestStatus.level;
       final levels = QuestStatus.addXp(20); // XP every playthrough
+
+      // XP / Level-up feedback
       showAnimatedPopup(
         icon: Icons.star,
         iconColor: Colors.yellow.shade700,
@@ -146,6 +148,21 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
         bgColor: Colors.green.shade600,
       );
+
+      // Announce any new unlocks crossed by this level-up
+      if (levels > 0) {
+        final newlyUnlocked = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        for (final key in newlyUnlocked) {
+          showAnimatedPopup(
+            icon: Icons.lock_open,
+            iconColor: Colors.lightGreenAccent,
+            title: "New Level Unlocked!",
+            subtitle: QuestStatus.titleFor(key),
+            bgColor: Colors.teal.shade700,
+          );
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
     } else {
       final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
       showAnimatedPopup(
@@ -172,7 +189,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         bgColor: Colors.blue.shade600,
       );
 
-      // 🏅 One-time medal (persisted)
+      // Medal once
       final justEarned = await QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
@@ -185,7 +202,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         await Future.delayed(const Duration(seconds: 2));
       }
 
-      // 🔥 Streak bump (once per 24h)
+      // Streak bump (once per 24h)
       final didIncrease = QuestStatus.addStreakForLevel();
       if (didIncrease && mounted) {
         showAnimatedPopup(
@@ -199,7 +216,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       }
 
       if (!mounted) return;
-      Navigator.pop(context); // back to previous screen
+      Navigator.pop(context);
     } else {
       final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
