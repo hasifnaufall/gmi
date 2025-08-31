@@ -5,9 +5,11 @@
 class QuestStatus {
   // ================= Level 1 (Alphabet) =================
   static List<bool?> level1Answers = List<bool?>.filled(5, null);
-  static int get completedQuestions => level1Answers.where((e) => e != null).length;
+  static int get completedQuestions =>
+      level1Answers.where((e) => e != null).length;
   static bool get level1Completed => level1Answers.every((e) => e != null);
-  static int get level1Score => level1Answers.where((e) => e == true).length;
+  static int get level1Score =>
+      level1Answers.where((e) => e == true).length;
 
   static void ensureLevel1Length(int length) {
     if (level1Answers.length != length) {
@@ -20,26 +22,119 @@ class QuestStatus {
   }
 
   // ================= Keys / Quests =================
-  static int userPoints = 0;            // in-app currency ("keys")
-  static bool quest1Claimed = false;    // "Complete 3 Questions"
-  static bool quest2Claimed = false;    // "Complete Level 1"
+  static int userPoints = 0;
 
-  static bool canClaimQuest1() => completedQuestions >= 3 && !quest1Claimed;
+  // Quest flags
+  static bool quest1Claimed = false; // Start Alphabet
+  static bool quest2Claimed = false; // Complete 3 Qs in Alphabet
+  static bool quest3Claimed = false; // Finish 3 rounds of Alphabet
+  static bool quest4Claimed = false; // Unlock Numbers
+
+  // Extra tracker
+  static int alphabetRoundsCompleted = 0;
+
+  // ================= Medal Tracking =================
+  static bool firstQuizMedalEarned = false;
+
+  // --- Quest 1 ---
+  static bool canClaimQuest1() =>
+      completedQuestions >= 1 && !quest1Claimed;
   static int claimQuest1({int reward = 100, int progress = 15}) {
     if (!canClaimQuest1()) return 0;
     quest1Claimed = true;
     userPoints += reward;
     claimedPoints += progress;
+    addXp(50);
     return reward;
   }
 
-  static bool canClaimQuest2() => level1Completed && !quest2Claimed;
+  // --- Quest 2 ---
+  static bool canClaimQuest2() =>
+      completedQuestions >= 3 && !quest2Claimed;
   static int claimQuest2({int reward = 100, int progress = 15}) {
     if (!canClaimQuest2()) return 0;
     quest2Claimed = true;
     userPoints += reward;
     claimedPoints += progress;
+    addXp(80);
     return reward;
+  }
+
+  // --- Quest 3 ---
+  static bool canClaimQuest3() =>
+      alphabetRoundsCompleted >= 3 && !quest3Claimed;
+  static int claimQuest3({int reward = 200, int progress = 20}) {
+    if (!canClaimQuest3()) return 0;
+    quest3Claimed = true;
+    userPoints += reward;
+    claimedPoints += progress;
+    addXp(150);
+    return reward;
+  }
+
+  // --- Quest 4 ---
+  static bool canClaimQuest4() =>
+      isContentUnlocked(levelNumbers) && !quest4Claimed;
+  static int claimQuest4({int reward = 300, int progress = 30}) {
+    if (!canClaimQuest4()) return 0;
+    quest4Claimed = true;
+    userPoints += reward;
+    claimedPoints += progress;
+    addXp(200);
+    return reward;
+  }
+
+  // ================= Missing Methods (Added) =================
+
+  /// Initialize unlocks - can be used to preload any data
+  static Future<void> ensureUnlocksLoaded() async {
+    // Initialize any unlock data if needed
+    // For now, this is just a placeholder that ensures initialization
+    await Future.delayed(Duration(milliseconds: 1)); // Simulate async operation
+  }
+
+  /// Get list of content keys unlocked between two levels
+  static List<String> unlockedBetween(int oldLevel, int newLevel) {
+    List<String> newlyUnlocked = [];
+
+    for (String contentKey in _unlockAtLevel.keys) {
+      int requiredLevel = _unlockAtLevel[contentKey]!;
+      if (requiredLevel > oldLevel && requiredLevel <= newLevel) {
+        newlyUnlocked.add(contentKey);
+      }
+    }
+
+    return newlyUnlocked;
+  }
+
+  /// Get display title for a content key
+  static String titleFor(String key) {
+    switch (key) {
+      case levelAlphabet:
+        return 'Alphabet Quest';
+      case levelNumbers:
+        return 'Numbers Quest';
+      case levelGreetings:
+        return 'Greetings Quest';
+      case levelColour:
+        return 'Colors Quest';
+      case levelCommonVerb:
+        return 'Common Verbs Quest';
+      default:
+        return key.replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
+    }
+  }
+
+  /// Mark that the first quiz medal was earned (returns true if this was the first time)
+  static Future<bool> markFirstQuizMedalEarned() async {
+    if (firstQuizMedalEarned) {
+      return false; // Already earned before
+    }
+
+    firstQuizMedalEarned = true;
+    // You could award bonus XP or points here for the first medal
+    addXp(25);
+    return true; // This was the first time earning a medal
   }
 
   // ================= Chest Progress =================
@@ -52,7 +147,6 @@ class QuestStatus {
     } else {
       levelGoalPoints += 50;
     }
-    // claimedPoints = 0; // optional reset after open
   }
 
   // ================= Achievements =================
@@ -63,23 +157,13 @@ class QuestStatus {
     return true;
   }
 
-  // ------- One-time Medal (session only; no persistence) -------
-  static bool _medalFirstQuiz = false;
-  static Future<bool> hasFirstQuizMedal() async => _medalFirstQuiz;
-
-  static Future<bool> markFirstQuizMedalEarned() async {
-    if (_medalFirstQuiz) return false;
-    _medalFirstQuiz = true;
-    achievements.add("Finish your first quiz");
-    return true;
-  }
-
   // ================= XP / Level =================
   static int xp = 0;
   static int level = 1;
   static int xpForLevel(int lvl) => 100 + (lvl - 1) * 50;
   static int get xpToNext => xpForLevel(level);
-  static double get xpProgress => xpToNext == 0 ? 0 : xp / xpToNext;
+  static double get xpProgress =>
+      xpToNext == 0 ? 0 : xp / xpToNext;
 
   /// Returns how many levels were gained
   static int addXp(int amount) {
@@ -94,65 +178,33 @@ class QuestStatus {
   }
 
   // ================= Content Keys & Level Thresholds =================
-  static const String levelAlphabet   = 'alphabet';
-  static const String levelNumbers    = 'numbers';
-  static const String levelGreetings  = 'greetings';
-  static const String levelColour     = 'colour';
+  static const String levelAlphabet = 'alphabet';
+  static const String levelNumbers = 'numbers';
+  static const String levelGreetings = 'greetings';
+  static const String levelColour = 'colour';
   static const String levelCommonVerb = 'commonVerb';
 
   static const Map<String, int> _unlockAtLevel = {
-    levelAlphabet  : 1,   // always accessible (no purchase)
-    levelNumbers   : 5,
-    levelGreetings : 10,
-    levelColour    : 15,
+    levelAlphabet: 1,
+    levelNumbers: 5,
+    levelGreetings: 10,
+    levelColour: 15,
     levelCommonVerb: 25,
   };
 
-  static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
-  static bool meetsLevelRequirement(String key) => level >= requiredLevelFor(key);
+  static int requiredLevelFor(String key) =>
+      _unlockAtLevel[key] ?? 1;
+  static bool meetsLevelRequirement(String key) =>
+      level >= requiredLevelFor(key);
 
-  // Helper for UI popups after levelling up
-  static List<String> unlockedBetween(int fromLevel, int toLevel) {
-    final List<String> hits = [];
-    _unlockAtLevel.forEach((key, need) {
-      if (need > fromLevel && need <= toLevel) hits.add(key);
-    });
-    return hits;
-  }
-
-  static String titleFor(String key) {
-    switch (key) {
-      case levelAlphabet:   return "Alphabet";
-      case levelNumbers:    return "Numbers";
-      case levelGreetings:  return "Greetings";
-      case levelColour:     return "Colour";
-      case levelCommonVerb: return "Common Verbs";
-      default:              return key;
-    }
-  }
-
-  // ================= Manual unlock (Level + 200 keys) — In-Memory Only =================
-  static const int unlockCost = 200;
-  static Set<String> _unlockedContent = <String>{}; // session only
-
-  /// Alphabet is always playable; others require manual unlock.
   static bool isContentUnlocked(String key) {
     if (key == levelAlphabet) return true;
     return _unlockedContent.contains(key);
   }
 
-  /// No-op; kept for compatibility with screens that call it.
-  static Future<void> ensureUnlocksLoaded() async {
-    return; // nothing to load (no persistence)
-  }
+  static const int unlockCost = 200;
+  static Set<String> _unlockedContent = <String>{};
 
-  /// No-op; kept for compatibility.
-  static Future<void> _saveUnlocks() async {
-    return; // nothing to save (no persistence)
-  }
-
-  /// Attempt to unlock content. Requires BOTH: level >= required AND 200 keys.
-  /// Unlock exists only for current session (resets on app restart).
   static Future<UnlockStatus> attemptUnlock(String key) async {
     if (key == levelAlphabet) return UnlockStatus.alreadyUnlocked;
     if (_unlockedContent.contains(key)) return UnlockStatus.alreadyUnlocked;
@@ -194,33 +246,23 @@ class QuestStatus {
     }
   }
 
-  static void resetChestProgress() {
-    claimedPoints = 0;
-    levelGoalPoints = 30;
-    chestsOpened = 0;
-  }
-
-  static void resetXp() {
-    xp = 0;
-    level = 1;
-  }
-
   static void resetAll() {
     resetLevel1Answers();
     quest1Claimed = false;
     quest2Claimed = false;
+    quest3Claimed = false;
+    quest4Claimed = false;
     userPoints = 0;
     achievements.clear();
-    resetChestProgress();
-    resetXp();
+    claimedPoints = 0;
+    levelGoalPoints = 30;
+    chestsOpened = 0;
+    xp = 0;
+    level = 1;
     _unlockedContent.clear();
-    _medalFirstQuiz = false;
     resetStreak();
-  }
-
-  /// Compatibility placeholder (no persistence). Same as resetAll.
-  static Future<void> resetAllPersistent() async {
-    resetAll();
+    firstQuizMedalEarned = false; // Reset medal tracking
+    alphabetRoundsCompleted = 0;
   }
 }
 

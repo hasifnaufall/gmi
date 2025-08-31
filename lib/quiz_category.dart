@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'quest.dart';
+import 'number_q.dart';
 import 'alphabet_q.dart';
 import 'quest_status.dart';
 
@@ -30,14 +31,19 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     setState(() => _selectedIndex = index);
 
     switch (index) {
-      case 0: break;
+      case 0:
+        break;
       case 1:
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const QuestScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const QuestScreen()),
+        );
         break;
       case 2:
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const ProfileScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        );
         break;
     }
   }
@@ -162,14 +168,18 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   Row(children: [
                     const Icon(Icons.key, color: Colors.amber, size: 24),
                     const SizedBox(width: 6),
-                    Text('$points',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(
+                      '$points',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                   ]),
                   Row(children: [
                     const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
                     const SizedBox(width: 6),
-                    Text('$streak',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(
+                      '$streak',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
                   ]),
                 ],
               ),
@@ -191,11 +201,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
           // Alphabet
           buildCategoryTile(
-            context, "ALPHABET", Icons.abc,
-            Colors.lightBlue.shade200, true,
+            context,
+            "ALPHABET",
+            Icons.abc,
+            Colors.lightBlue.shade200,
+            true,
             onTap: () async {
               await Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()));
+                context,
+                MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
+              );
               if (!mounted) return;
               setState(() {});
             },
@@ -203,17 +218,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
           // Numbers (Level 5 + 200 keys)
           buildCategoryTile(
-            context, "NUMBER", Icons.looks_3,
+            context,
+            "NUMBER",
+            Icons.looks_3,
             isNumbersUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isNumbersUnlocked,
             onTap: () {
               _handleOpenOrUnlock(
                 key: QuestStatus.levelNumbers,
                 title: "Numbers",
-                onOpen: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening Numbers... (WIP)')),
+                onOpen: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
                   );
+                  if (!mounted) return;
+                  setState(() {}); // refresh after returning
                 },
               );
             },
@@ -221,7 +241,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
           // Greetings (Level 10 + 200 keys)
           buildCategoryTile(
-            context, "GREETINGS", Icons.person,
+            context,
+            "GREETINGS",
+            Icons.person,
             isGreetingsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isGreetingsUnlocked,
             onTap: () {
@@ -239,7 +261,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
           // Colour (Level 15 + 200 keys)
           buildCategoryTile(
-            context, "COLOUR", Icons.palette,
+            context,
+            "COLOUR",
+            Icons.palette,
             isColourUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isColourUnlocked,
             onTap: () {
@@ -257,7 +281,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
           // Common Verbs (Level 25 + 200 keys)
           buildCategoryTile(
-            context, "COMMON VERBS", Icons.flash_on,
+            context,
+            "COMMON VERBS",
+            Icons.flash_on,
             isCommonVerbUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isCommonVerbUnlocked,
             onTap: () {
@@ -287,8 +313,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }
 
   Widget buildCategoryTile(
-      BuildContext context, String title, IconData icon,
-      Color color, bool unlocked, {VoidCallback? onTap}) {
+      BuildContext context,
+      String title,
+      IconData icon,
+      Color color,
+      bool unlocked, {
+        VoidCallback? onTap,
+      }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -309,8 +340,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               ),
             ),
             const Spacer(),
-            Icon(icon, size: 30,
-                color: unlocked ? Colors.black : Colors.black45),
+            Icon(
+              icon,
+              size: 30,
+              color: unlocked ? Colors.black : Colors.black45,
+            ),
           ],
         ),
       ),

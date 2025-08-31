@@ -1,11 +1,12 @@
+// android/app/build.gradle.kts
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
+    // Google Services plugin (works with classpath in project build.gradle.kts)
+    id("com.google.gms.google-services")
 }
-
-// Apply AFTER plugins block when using legacy classpath approach
-apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.gmi.waveact"
@@ -21,6 +22,7 @@ android {
     }
 
     compileOptions {
+        // Use Java 17
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -30,9 +32,21 @@ android {
 
     buildTypes {
         release {
+            // Use your real release signing config when you have one
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+        }
+        debug {
+            // Debug defaults are fine
         }
     }
+
+    // (Optional) If you run into duplicate file issues later, uncomment:
+    // packaging {
+    //     resources {
+    //         excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    //     }
+    // }
 }
 
 flutter {
@@ -40,6 +54,17 @@ flutter {
 }
 
 dependencies {
-    // Optional BoM, keep only if you add native Firebase deps yourself
+    // Firebase BoM is only needed if you add native Firebase libs here.
+    // The FlutterFire plugins already include what they need.
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+
+    // Optional: Google Sign-In native dependency (google_sign_in brings it transitively,
+    // but declaring it can help resolve versions consistently)
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }
+
+/**
+ * Register a signingReport task so you can generate SHA-1 / SHA-256
+ * from Android Studio's Gradle panel (app > Tasks > other > signingReport)
+ * or via:  ./gradlew :app:signingReport
+ */

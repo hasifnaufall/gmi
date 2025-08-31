@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'quest_status.dart';
 
-class AlphabetQuizScreen extends StatefulWidget {
+class NumberQuizScreen extends StatefulWidget {
   /// startIndex = slot inside the 5-question session (0..4)
   final int? startIndex;
 
-  const AlphabetQuizScreen({super.key, this.startIndex});
+  const NumberQuizScreen({super.key, this.startIndex});
 
   @override
-  State<AlphabetQuizScreen> createState() => _AlphabetQuizScreenState();
+  State<NumberQuizScreen> createState() => _NumberQuizScreenState();
 }
 
-class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
+class _NumberQuizScreenState extends State<NumberQuizScreen>
     with SingleTickerProviderStateMixin {
-  static const int sessionSize = 5; // Level 1: 5 random questions per run
+  static const int sessionSize = 5; // 5 random questions per run
 
   // Session
   late List<int> activeIndices; // the 5 chosen indices from full pool
@@ -26,41 +26,29 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 
-  // Full pool (your data)
+  // ---------- MANUAL IMAGE QUESTIONS (edit here) ----------
+  // Use any images and options you want. correctIndex is 0..3
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/alphabet/Q1.jpg",  "options": ["P", "A", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q2.jpg",  "options": ["W", "U", "F", "B"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q3.jpg",  "options": ["C", "Z", "R", "H"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q4.jpg",  "options": ["U", "Y", "D", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q5.jpg",  "options": ["J", "E", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q6.jpg",  "options": ["M", "F", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q7.jpg",  "options": ["X", "N", "G", "D"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q8.jpg",  "options": ["H", "O", "R", "Q"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q9.jpg",  "options": ["U", "Y", "N", "I"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q14.jpg", "options": ["Z", "Y", "N", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3},
-  ];
-
-  final List<Color> kahootColors = [
-    Colors.redAccent,
-    Colors.blueAccent,
-    Colors.orangeAccent,
-    Colors.greenAccent,
+    {"image": "assets/images/number/N1.jpg",  "options": ["11", "7", "1", "10"], "correctIndex": 2},
+    {"image": "assets/images/number/N2.jpg",  "options": ["2", "5", "8", "3"], "correctIndex": 0},
+    {"image": "assets/images/number/N3.jpg",  "options": ["9", "3", "6", "12"], "correctIndex": 1},
+    {"image": "assets/images/number/N4.jpg",  "options": ["11", "14", "20", "4"], "correctIndex": 3},
+    {"image": "assets/images/number/N5.jpg",  "options": ["6", "10", "5", "15"], "correctIndex": 2},
+    {"image": "assets/images/number/N6.jpg",  "options": ["3", "18", "6", "19"], "correctIndex": 2},
+    {"image": "assets/images/number/N7.jpg",  "options": ["14", "12", "10", "7"], "correctIndex": 3},
+    {"image": "assets/images/number/N8.jpg",  "options": ["7", "12", "8", "20"], "correctIndex": 2},
+    {"image": "assets/images/number/N9.jpg",  "options": ["9", "19", "18", "8"], "correctIndex": 0},
+    {"image": "assets/images/number/N10.jpg", "options": ["6", "10", "15", "20"], "correctIndex": 1},
+    {"image": "assets/images/number/N11.jpg", "options": ["10", "16", "1", "11"], "correctIndex": 3},
+    {"image": "assets/images/number/N12.jpg", "options": ["14", "2", "12", "20"], "correctIndex": 2},
+    {"image": "assets/images/number/N13.jpg", "options": ["18", "3", "13", "16"], "correctIndex": 2},
+    {"image": "assets/images/number/N14.jpg", "options": ["4", "12", "7", "14"], "correctIndex": 3},
+    {"image": "assets/images/number/N15.jpg", "options": ["5", "10", "15", "20"], "correctIndex": 2},
+    {"image": "assets/images/number/N16.jpg", "options": ["16", "4", "7", "19"], "correctIndex": 0},
+    {"image": "assets/images/number/N17.jpg", "options": ["11", "1", "17", "9"], "correctIndex": 2},
+    {"image": "assets/images/number/N18.jpg", "options": ["8", "13", "6", "18"], "correctIndex": 3},
+    {"image": "assets/images/number/N19.jpg", "options": ["16", "20", "19", "7"], "correctIndex": 2},
+    {"image": "assets/images/number/N20.jpg", "options": ["15", "10", "20", "14"], "correctIndex": 2},
   ];
 
   // ---------- Session helpers ----------
@@ -93,18 +81,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     // 1) Pick a fresh random set of 5
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    activeIndices = all.take(sessionSize).toList();
+    final take = all.length < sessionSize ? all.length : sessionSize;
+    activeIndices = all.take(take).toList();
 
-    // 2) Make Level 1 progress exactly 5 slots and reset it (so quests/medal see this run)
-    QuestStatus.ensureLevel1Length(activeIndices.length); // = 5
-    QuestStatus.resetLevel1Answers();                     // all -> null
-
-    // 3) Where to start in the 5
+    // 2) Where to start in the 5
     int startSlot = widget.startIndex ?? _firstUnansweredSlot();
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    // 4) Animations
+    // 3) Animations
     _controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
@@ -117,6 +102,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         );
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> handleAnswer(int selectedIndex) async {
@@ -133,12 +124,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     // Save for this run
     _sessionAnswers[qIdx] = isCorrect;
 
-    // Mirror into the 5-slot Level 1 progress so quests/medal align
-    QuestStatus.level1Answers[currentSlot] = isCorrect;
-
     if (isCorrect) {
       final oldLvl = QuestStatus.level;
-      final levels = QuestStatus.addXp(20); // XP every playthrough
+      final levels = QuestStatus.addXp(20); // award XP like alphabet
 
       // XP / Level-up feedback
       showAnimatedPopup(
@@ -164,12 +152,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         }
       }
     } else {
-      final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
+      final correctValue = (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
       showAnimatedPopup(
         icon: Icons.close,
         iconColor: Colors.redAccent,
         title: "Incorrect",
-        subtitle: "Correct: $correctLetter",
+        subtitle: "Correct: $correctValue",
         bgColor: Colors.red.shade600,
       );
     }
@@ -189,10 +177,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         bgColor: Colors.blue.shade600,
       );
 
-      // ---------- NEW: count a finished Alphabet round (for Quest 3) ----------
-      QuestStatus.alphabetRoundsCompleted += 1;
-
-      // Medal once
+      // Optional: reuse generic first-quiz medal
       final justEarned = await QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
@@ -244,7 +229,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: SlideInPopup(
+        child: _NumberSlideInPopup(
           icon: icon,
           iconColor: iconColor,
           title: title,
@@ -292,10 +277,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = question['options'] as List<String>;
+    final options = (question['options'] as List).map((e) => e.toString()).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Alphabet Level"), backgroundColor: Colors.blue.shade700),
+      appBar: AppBar(title: const Text("Number Level"), backgroundColor: Colors.blue.shade700),
       body: Container(
         color: Colors.blue.shade100,
         child: Padding(
@@ -309,14 +294,17 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
+
+                // Image prompt (same position as alphabet)
                 Image.asset(question['image'], fit: BoxFit.contain, height: 180),
+
                 const SizedBox(height: 20),
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 2,
                     childAspectRatio: 1.3,
                     children: List.generate(options.length, (i) {
-                      return kahootButton(options[i], kahootColors[i], i);
+                      return kahootButton(options[i], _kahootColors[i], i);
                     }),
                   ),
                 ),
@@ -327,18 +315,25 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       ),
     );
   }
+
+  // local color list to avoid accidental external edits
+  List<Color> get _kahootColors => const [
+    Colors.redAccent,
+    Colors.blueAccent,
+    Colors.orangeAccent,
+    Colors.greenAccent,
+  ];
 }
 
-// ---------- Popup Widget ----------
-class SlideInPopup extends StatefulWidget {
+// ---------- Private Popup Widget (renamed to avoid clash) ----------
+class _NumberSlideInPopup extends StatefulWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
   final Color bgColor;
 
-  const SlideInPopup({
-    super.key,
+  const _NumberSlideInPopup({
     required this.icon,
     required this.iconColor,
     required this.title,
@@ -347,10 +342,10 @@ class SlideInPopup extends StatefulWidget {
   });
 
   @override
-  State<SlideInPopup> createState() => _SlideInPopupState();
+  State<_NumberSlideInPopup> createState() => _NumberSlideInPopupState();
 }
 
-class _SlideInPopupState extends State<SlideInPopup>
+class _NumberSlideInPopupState extends State<_NumberSlideInPopup>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;
   late Animation<Offset> offsetAnimation;

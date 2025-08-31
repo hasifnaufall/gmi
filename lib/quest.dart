@@ -25,7 +25,7 @@ class _QuestScreenState extends State<QuestScreen> {
         );
         break;
       case 1:
-        break;
+        break; // stay here
       case 2:
         Navigator.pushReplacement(
           context,
@@ -36,7 +36,7 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   double get _targetProgress =>
-      (QuestStatus.claimedPoints / QuestStatus.levelGoalPoints).clamp(0, 1);
+      (QuestStatus.claimedPoints / QuestStatus.levelGoalPoints).clamp(0, 1).toDouble();
 
   bool get _isChestUnlocked =>
       QuestStatus.claimedPoints >= QuestStatus.levelGoalPoints;
@@ -44,19 +44,17 @@ class _QuestScreenState extends State<QuestScreen> {
   Future<void> _openChest() async {
     if (!_isChestUnlocked) return;
 
-    bool unlockedWelcome = false;
     int leveled = 0;
 
     setState(() {
-      // ✅ Chest reward: unlock “Welcome” (one-time) + grant 200 XP every chest
-      unlockedWelcome = QuestStatus.awardAchievement('Welcome');
+      // Chest reward: grant 200 XP every chest; optional one-time achievement
+      QuestStatus.awardAchievement('Welcome');
       leveled = QuestStatus.addXp(200);
       QuestStatus.chestsOpened += 1;
     });
 
-    // 🎉 XP toast
+    // XP toast
     _showXpToast(xp: 200, leveledUp: leveled);
-
 
     // Advance chest tier (e.g., 30 -> 50 -> 100 -> ...)
     if (!mounted) return;
@@ -73,7 +71,10 @@ class _QuestScreenState extends State<QuestScreen> {
       backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80),
-        child: _TopBar(points: QuestStatus.userPoints, streak: 0),
+        child: _TopBar(
+          points: QuestStatus.userPoints,
+          streak: QuestStatus.streakDays, // 🔥 show real streak
+        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,13 +98,13 @@ class _QuestScreenState extends State<QuestScreen> {
                 const SizedBox(height: 16.0),
                 TweenAnimationBuilder<double>(
                   key: ValueKey(
-                      '${QuestStatus.claimedPoints}/${QuestStatus.levelGoalPoints}'),
+                    '${QuestStatus.claimedPoints}/${QuestStatus.levelGoalPoints}',
+                  ),
                   duration: const Duration(milliseconds: 700),
                   curve: Curves.easeInOut,
                   tween: Tween<double>(begin: 0, end: _targetProgress),
                   builder: (context, value, _) {
-                    final shown =
-                    (value * QuestStatus.levelGoalPoints).round();
+                    final shown = (value * QuestStatus.levelGoalPoints).round();
                     return Column(
                       children: [
                         LinearProgressIndicator(
@@ -127,52 +128,85 @@ class _QuestScreenState extends State<QuestScreen> {
                     label: Text(chestEnabled ? 'Open Chest' : 'Chest Locked'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor:
-                      chestEnabled ? Colors.blue : Colors.grey,
+                      backgroundColor: chestEnabled ? Colors.blue : Colors.grey,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+
           // Quests
           Expanded(
             child: ListView(
               children: [
+                // Quest 1 – Start Alphabet (answer >= 1 question)
                 QuestItem(
                   title: 'Quest 1',
-                  subtitle: 'Complete 3 Questions',
+                  subtitle: 'Start "Alphabet" level',
                   points: 100,
                   isClaimed: QuestStatus.quest1Claimed,
-                  isCompleted: QuestStatus.completedQuestions >= 3,
+                  isCompleted: QuestStatus.completedQuestions >= 1,
                   onClaim: () {
                     setState(() {
-                      if (!QuestStatus.quest1Claimed &&
-                          QuestStatus.completedQuestions >= 3) {
-                        QuestStatus.quest1Claimed = true;
-                        QuestStatus.userPoints += 100;
-                        QuestStatus.claimedPoints += 15;
-                        final leveled = QuestStatus.addXp(80);
-                        _showXpToast(xp: 80, leveledUp: leveled);
+                      if (QuestStatus.canClaimQuest1()) {
+                        QuestStatus.claimQuest1();
+                        QuestStatus.addStreakForLevel(); // 🔥 streak tick
+                        _showXpToast(xp: 50, leveledUp: 0);
                       }
                     });
                   },
                 ),
+
+                // Quest 2 – Complete 3 questions in Alphabet
                 QuestItem(
                   title: 'Quest 2',
-                  subtitle: 'Complete Level 1',
+                  subtitle: 'Complete 3 questions in Alphabet level',
                   points: 100,
                   isClaimed: QuestStatus.quest2Claimed,
-                  isCompleted: QuestStatus.level1Completed,
+                  isCompleted: QuestStatus.completedQuestions >= 3,
                   onClaim: () {
                     setState(() {
-                      if (!QuestStatus.quest2Claimed &&
-                          QuestStatus.level1Completed) {
-                        QuestStatus.quest2Claimed = true;
-                        QuestStatus.userPoints += 100;
-                        QuestStatus.claimedPoints += 15;
-                        final leveled = QuestStatus.addXp(120);
-                        _showXpToast(xp: 120, leveledUp: leveled);
+                      if (QuestStatus.canClaimQuest2()) {
+                        QuestStatus.claimQuest2();
+                        QuestStatus.addStreakForLevel(); // 🔥 streak tick
+                        _showXpToast(xp: 80, leveledUp: 0);
+                      }
+                    });
+                  },
+                ),
+
+                // Quest 3 – Finish 3 rounds of Alphabet
+                QuestItem(
+                  title: 'Quest 3',
+                  subtitle: 'Finish 3 rounds of Alphabet level',
+                  points: 200,
+                  isClaimed: QuestStatus.quest3Claimed,
+                  isCompleted: QuestStatus.alphabetRoundsCompleted >= 3,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest3()) {
+                        QuestStatus.claimQuest3();
+                        QuestStatus.addStreakForLevel(); // 🔥 streak tick
+                        _showXpToast(xp: 150, leveledUp: 0);
+                      }
+                    });
+                  },
+                ),
+
+                // Quest 4 – Unlock Numbers
+                QuestItem(
+                  title: 'Quest 4',
+                  subtitle: 'Unlock the "Number" level',
+                  points: 100,
+                  isClaimed: QuestStatus.quest4Claimed,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest4()) {
+                        QuestStatus.claimQuest4();
+                        QuestStatus.addStreakForLevel(); // 🔥 streak tick
+                        _showXpToast(xp: 200, leveledUp: 0);
                       }
                     });
                   },
@@ -195,7 +229,7 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   // --------------------------------------------------------------------
-  // Local animated XP toast so we don't depend on xp_popups.dart
+  // Local animated XP toast
   // --------------------------------------------------------------------
   void _showXpToast({required int xp, required int leveledUp}) {
     final overlay = Overlay.of(context);
@@ -236,17 +270,18 @@ class _TopBar extends StatelessWidget {
               Row(children: [
                 const Icon(Icons.key, color: Colors.amber, size: 24),
                 const SizedBox(width: 6),
-                Text('$points',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18)),
+                Text(
+                  '$points',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
               ]),
               Row(children: [
-                const Icon(Icons.local_fire_department,
-                    color: Colors.red, size: 24),
+                const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
                 const SizedBox(width: 6),
-                Text('$streak',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18)),
+                Text(
+                  '$streak',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
               ]),
             ],
           ),
