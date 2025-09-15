@@ -177,6 +177,15 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         bgColor: Colors.blue.shade600,
       );
 
+      // ✅✅ UPDATE QUEST PROGRESS FOR NUMBERS
+      final total = activeIndices.length;
+      final isPerfect = sessionScore == total;
+      QuestStatus.numbersRoundsCompleted += 1;
+      if (isPerfect) {
+        QuestStatus.numbersPerfectRounds += 1;
+      }
+      // ✅✅ END UPDATE
+
       // Optional: reuse generic first-quiz medal
       final justEarned = await QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {

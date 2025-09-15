@@ -1,21 +1,17 @@
 // android/build.gradle.kts  (project-level)
 
-// ❌ Do NOT declare com.google.gms.google-services here via the plugins DSL
-// plugins { id("com.google.gms.google-services") version "4.4.3" apply false }  <-- remove
-
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        // Android Gradle & Kotlin plugins
-        classpath("com.android.tools.build:gradle:8.4.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
+        // Updated Android Gradle & Kotlin plugins for compatibility
+        classpath("com.android.tools.build:gradle:8.7.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
 
-        // ✅ Declare ONE google-services version on the classpath.
-        // Match the version Gradle reported is already on the classpath (4.3.15).
-        classpath("com.google.gms:google-services:4.3.15")
+        // Google Services - using latest stable version
+        classpath("com.google.gms:google-services:4.4.2")
     }
 }
 
@@ -33,7 +29,6 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
-
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)

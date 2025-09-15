@@ -34,6 +34,8 @@ dependencies:
   firebase_auth: ^5.7.0
   cloud_firestore: 5.6.12
   shared_preferences: ^2.2.3
+  video_player: ^2.9.2
+  chewie: ^1.8.1
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -110,8 +112,43 @@ flutter:
       - assets/images/number/N18.jpg
       - assets/images/number/N19.jpg
       - assets/images/number/N20.jpg
-      - assets/gifs/correct.gif
-      - assets/gifs/wrong.gif
+      - assets/images/colour/C1.jpg
+      - assets/images/colour/C2.jpg
+      - assets/images/colour/C3.jpg
+      - assets/images/colour/C4.jpg
+      - assets/images/colour/C5.jpg
+      - assets/images/colour/C6.jpg
+      - assets/images/colour/C7.jpg
+      - assets/images/colour/C8.jpg
+      - assets/images/colour/C9.jpg
+      - assets/images/colour/C10.jpg
+      - assets/images/colour/C11.jpg
+      - assets/videos/alphabet/A.mp4
+      - assets/videos/alphabet/B.mp4
+      - assets/videos/alphabet/C.mp4
+      - assets/videos/alphabet/D.mp4
+      - assets/videos/alphabet/E.mp4
+      - assets/videos/alphabet/F.mp4
+      - assets/videos/alphabet/G.mp4
+      - assets/videos/alphabet/H.mp4
+      - assets/videos/alphabet/I.mp4
+      - assets/videos/alphabet/J.mp4
+      - assets/videos/alphabet/K.mp4
+      - assets/videos/alphabet/L.mp4
+      - assets/videos/alphabet/M.mp4
+      - assets/videos/alphabet/N.mp4
+      - assets/videos/alphabet/O.mp4
+      - assets/videos/alphabet/P.mp4
+      - assets/videos/alphabet/Q.mp4
+      - assets/videos/alphabet/R.mp4
+      - assets/videos/alphabet/S.mp4
+      - assets/videos/alphabet/T.mp4
+      - assets/videos/alphabet/U.mp4
+      - assets/videos/alphabet/V.mp4
+      - assets/videos/alphabet/W.mp4
+      - assets/videos/alphabet/X.mp4
+      - assets/videos/alphabet/Y.mp4
+      - assets/videos/alphabet/Z.mp4
       - assets/images/mfd.jpg
       - assets/images/logo.png
 

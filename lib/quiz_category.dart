@@ -4,6 +4,7 @@ import 'quest.dart';
 import 'number_q.dart';
 import 'alphabet_q.dart';
 import 'quest_status.dart';
+import 'alphabet_learn.dart';
 
 class QuizCategoryScreen extends StatefulWidget {
   @override
@@ -48,90 +49,71 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  void _showUnlockDialog({
+  // 🔽 Bottom sheet for Learn / Quiz choice
+  void _openLevelChoice({
     required String title,
-    required VoidCallback onConfirm,
+    required VoidCallback onLearn,
+    required VoidCallback onQuiz,
   }) {
-    final cost = QuestStatus.unlockCost;
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Unlock $title?"),
-        content: Text("Spend $cost keys to unlock this level permanently."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            child: const Text("Unlock"),
-          ),
-        ],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-    );
-  }
-
-  Future<void> _handleOpenOrUnlock({
-    required String key,
-    required String title,
-    required VoidCallback onOpen,
-  }) async {
-    // Alphabet always open
-    if (key == QuestStatus.levelAlphabet || QuestStatus.isContentUnlocked(key)) {
-      onOpen();
-      return;
-    }
-
-    final requiredLevel = QuestStatus.requiredLevelFor(key);
-
-    if (QuestStatus.level < requiredLevel) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reach Level $requiredLevel to unlock $title')),
-      );
-      return;
-    }
-
-    if (QuestStatus.userPoints < QuestStatus.unlockCost) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You need ${QuestStatus.unlockCost} keys to unlock $title')),
-      );
-      return;
-    }
-
-    // Confirm unlock
-    _showUnlockDialog(
-      title: title,
-      onConfirm: () async {
-        final result = await QuestStatus.attemptUnlock(key);
-        if (!mounted) return;
-
-        switch (result) {
-          case UnlockStatus.success:
-            setState(() {});
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$title unlocked!')),
-            );
-            onOpen();
-            break;
-          case UnlockStatus.alreadyUnlocked:
-            onOpen();
-            break;
-          case UnlockStatus.needLevel:
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Reach Level $requiredLevel to unlock $title')),
-            );
-            break;
-          case UnlockStatus.needKeys:
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('You need ${QuestStatus.unlockCost} keys to unlock $title')),
-            );
-            break;
-        }
-      },
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 4,
+                width: 40,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () { Navigator.pop(context); onLearn(); },
+                      icon: const Icon(Icons.school),
+                      label: const Text("Learn"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        backgroundColor: const Color(0xFF22D3EE),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () { Navigator.pop(context); onQuiz(); },
+                      icon: const Icon(Icons.quiz),
+                      label: const Text("Quiz"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        backgroundColor: const Color(0xFF60A5FA),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -146,9 +128,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       );
     }
 
-    final isNumbersUnlocked    = QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isGreetingsUnlocked  = QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
-    final isColourUnlocked     = QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+    final isNumbersUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+    final isGreetingsUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+    final isColourUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelColour);
     final isCommonVerbUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Scaffold(
@@ -199,24 +181,34 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Alphabet
           buildCategoryTile(
             context,
             "ALPHABET",
             Icons.abc,
             Colors.lightBlue.shade200,
             true,
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
+            onTap: () {
+              _openLevelChoice(
+                title: "Alphabet",
+                onLearn: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()),
+                  );
+                },
+                onQuiz: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
+                  );
+                  if (!mounted) return;
+                  setState(() {});
+                },
               );
-              if (!mounted) return;
-              setState(() {});
             },
           ),
 
-          // Numbers (Level 5 + 200 keys)
+          // 🔽 Numbers
           buildCategoryTile(
             context,
             "NUMBER",
@@ -224,42 +216,15 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isNumbersUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isNumbersUnlocked,
             onTap: () {
-              _handleOpenOrUnlock(
-                key: QuestStatus.levelNumbers,
-                title: "Numbers",
-                onOpen: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
-                  );
-                  if (!mounted) return;
-                  setState(() {}); // refresh after returning
-                },
+              // For now, only Quiz
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
               );
             },
           ),
 
-          // Greetings (Level 10 + 200 keys)
-          buildCategoryTile(
-            context,
-            "GREETINGS",
-            Icons.person,
-            isGreetingsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
-            isGreetingsUnlocked,
-            onTap: () {
-              _handleOpenOrUnlock(
-                key: QuestStatus.levelGreetings,
-                title: "Greetings",
-                onOpen: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening Greetings... (WIP)')),
-                  );
-                },
-              );
-            },
-          ),
-
-          // Colour (Level 15 + 200 keys)
+          // 🔽 Colour
           buildCategoryTile(
             context,
             "COLOUR",
@@ -267,19 +232,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isColourUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isColourUnlocked,
             onTap: () {
-              _handleOpenOrUnlock(
-                key: QuestStatus.levelColour,
-                title: "Colour",
-                onOpen: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening Colour... (WIP)')),
-                  );
-                },
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Learn/Quiz for Colour coming soon')),
               );
             },
           ),
 
-          // Common Verbs (Level 25 + 200 keys)
+          // 🔽 Greetings
+          buildCategoryTile(
+            context,
+            "GREETINGS",
+            Icons.person,
+            isGreetingsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
+            isGreetingsUnlocked,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Learn/Quiz for Greetings coming soon')),
+              );
+            },
+          ),
+
+          // 🔽 Common Verbs
           buildCategoryTile(
             context,
             "COMMON VERBS",
@@ -287,14 +260,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isCommonVerbUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isCommonVerbUnlocked,
             onTap: () {
-              _handleOpenOrUnlock(
-                key: QuestStatus.levelCommonVerb,
-                title: "Common Verbs",
-                onOpen: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Opening Common Verbs... (WIP)')),
-                  );
-                },
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Learn/Quiz for Common Verbs coming soon')),
               );
             },
           ),
