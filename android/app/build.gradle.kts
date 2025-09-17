@@ -1,5 +1,22 @@
 // android/app/build.gradle.kts
 
+// Project-level buildscript configuration (normally in project root)
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Updated Android Gradle & Kotlin plugins for compatibility
+        classpath("com.android.tools.build:gradle:8.8.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
+
+        // Google Services - using latest stable version
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
+
+// App-level plugins
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -14,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "com.gmi.waveact"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -70,4 +87,26 @@ dependencies {
 
     // Google Play Services
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+}
+
+// Project-level repository configuration
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Custom build directory configuration
+val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+rootProject.layout.buildDirectory.value(newBuildDir)
+
+subprojects {
+    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+    project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+
+// Clean task
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
 }
