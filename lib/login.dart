@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'quiz_category.dart';
 import 'signup.dart';
+import 'auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final auth = FirebaseAuth.instance;
+  final authService = AuthService();
 
   Future<void> login() async {
     final email = emailController.text.trim();
@@ -54,6 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
       showError(message);
     } catch (e) {
       showError("An unexpected error occurred.\n${e.toString()}");
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    try {
+      await authService.signInWithGoogle();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
+      );
+    } catch (e) {
+      showError("Google Sign-In failed.\n${e.toString()}");
     }
   }
 
@@ -152,6 +166,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.white,
                     ),
                   ),
+                ),
+                const SizedBox(height: 16),
+                // Google Sign-In Button
+                ElevatedButton.icon(
+                  icon: Image.asset(
+                    'assets/images/google.jpg', // Add a Google logo in assets/images/
+                    height: 24,
+                  ),
+                  label: const Text(
+                    "Sign in with Google",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  ),
+                  onPressed: loginWithGoogle,
                 ),
                 const SizedBox(height: 16),
                 TextButton(
