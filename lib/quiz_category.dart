@@ -5,6 +5,9 @@ import 'number_q.dart';
 import 'alphabet_q.dart';
 import 'quest_status.dart';
 import 'alphabet_learn.dart';
+import 'number_learn.dart';
+import 'colour_q.dart';
+import 'colour_learn.dart';
 
 class QuizCategoryScreen extends StatefulWidget {
   @override
@@ -12,6 +15,9 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
+  // ===== TEMP SWITCH: disable all gating/locks =====
+  static const bool kUnlocksDisabled = true;
+
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
 
@@ -49,7 +55,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  // 🔽 Bottom sheet for Learn / Quiz choice
+  // ---------- Learn / Quiz bottom sheet ----------
   void _openLevelChoice({
     required String title,
     required VoidCallback onLearn,
@@ -128,10 +134,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       );
     }
 
-    final isNumbersUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isGreetingsUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
-    final isColourUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelColour);
-    final isCommonVerbUnlocked = QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+    // Treat everything as unlocked when the flag is on
+    final isNumbersUnlocked    = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+    final isColourUnlocked     = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+    final isGreetingsUnlocked  = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+    final isCommonVerbUnlocked = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -181,6 +188,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           const SizedBox(height: 20),
 
+          // Alphabet (always open) → Learn / Quiz chooser
           buildCategoryTile(
             context,
             "ALPHABET",
@@ -208,7 +216,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // 🔽 Numbers
+          // Numbers → Learn / Quiz chooser (no gate when disabled)
           buildCategoryTile(
             context,
             "NUMBER",
@@ -216,29 +224,59 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isNumbersUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isNumbersUnlocked,
             onTap: () {
-              // For now, only Quiz
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
+              _openLevelChoice(
+                title: "Numbers",
+                onLearn: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NumberLearnScreen()),
+                  );
+                },
+                onQuiz: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
+                  );
+                  if (!mounted) return;
+                  setState(() {});
+                },
               );
             },
           ),
 
-          // 🔽 Colour
+          // Colour (now with Learn + Quiz choice)
+          // COLOUR (Learn + Quiz)
           buildCategoryTile(
             context,
             "COLOUR",
             Icons.palette,
-            isColourUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
-            isColourUnlocked,
+            Colors.lightBlue.shade200,
+            true, // unlocked for now
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Learn/Quiz for Colour coming soon')),
+              _openLevelChoice(
+                title: "Colour",
+                onLearn: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ColourLearnScreen()),
+                  );
+                },
+                onQuiz: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ColourQuizScreen()),
+                  );
+                  if (!mounted) return;
+                  setState(() {}); // refresh after returning
+                },
               );
             },
           ),
 
-          // 🔽 Greetings
+
+
+
+          // Greetings (placeholder while locks disabled)
           buildCategoryTile(
             context,
             "GREETINGS",
@@ -247,12 +285,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isGreetingsUnlocked,
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Learn/Quiz for Greetings coming soon')),
+                const SnackBar(content: Text('Greetings level coming soon')),
               );
             },
           ),
 
-          // 🔽 Common Verbs
+          // Common Verbs (placeholder while locks disabled)
           buildCategoryTile(
             context,
             "COMMON VERBS",
@@ -261,7 +299,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isCommonVerbUnlocked,
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Learn/Quiz for Common Verbs coming soon')),
+                const SnackBar(content: Text('Common Verbs level coming soon')),
               );
             },
           ),
