@@ -12,7 +12,20 @@
           "package_name": "com.gmi.waveact"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "764137362860-2enjeiftta256utrm471sgv867mp8lgp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gmi.waveact",
+            "certificate_hash": "1673ca56bae5eb07a5549baecee25e9da673eff7"
+          }
+        },
+        {
+          "client_id": "764137362860-n16q61pbag3a1opjghbpc5och90l4c5u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDA0NS71lBtAeUa7MdgfKzflnmTBuxT-hE"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "764137362860-n16q61pbag3a1opjghbpc5och90l4c5u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "764137362860-53hdia86c5bbp2rf916djo9ardmrsrh4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gmi"
+              }
+            }
+          ]
         }
       }
     }

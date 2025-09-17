@@ -31,9 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
   firebase_core: ^3.15.2
-  firebase_auth: ^5.7.0
-  cloud_firestore: 5.6.12
-  shared_preferences: ^2.2.3
+  cloud_firestore: ^5.6.12
+  firebase_auth: ^5.7.0   # Example, check compatibility
+  google_sign_in: ^6.2.1   # Example, check compatibility
   video_player: ^2.9.2
   chewie: ^1.8.1
 
@@ -74,6 +74,7 @@ flutter:
       - assets/videos/colours/
       - assets/images/mfd.jpg
       - assets/images/logo.png
+      - assets/images/google.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
