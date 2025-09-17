@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
+
 import 'profile.dart';
 import 'quest.dart';
-import 'number_q.dart';
-import 'alphabet_q.dart';
 import 'quest_status.dart';
+
+// Learn + Quiz screens
 import 'alphabet_learn.dart';
+import 'alphabet_q.dart';
+
 import 'number_learn.dart';
-import 'colour_q.dart';
+import 'number_q.dart';
+
 import 'colour_learn.dart';
+import 'colour_q.dart';
+
+import 'fruits_learn.dart';
+import 'fruits_q.dart';
+
+import 'animals_learn.dart';
+import 'animals_q.dart';
 
 class QuizCategoryScreen extends StatefulWidget {
+  const QuizCategoryScreen({super.key});
+
   @override
   _QuizCategoryScreenState createState() => _QuizCategoryScreenState();
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  // ===== TEMP SWITCH: disable all gating/locks =====
-  static const bool kUnlocksDisabled = true;
+  // TEMP: keep all levels unlocked while you build.
+  static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -39,7 +52,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     switch (index) {
       case 0:
-        break;
+        break; // Home (stay)
       case 1:
         Navigator.pushReplacement(
           context,
@@ -55,7 +68,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  // ---------- Learn / Quiz bottom sheet ----------
+  // Learn / Quiz chooser bottom sheet
   void _openLevelChoice({
     required String title,
     required VoidCallback onLearn,
@@ -81,20 +94,26 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () { Navigator.pop(context); onLearn(); },
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onLearn();
+                      },
                       icon: const Icon(Icons.school),
                       label: const Text("Learn"),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         backgroundColor: const Color(0xFF22D3EE),
                         foregroundColor: Colors.white,
                       ),
@@ -103,12 +122,17 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () { Navigator.pop(context); onQuiz(); },
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onQuiz();
+                      },
                       icon: const Icon(Icons.quiz),
                       label: const Text("Quiz"),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         backgroundColor: const Color(0xFF60A5FA),
                         foregroundColor: Colors.white,
                       ),
@@ -134,11 +158,15 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       );
     }
 
-    // Treat everything as unlocked when the flag is on
-    final isNumbersUnlocked    = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isColourUnlocked     = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelColour);
-    final isGreetingsUnlocked  = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
-    final isCommonVerbUnlocked = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+    // With locks disabled, treat them all as unlocked
+    final isNumbersUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+    final isColourUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+    final isFruitsUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelGreetings); // repurposed
+    final isAnimalsUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb); // repurposed
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -188,7 +216,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Alphabet (always open) → Learn / Quiz chooser
+          // Alphabet (always open)
           buildCategoryTile(
             context,
             "ALPHABET",
@@ -216,7 +244,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Numbers → Learn / Quiz chooser (no gate when disabled)
+          // Numbers
           buildCategoryTile(
             context,
             "NUMBER",
@@ -244,14 +272,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Colour (now with Learn + Quiz choice)
-          // COLOUR (Learn + Quiz)
+          // Colour
           buildCategoryTile(
             context,
             "COLOUR",
             Icons.palette,
-            Colors.lightBlue.shade200,
-            true, // unlocked for now
+            isColourUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
+            isColourUnlocked,
             onTap: () {
               _openLevelChoice(
                 title: "Colour",
@@ -267,39 +294,64 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     MaterialPageRoute(builder: (_) => const ColourQuizScreen()),
                   );
                   if (!mounted) return;
-                  setState(() {}); // refresh after returning
+                  setState(() {});
                 },
               );
             },
           ),
 
-
-
-
-          // Greetings (placeholder while locks disabled)
+          // Fruits
           buildCategoryTile(
             context,
-            "GREETINGS",
-            Icons.person,
-            isGreetingsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
-            isGreetingsUnlocked,
+            "FRUITS",
+            Icons.local_grocery_store,
+            isFruitsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
+            isFruitsUnlocked,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Greetings level coming soon')),
+              _openLevelChoice(
+                title: "Fruits",
+                onLearn: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FruitsLearnScreen()),
+                  );
+                },
+                onQuiz: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FruitsQuizScreen()),
+                  );
+                  if (!mounted) return;
+                  setState(() {});
+                },
               );
             },
           ),
 
-          // Common Verbs (placeholder while locks disabled)
+          // Animals
           buildCategoryTile(
             context,
-            "COMMON VERBS",
-            Icons.flash_on,
-            isCommonVerbUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
-            isCommonVerbUnlocked,
+            "ANIMALS",
+            Icons.pets,
+            isAnimalsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
+            isAnimalsUnlocked,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Common Verbs level coming soon')),
+              _openLevelChoice(
+                title: "Animals",
+                onLearn: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()),
+                  );
+                },
+                onQuiz: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AnimalQuizScreen()),
+                  );
+                  if (!mounted) return;
+                  setState(() {});
+                },
               );
             },
           ),
