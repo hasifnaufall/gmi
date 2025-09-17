@@ -34,7 +34,6 @@ dependencies:
   cloud_firestore: ^5.6.12
   firebase_auth: ^5.7.0   # Example, check compatibility
   google_sign_in: ^6.2.1   # Example, check compatibility
-  shared_preferences: ^2.2.3
   video_player: ^2.9.2
   chewie: ^1.8.1
 
@@ -67,92 +66,18 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-      - assets/images/alphabet/Q1.jpg
-      - assets/images/alphabet/Q2.jpg
-      - assets/images/alphabet/Q3.jpg
-      - assets/images/alphabet/Q4.jpg
-      - assets/images/alphabet/Q5.jpg
-      - assets/images/alphabet/Q6.jpg
-      - assets/images/alphabet/Q7.jpg
-      - assets/images/alphabet/Q8.jpg
-      - assets/images/alphabet/Q9.jpg
-      - assets/images/alphabet/Q10.jpg
-      - assets/images/alphabet/Q11.jpg
-      - assets/images/alphabet/Q12.jpg
-      - assets/images/alphabet/Q13.jpg
-      - assets/images/alphabet/Q14.jpg
-      - assets/images/alphabet/Q15.jpg
-      - assets/images/alphabet/Q16.jpg
-      - assets/images/alphabet/Q17.jpg
-      - assets/images/alphabet/Q18.jpg
-      - assets/images/alphabet/Q19.jpg
-      - assets/images/alphabet/Q20.jpg
-      - assets/images/alphabet/Q21.jpg
-      - assets/images/alphabet/Q22.jpg
-      - assets/images/alphabet/Q23.jpg
-      - assets/images/alphabet/Q24.jpg
-      - assets/images/alphabet/Q25.jpg
-      - assets/images/alphabet/Q26.jpg
-      - assets/images/number/N1.jpg
-      - assets/images/number/N2.jpg
-      - assets/images/number/N3.jpg
-      - assets/images/number/N4.jpg
-      - assets/images/number/N5.jpg
-      - assets/images/number/N6.jpg
-      - assets/images/number/N7.jpg
-      - assets/images/number/N8.jpg
-      - assets/images/number/N9.jpg
-      - assets/images/number/N10.jpg
-      - assets/images/number/N11.jpg
-      - assets/images/number/N12.jpg
-      - assets/images/number/N13.jpg
-      - assets/images/number/N14.jpg
-      - assets/images/number/N15.jpg
-      - assets/images/number/N16.jpg
-      - assets/images/number/N17.jpg
-      - assets/images/number/N18.jpg
-      - assets/images/number/N19.jpg
-      - assets/images/number/N20.jpg
-      - assets/images/colour/C1.jpg
-      - assets/images/colour/C2.jpg
-      - assets/images/colour/C3.jpg
-      - assets/images/colour/C4.jpg
-      - assets/images/colour/C5.jpg
-      - assets/images/colour/C6.jpg
-      - assets/images/colour/C7.jpg
-      - assets/images/colour/C8.jpg
-      - assets/images/colour/C9.jpg
-      - assets/images/colour/C10.jpg
-      - assets/images/colour/C11.jpg
-      - assets/videos/alphabet/A.mp4
-      - assets/videos/alphabet/B.mp4
-      - assets/videos/alphabet/C.mp4
-      - assets/videos/alphabet/D.mp4
-      - assets/videos/alphabet/E.mp4
-      - assets/videos/alphabet/F.mp4
-      - assets/videos/alphabet/G.mp4
-      - assets/videos/alphabet/H.mp4
-      - assets/videos/alphabet/I.mp4
-      - assets/videos/alphabet/J.mp4
-      - assets/videos/alphabet/K.mp4
-      - assets/videos/alphabet/L.mp4
-      - assets/videos/alphabet/M.mp4
-      - assets/videos/alphabet/N.mp4
-      - assets/videos/alphabet/O.mp4
-      - assets/videos/alphabet/P.mp4
-      - assets/videos/alphabet/Q.mp4
-      - assets/videos/alphabet/R.mp4
-      - assets/videos/alphabet/S.mp4
-      - assets/videos/alphabet/T.mp4
-      - assets/videos/alphabet/U.mp4
-      - assets/videos/alphabet/V.mp4
-      - assets/videos/alphabet/W.mp4
-      - assets/videos/alphabet/X.mp4
-      - assets/videos/alphabet/Y.mp4
-      - assets/videos/alphabet/Z.mp4
+      - assets/images/alphabet/
+      - assets/images/number/
+      - assets/images/colour/
+      - assets/images/animal/
+      - assets/videos/alphabet/
+      - assets/videos/numbers/
+      - assets/videos/colours/
+      - assets/videos/fruits/
+      - assets/videos/animals/
       - assets/images/mfd.jpg
       - assets/images/logo.png
-      - assets/images/google.jpg
+      - assets/images/google.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

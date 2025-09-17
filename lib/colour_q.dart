@@ -12,155 +12,90 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     with SingleTickerProviderStateMixin {
   static const int sessionSize = 5;
 
-  late List<int> activeIndices;
-  late int currentSlot;
-  bool isOptionSelected = false;
+  late List<_Q> questions;
+  int index = 0;
+  bool locked = false;
 
-  final Map<int, bool> _sessionAnswers = {};
-
-  late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
-
-  // Full pool of colour questions (⬅️ you can expand with your own images/options)
-  final List<Map<String, dynamic>> questions = [
-    {
-      "image": "assets/images/red.jpg",
-      "options": ["Red", "Blue", "Green", "Yellow"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/blue.jpg",
-      "options": ["Red", "Blue", "Green", "Yellow"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/green.jpg",
-      "options": ["Black", "Purple", "Green", "Pink"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/yellow.jpg",
-      "options": ["Yellow", "Orange", "White", "Brown"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/black.jpg",
-      "options": ["Black", "Grey", "White", "Blue"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/pink.jpg",
-      "options": ["Pink", "Purple", "Orange", "Red"],
-      "correctIndex": 0,
-    },
-  ];
-
-  final List<Color> optionColors = [
-    Colors.redAccent,
-    Colors.blueAccent,
-    Colors.orangeAccent,
-    Colors.greenAccent,
-  ];
-
-  bool _allAnsweredInSession() {
-    for (final i in activeIndices) {
-      if (!_sessionAnswers.containsKey(i)) return false;
-    }
-    return true;
-  }
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
 
   @override
   void initState() {
     super.initState();
+    // build 5 random questions
+    final all = List<_Q>.from(_allQuestions)..shuffle();
+    questions = all.take(sessionSize).toList();
 
-    final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    activeIndices = all.take(sessionSize).toList();
-
-    currentSlot = 0;
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _offsetAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _controller.forward();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
+    _slide = Tween<Offset>(begin: const Offset(0.8, 0), end: Offset.zero)
+        .chain(CurveTween(curve: Curves.easeOut))
+        .animate(_ctrl);
   }
 
-  Future<void> handleAnswer(int selectedIndex) async {
-    if (isOptionSelected) return;
+  void _answer(int optionIndex) async {
+    if (locked) return;
+    setState(() => locked = true);
 
-    final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return;
-
-    setState(() => isOptionSelected = true);
-
-    final correctIndex = questions[qIdx]['correctIndex'] as int;
-    final isCorrect = selectedIndex == correctIndex;
-
-    _sessionAnswers[qIdx] = isCorrect;
+    final q = questions[index];
+    final isCorrect = optionIndex == q.correctIndex;
 
     if (isCorrect) {
-      QuestStatus.addXp(20);
-      showPopup("Correct!", "You earned 20 XP", Colors.green);
+      final levels = QuestStatus.addXp(20);
+      _toast(
+        icon: Icons.check_circle,
+        title: 'Correct!',
+        subtitle: '20 XP${levels > 0 ? " • Level up!" : ""}',
+        color: Colors.green.shade600,
+      );
     } else {
-      final correctAnswer =
-      (questions[qIdx]['options'] as List<String>)[correctIndex];
-      showPopup("Incorrect", "Correct: $correctAnswer", Colors.red);
+      _toast(
+        icon: Icons.cancel,
+        title: 'Oops!',
+        subtitle: 'Answer: ${q.options[q.correctIndex].name}',
+        color: Colors.red.shade600,
+      );
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
 
-    if (_allAnsweredInSession()) {
-      showPopup("Quiz Complete!", "Good job!", Colors.blue);
-
+    if (index == questions.length - 1) {
       QuestStatus.colourRoundsCompleted += 1;
-      QuestStatus.addStreakForLevel();
-
-
+      final didIncrease = QuestStatus.addStreakForLevel();
+      if (didIncrease) {
+        _toast(
+          icon: Icons.local_fire_department,
+          title: 'Streak +1!',
+          subtitle: 'Current: ${QuestStatus.streakDays}',
+          color: Colors.deepOrange.shade600,
+        );
+      }
       if (!mounted) return;
       Navigator.pop(context);
-    } else {
-      setState(() {
-        currentSlot = (currentSlot + 1).clamp(0, activeIndices.length - 1);
-        isOptionSelected = false;
-        _controller.reset();
-        _controller.forward();
-      });
+      return;
     }
+
+    if (!mounted) return;
+    setState(() {
+      index += 1;
+      locked = false;
+      _ctrl
+        ..reset()
+        ..forward();
+    });
   }
 
-  void showPopup(String title, String subtitle, Color color) {
+  void _toast({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
       builder: (_) => Positioned(
-        top: 70,
+        top: 64,
         right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            width: 240,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
-                Text(subtitle,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
+        child: _Toast(icon: icon, title: title, subtitle: subtitle, color: color),
       ),
     );
     overlay.insert(entry);
@@ -168,64 +103,215 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
   }
 
   @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final qIdx = activeIndices[currentSlot];
-    final question = questions[qIdx];
-    final options = question['options'] as List<String>;
+    final q = questions[index];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Colour Level"),
-        backgroundColor: Colors.deepPurple,
+        title: const Text('Colour Quiz'),
+        backgroundColor: Colors.purple.shade700,
       ),
       body: Container(
         color: Colors.purple.shade50,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SlideTransition(
-            position: _offsetAnimation,
-            child: Column(
-              children: [
-                Text(
-                  "Question ${currentSlot + 1} of ${activeIndices.length}",
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                Image.asset(question['image'], fit: BoxFit.contain, height: 160),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.3,
-                    children: List.generate(options.length, (i) {
-                      return GestureDetector(
-                        onTap: () => handleAnswer(i),
-                        child: Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: optionColors[i],
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Center(
-                            child: Text(
-                              options[i],
-                              style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
+        padding: const EdgeInsets.all(16),
+        child: SlideTransition(
+          position: _slide,
+          child: Column(
+            children: [
+              Text(
+                'Question ${index + 1} of ${questions.length}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 14),
+              // Prompt image (sign for the colour)
+              Expanded(
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      q.promptImage,
+                      fit: BoxFit.contain,
+                      height: 220,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 10),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: q.options.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 2.8,
+                ),
+                itemBuilder: (_, i) {
+                  final opt = q.options[i];
+                  return ElevatedButton(
+                    onPressed: locked ? null : () => _answer(i),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(opt.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+class _Toast extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  const _Toast({required this.icon, required this.title, required this.subtitle, required this.color});
+
+  @override
+  State<_Toast> createState() => _ToastState();
+}
+
+class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+  AnimationController(vsync: this, duration: const Duration(milliseconds: 240))..forward();
+  late final Animation<Offset> _slide =
+  Tween<Offset>(begin: const Offset(1.0, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slide,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: 260,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, 8))],
+          ),
+          child: Row(
+            children: [
+              Icon(widget.icon, color: Colors.white, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.title,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14)),
+                    const SizedBox(height: 2),
+                    Text(widget.subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColourOption {
+  final String name;
+  const _ColourOption(this.name);
+}
+
+class _Q {
+  final String promptImage;
+  final List<_ColourOption> options;
+  final int correctIndex;
+  _Q({required this.promptImage, required this.options, required this.correctIndex});
+}
+
+// ----------------------------------------------------
+// Replace image paths with your real asset locations.
+// Make sure to add them under flutter: assets: in pubspec.yaml
+// e.g. assets/images/colour/red.jpg etc.
+// ----------------------------------------------------
+final List<_Q> _allQuestions = [
+  _Q(
+    promptImage: 'assets/images/colour/C1.jpg',
+    options: [ _ColourOption('Red'), _ColourOption('Blue'), _ColourOption('Green'), _ColourOption('Yellow') ],
+    correctIndex: 1,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C2.jpg',
+    options: [ _ColourOption('Blue'), _ColourOption('Red'), _ColourOption('Orange'), _ColourOption('Green') ],
+    correctIndex: 3,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C3.jpg',
+    options: [ _ColourOption('Yellow'), _ColourOption('Blue'), _ColourOption('Black'), _ColourOption('Red') ],
+    correctIndex: 2,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C4.jpg',
+    options: [ _ColourOption('Grey'), _ColourOption('Orange'), _ColourOption('Green'), _ColourOption('Black') ],
+    correctIndex: 1,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C5.jpg',
+    options: [ _ColourOption('Pink'), _ColourOption('Grey'), _ColourOption('Purple'), _ColourOption('Brown') ],
+    correctIndex: 1,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C6.jpg',
+    options: [ _ColourOption('Yellow'), _ColourOption('White'), _ColourOption('Green'), _ColourOption('Blue') ],
+    correctIndex: 0,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C7.jpg',
+    options: [ _ColourOption('Purple'), _ColourOption('Pink'), _ColourOption('Black'), _ColourOption('Red') ],
+    correctIndex: 3,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C8.jpg',
+    options: [ _ColourOption('Red'), _ColourOption('Pink'), _ColourOption('Green'), _ColourOption('White') ],
+    correctIndex: 1,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C9.jpg',
+    options: [ _ColourOption('Purple'), _ColourOption('Orange'), _ColourOption('Brown'), _ColourOption('Blue') ],
+    correctIndex: 2,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C10.jpg',
+    options: [ _ColourOption('White'), _ColourOption('Grey'), _ColourOption('Black'), _ColourOption('Brown') ],
+    correctIndex: 0,
+  ),
+  _Q(
+    promptImage: 'assets/images/colour/C11.jpg',
+    options: [ _ColourOption('Grey'), _ColourOption('Orange'), _ColourOption('Pink'), _ColourOption('Purple') ],
+    correctIndex: 3,
+  ),
+];
