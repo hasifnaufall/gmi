@@ -28,7 +28,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  // TEMP: keep all levels unlocked while you build.
+  /// Set to false to **enable** locking (we’re enabling it now).
   static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
@@ -52,7 +52,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     switch (index) {
       case 0:
-        break; // Home (stay)
+        break; // Home
       case 1:
         Navigator.pushReplacement(
           context,
@@ -68,7 +68,100 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  // Learn / Quiz chooser bottom sheet
+  // ---------- Unlock dialog ----------
+  void _showUnlockDialog({
+    required String title,
+    required VoidCallback onConfirm,
+  }) {
+    final cost = QuestStatus.unlockCost;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Unlock $title?"),
+        content: Text("Spend $cost keys to unlock this level permanently."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm();
+            },
+            child: const Text("Unlock"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------- Gate: level requirement + keys ----------
+  Future<void> _handleOpenOrUnlock({
+    required String key,
+    required String title,
+    required Future<void> Function() onOpen,
+  }) async {
+    // Alphabet always open
+    if (key == QuestStatus.levelAlphabet || kUnlocksDisabled) {
+      await onOpen();
+      return;
+    }
+
+    if (QuestStatus.isContentUnlocked(key)) {
+      await onOpen();
+      return;
+    }
+
+    final requiredLevel = QuestStatus.requiredLevelFor(key);
+
+    if (QuestStatus.level < requiredLevel) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reach Level $requiredLevel to unlock $title')),
+      );
+      return;
+    }
+
+    if (QuestStatus.userPoints < QuestStatus.unlockCost) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You need ${QuestStatus.unlockCost} keys to unlock $title')),
+      );
+      return;
+    }
+
+    _showUnlockDialog(
+      title: title,
+      onConfirm: () async {
+        final result = await QuestStatus.attemptUnlock(key);
+        if (!mounted) return;
+
+        switch (result) {
+          case UnlockStatus.success:
+            setState(() {}); // refresh balances/tiles
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title unlocked!')),
+            );
+            await onOpen();
+            break;
+          case UnlockStatus.alreadyUnlocked:
+            await onOpen();
+            break;
+          case UnlockStatus.needLevel:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Reach Level $requiredLevel to unlock $title')),
+            );
+            break;
+          case UnlockStatus.needKeys:
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('You need ${QuestStatus.unlockCost} keys to unlock $title')),
+            );
+            break;
+        }
+      },
+    );
+  }
+
+  // ---------- Learn / Quiz chooser ----------
   void _openLevelChoice({
     required String title,
     required VoidCallback onLearn,
@@ -94,26 +187,20 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-              ),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onLearn();
-                      },
+                      onPressed: () { Navigator.pop(context); onLearn(); },
                       icon: const Icon(Icons.school),
                       label: const Text("Learn"),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         backgroundColor: const Color(0xFF22D3EE),
                         foregroundColor: Colors.white,
                       ),
@@ -122,17 +209,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onQuiz();
-                      },
+                      onPressed: () { Navigator.pop(context); onQuiz(); },
                       icon: const Icon(Icons.quiz),
                       label: const Text("Quiz"),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         backgroundColor: const Color(0xFF60A5FA),
                         foregroundColor: Colors.white,
                       ),
@@ -158,15 +240,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       );
     }
 
-    // With locks disabled, treat them all as unlocked
-    final isNumbersUnlocked =
-        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isColourUnlocked =
-        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelColour);
-    final isFruitsUnlocked =
-        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelGreetings); // repurposed
-    final isAnimalsUnlocked =
-        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb); // repurposed
+    // Real unlocked flags (since kUnlocksDisabled=false)
+    final isNumbersUnlocked   = QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+    final isColourUnlocked    = QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+    final isFruitsUnlocked    = QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);   // repurposed
+    final isAnimalsUnlocked   = QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);  // repurposed
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -216,7 +294,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Alphabet (always open)
+          // Alphabet (always open) → chooser
           buildCategoryTile(
             context,
             "ALPHABET",
@@ -227,16 +305,10 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               _openLevelChoice(
                 title: "Alphabet",
                 onLearn: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()),
-                  );
+                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()));
                 },
                 onQuiz: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
-                  );
+                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()));
                   if (!mounted) return;
                   setState(() {});
                 },
@@ -244,7 +316,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Numbers
+          // Numbers (locked by level/keys)
           buildCategoryTile(
             context,
             "NUMBER",
@@ -252,27 +324,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isNumbersUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isNumbersUnlocked,
             onTap: () {
-              _openLevelChoice(
+              _handleOpenOrUnlock(
+                key: QuestStatus.levelNumbers,
                 title: "Numbers",
-                onLearn: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NumberLearnScreen()),
+                onOpen: () async {
+                  _openLevelChoice(
+                    title: "Numbers",
+                    onLearn: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const NumberLearnScreen()));
+                    },
+                    onQuiz: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const NumberQuizScreen()));
+                      if (!mounted) return;
+                      setState(() {});
+                    },
                   );
-                },
-                onQuiz: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
-                  );
-                  if (!mounted) return;
-                  setState(() {});
                 },
               );
             },
           ),
 
-          // Colour
+          // Colour (locked by level/keys)
           buildCategoryTile(
             context,
             "COLOUR",
@@ -280,27 +352,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isColourUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isColourUnlocked,
             onTap: () {
-              _openLevelChoice(
+              _handleOpenOrUnlock(
+                key: QuestStatus.levelColour,
                 title: "Colour",
-                onLearn: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ColourLearnScreen()),
+                onOpen: () async {
+                  _openLevelChoice(
+                    title: "Colour",
+                    onLearn: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const ColourLearnScreen()));
+                    },
+                    onQuiz: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const ColourQuizScreen()));
+                      if (!mounted) return;
+                      setState(() {});
+                    },
                   );
-                },
-                onQuiz: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ColourQuizScreen()),
-                  );
-                  if (!mounted) return;
-                  setState(() {});
                 },
               );
             },
           ),
 
-          // Fruits
+          // Fruits (uses levelGreetings slot)
           buildCategoryTile(
             context,
             "FRUITS",
@@ -308,27 +380,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isFruitsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isFruitsUnlocked,
             onTap: () {
-              _openLevelChoice(
+              _handleOpenOrUnlock(
+                key: QuestStatus.levelGreetings, // repurposed key
                 title: "Fruits",
-                onLearn: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FruitsLearnScreen()),
+                onOpen: () async {
+                  _openLevelChoice(
+                    title: "Fruits",
+                    onLearn: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const FruitsLearnScreen()));
+                    },
+                    onQuiz: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const FruitsQuizScreen()));
+                      if (!mounted) return;
+                      setState(() {});
+                    },
                   );
-                },
-                onQuiz: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FruitsQuizScreen()),
-                  );
-                  if (!mounted) return;
-                  setState(() {});
                 },
               );
             },
           ),
 
-          // Animals
+          // Animals (uses levelCommonVerb slot)
           buildCategoryTile(
             context,
             "ANIMALS",
@@ -336,21 +408,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isAnimalsUnlocked ? Colors.lightBlue.shade200 : Colors.grey.shade300,
             isAnimalsUnlocked,
             onTap: () {
-              _openLevelChoice(
+              _handleOpenOrUnlock(
+                key: QuestStatus.levelCommonVerb, // repurposed key
                 title: "Animals",
-                onLearn: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()),
+                onOpen: () async {
+                  _openLevelChoice(
+                    title: "Animals",
+                    onLearn: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()));
+                    },
+                    onQuiz: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimalQuizScreen()));
+                      if (!mounted) return;
+                      setState(() {});
+                    },
                   );
-                },
-                onQuiz: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AnimalQuizScreen()),
-                  );
-                  if (!mounted) return;
-                  setState(() {});
                 },
               );
             },
