@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'quest_status.dart';
 
 class NumberQuizScreen extends StatefulWidget {
-  /// startIndex = slot inside the 5-question session (0..4)
   final int? startIndex;
 
   const NumberQuizScreen({super.key, this.startIndex});
@@ -13,21 +12,17 @@ class NumberQuizScreen extends StatefulWidget {
 
 class _NumberQuizScreenState extends State<NumberQuizScreen>
     with SingleTickerProviderStateMixin {
-  static const int sessionSize = 5; // 5 random questions per run
+  static const int sessionSize = 5;
 
-  // Session
-  late List<int> activeIndices; // the 5 chosen indices from full pool
-  late int currentSlot;         // 0..activeIndices.length-1
+  late List<int> activeIndices;
+  late int currentSlot;
   bool isOptionSelected = false;
 
-  // Per-playthrough answers (key=index in FULL pool)
   final Map<int, bool> _sessionAnswers = {};
 
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 
-  // ---------- MANUAL IMAGE QUESTIONS (edit here) ----------
-  // Use any images and options you want. correctIndex is 0..3
   final List<Map<String, dynamic>> questions = [
     {"image": "assets/images/number/N1.jpg",  "options": ["11", "7", "1", "10"], "correctIndex": 2},
     {"image": "assets/images/number/N2.jpg",  "options": ["2", "5", "8", "3"], "correctIndex": 0},
@@ -51,7 +46,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     {"image": "assets/images/number/N20.jpg", "options": ["15", "10", "20", "14"], "correctIndex": 2},
   ];
 
-  // ---------- Session helpers ----------
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
 
   int _firstUnansweredSlot() {
@@ -79,17 +73,14 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
   void initState() {
     super.initState();
 
-    // 1) Pick a fresh random set of 5
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
     final take = all.length < sessionSize ? all.length : sessionSize;
     activeIndices = all.take(take).toList();
 
-    // 2) Where to start in the 5
     int startSlot = widget.startIndex ?? _firstUnansweredSlot();
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    // 3) Animations
     _controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
@@ -114,21 +105,19 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     if (isOptionSelected) return;
 
     final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return; // answered in THIS session
+    if (_sessionAnswers.containsKey(qIdx)) return;
 
     setState(() => isOptionSelected = true);
 
     final correctIndex = questions[qIdx]['correctIndex'] as int;
     final isCorrect = selectedIndex == correctIndex;
 
-    // Save for this run
     _sessionAnswers[qIdx] = isCorrect;
 
     if (isCorrect) {
       final oldLvl = QuestStatus.level;
-      final levels = QuestStatus.addXp(20); // award XP like alphabet
+      final levels = QuestStatus.addXp(20);
 
-      // XP / Level-up feedback
       showAnimatedPopup(
         icon: Icons.star,
         iconColor: Colors.yellow.shade700,
@@ -137,7 +126,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         bgColor: Colors.green.shade600,
       );
 
-      // Announce any new unlocks crossed by this level-up
       if (levels > 0) {
         final newlyUnlocked = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
         for (final key in newlyUnlocked) {
@@ -181,12 +169,42 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
       final total = activeIndices.length;
       final isPerfect = sessionScore == total;
       QuestStatus.numbersRoundsCompleted += 1;
+
       if (isPerfect) {
         QuestStatus.numbersPerfectRounds += 1;
+
+        // Auto-claim Quest 9 (Perfect round)
+        if (QuestStatus.canClaimQuest9()) {
+          QuestStatus.claimQuest9();
+          await Future.delayed(const Duration(milliseconds: 500));
+          showAnimatedPopup(
+            icon: Icons.stars,
+            iconColor: Colors.yellow,
+            title: "Quest 9 Complete!",
+            subtitle: "Perfect round! +200 keys",
+            bgColor: Colors.green.shade700,
+          );
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
+
+      // Auto-claim Quest 10 (3 rounds)
+      if (QuestStatus.numbersRoundsCompleted >= 3 && !QuestStatus.quest10Claimed) {
+        if (QuestStatus.canClaimQuest10()) {
+          QuestStatus.claimQuest10();
+          await Future.delayed(const Duration(milliseconds: 500));
+          showAnimatedPopup(
+            icon: Icons.military_tech,
+            iconColor: Colors.amber,
+            title: "Quest 10 Complete!",
+            subtitle: "3 rounds finished! +200 keys",
+            bgColor: Colors.indigo.shade600,
+          );
+          await Future.delayed(const Duration(seconds: 2));
+        }
       }
       // ✅✅ END UPDATE
 
-      // Optional: reuse generic first-quiz medal
       final justEarned = await QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
@@ -199,7 +217,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         await Future.delayed(const Duration(seconds: 2));
       }
 
-      // Streak bump (once per 24h)
       final didIncrease = QuestStatus.addStreakForLevel();
       if (didIncrease && mounted) {
         showAnimatedPopup(
@@ -225,7 +242,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     }
   }
 
-  // ---------- Custom Animated Popup ----------
   void showAnimatedPopup({
     required IconData icon,
     required Color iconColor,
@@ -254,7 +270,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     });
   }
 
-  // ---------- Kahoot Button ----------
   Widget kahootButton(String label, Color color, int index) {
     final qIdx = activeIndices[currentSlot];
     final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
@@ -303,10 +318,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-
-                // Image prompt (same position as alphabet)
                 Image.asset(question['image'], fit: BoxFit.contain, height: 180),
-
                 const SizedBox(height: 20),
                 Expanded(
                   child: GridView.count(
@@ -325,7 +337,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     );
   }
 
-  // local color list to avoid accidental external edits
   List<Color> get _kahootColors => const [
     Colors.redAccent,
     Colors.blueAccent,
@@ -334,7 +345,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
   ];
 }
 
-// ---------- Private Popup Widget (renamed to avoid clash) ----------
 class _NumberSlideInPopup extends StatefulWidget {
   final IconData icon;
   final Color iconColor;

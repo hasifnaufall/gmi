@@ -28,7 +28,6 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  /// Set to false to **enable** locking (we’re enabling it now).
   static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
@@ -52,7 +51,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     switch (index) {
       case 0:
-        break; // Home
+        break;
       case 1:
         Navigator.pushReplacement(
           context,
@@ -68,7 +67,93 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  // ---------- Unlock dialog ----------
+  // ✅✅ NEW: Mark Quest 1 progress when Alphabet is clicked (no auto-claim)
+  void _triggerQuest1() {
+    if (QuestStatus.completedQuestions == 0 && !QuestStatus.quest1Claimed) {
+      if (QuestStatus.level1Answers.isEmpty || QuestStatus.level1Answers.every((e) => e == null)) {
+        QuestStatus.ensureLevel1Length(1);
+        QuestStatus.level1Answers[0] = true;
+      }
+      // Quest 1 is now claimable, but user must claim it manually from Quest screen
+    }
+  }
+
+  void _openLevelChoice({
+    required String title,
+    required VoidCallback onLearn,
+    required VoidCallback onQuiz,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 4,
+                width: 40,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onLearn();
+                      },
+                      icon: const Icon(Icons.school),
+                      label: const Text("Learn"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: const Color(0xFF22D3EE),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onQuiz();
+                      },
+                      icon: const Icon(Icons.quiz),
+                      label: const Text("Quiz"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: const Color(0xFF60A5FA),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showUnlockDialog({
     required String title,
     required VoidCallback onConfirm,
@@ -78,7 +163,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text("Unlock $title?"),
-        content: Text("Spend $cost keys to unlock this level permanently."),
+        content: Text("Spend $cost keys to unlock this level."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -96,19 +181,17 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-  // ---------- Gate: level requirement + keys ----------
   Future<void> _handleOpenOrUnlock({
     required String key,
     required String title,
     required Future<void> Function() onOpen,
   }) async {
-    // Alphabet always open
-    if (key == QuestStatus.levelAlphabet || kUnlocksDisabled) {
+    if (kUnlocksDisabled) {
       await onOpen();
       return;
     }
 
-    if (QuestStatus.isContentUnlocked(key)) {
+    if (key == QuestStatus.levelAlphabet || QuestStatus.isContentUnlocked(key)) {
       await onOpen();
       return;
     }
@@ -137,7 +220,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
         switch (result) {
           case UnlockStatus.success:
-            setState(() {}); // refresh balances/tiles
+            setState(() {});
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('$title unlocked!')),
             );
@@ -161,74 +244,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-  // ---------- Learn / Quiz chooser ----------
-  void _openLevelChoice({
-    required String title,
-    required VoidCallback onLearn,
-    required VoidCallback onQuiz,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 4,
-                width: 40,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () { Navigator.pop(context); onLearn(); },
-                      icon: const Icon(Icons.school),
-                      label: const Text("Learn"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        backgroundColor: const Color(0xFF22D3EE),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () { Navigator.pop(context); onQuiz(); },
-                      icon: const Icon(Icons.quiz),
-                      label: const Text("Quiz"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        backgroundColor: const Color(0xFF60A5FA),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final points = QuestStatus.userPoints;
@@ -240,11 +255,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       );
     }
 
-    // Real unlocked flags (since kUnlocksDisabled=false)
-    final isNumbersUnlocked   = QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isColourUnlocked    = QuestStatus.isContentUnlocked(QuestStatus.levelColour);
-    final isFruitsUnlocked    = QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);   // repurposed
-    final isAnimalsUnlocked   = QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);  // repurposed
+    final isNumbersUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+    final isColourUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+    final isFruitsUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+    final isAnimalsUnlocked =
+        kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -263,18 +281,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   Row(children: [
                     const Icon(Icons.key, color: Colors.amber, size: 24),
                     const SizedBox(width: 6),
-                    Text(
-                      '$points',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
+                    Text('$points',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ]),
                   Row(children: [
                     const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
                     const SizedBox(width: 6),
-                    Text(
-                      '$streak',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
+                    Text('$streak',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ]),
                 ],
               ),
@@ -294,7 +308,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Alphabet (always open) → chooser
+          // ✅✅ Alphabet (Quest 1 triggers here)
           buildCategoryTile(
             context,
             "ALPHABET",
@@ -302,13 +316,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             Colors.lightBlue.shade200,
             true,
             onTap: () {
+              // Trigger Quest 1 immediately when Alphabet is clicked
+              _triggerQuest1();
+
               _openLevelChoice(
                 title: "Alphabet",
                 onLearn: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()));
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()),
+                  );
                 },
                 onQuiz: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()));
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
+                  );
                   if (!mounted) return;
                   setState(() {});
                 },
@@ -316,7 +339,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Numbers (locked by level/keys)
+          // Numbers
           buildCategoryTile(
             context,
             "NUMBER",
@@ -331,10 +354,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   _openLevelChoice(
                     title: "Numbers",
                     onLearn: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const NumberLearnScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NumberLearnScreen()),
+                      );
                     },
                     onQuiz: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const NumberQuizScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
+                      );
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -344,7 +373,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Colour (locked by level/keys)
+          // Colour
           buildCategoryTile(
             context,
             "COLOUR",
@@ -359,10 +388,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   _openLevelChoice(
                     title: "Colour",
                     onLearn: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const ColourLearnScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ColourLearnScreen()),
+                      );
                     },
                     onQuiz: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const ColourQuizScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ColourQuizScreen()),
+                      );
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -372,7 +407,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Fruits (uses levelGreetings slot)
+          // Fruits
           buildCategoryTile(
             context,
             "FRUITS",
@@ -381,16 +416,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isFruitsUnlocked,
             onTap: () {
               _handleOpenOrUnlock(
-                key: QuestStatus.levelGreetings, // repurposed key
+                key: QuestStatus.levelGreetings,
                 title: "Fruits",
                 onOpen: () async {
                   _openLevelChoice(
                     title: "Fruits",
                     onLearn: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const FruitsLearnScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FruitsLearnScreen()),
+                      );
                     },
                     onQuiz: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const FruitsQuizScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FruitsQuizScreen()),
+                      );
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -400,7 +441,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             },
           ),
 
-          // Animals (uses levelCommonVerb slot)
+          // Animals
           buildCategoryTile(
             context,
             "ANIMALS",
@@ -409,16 +450,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             isAnimalsUnlocked,
             onTap: () {
               _handleOpenOrUnlock(
-                key: QuestStatus.levelCommonVerb, // repurposed key
+                key: QuestStatus.levelCommonVerb,
                 title: "Animals",
                 onOpen: () async {
                   _openLevelChoice(
                     title: "Animals",
                     onLearn: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()),
+                      );
                     },
                     onQuiz: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AnimalQuizScreen()));
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AnimalQuizScreen()),
+                      );
                       if (!mounted) return;
                       setState(() {});
                     },

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'quest_status.dart';
 
 class AlphabetQuizScreen extends StatefulWidget {
-  /// startIndex = slot inside the 5-question session (0..4)
   final int? startIndex;
 
   const AlphabetQuizScreen({super.key, this.startIndex});
@@ -13,20 +12,17 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
-  static const int sessionSize = 5; // Level 1: 5 random questions per run
+  static const int sessionSize = 5;
 
-  // Session
-  late List<int> activeIndices; // the 5 chosen indices from full pool
-  late int currentSlot;         // 0..activeIndices.length-1
+  late List<int> activeIndices;
+  late int currentSlot;
   bool isOptionSelected = false;
 
-  // Per-playthrough answers (key=index in FULL pool)
   final Map<int, bool> _sessionAnswers = {};
 
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 
-  // Full pool (your data)
   final List<Map<String, dynamic>> questions = [
     {"image": "assets/images/alphabet/Q1.jpg",  "options": ["P", "A", "E", "S"], "correctIndex": 1},
     {"image": "assets/images/alphabet/Q2.jpg",  "options": ["W", "U", "F", "B"], "correctIndex": 3},
@@ -63,7 +59,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     Colors.greenAccent,
   ];
 
-  // ---------- Session helpers ----------
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
 
   int _firstUnansweredSlot() {
@@ -91,20 +86,37 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   void initState() {
     super.initState();
 
-    // 1) Pick a fresh random set of 5
+    // ✅✅ Mark Quest 3 (Start Alphabet QUIZ specifically) as soon as quiz opens
+    if (!QuestStatus.alphabetQuizStarted) {
+      QuestStatus.markAlphabetQuizStarted();
+      if (QuestStatus.canClaimQuest3()) {
+        QuestStatus.claimQuest3();
+        // Show notification after build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Quest 3 completed! Started Alphabet Quiz! +80 keys'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        });
+      }
+    }
+    // ✅✅ END Quest 3 trigger
+
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
     activeIndices = all.take(sessionSize).toList();
 
-    // 2) Make Level 1 progress exactly 5 slots and reset it (so quests/medal see this run)
-    QuestStatus.ensureLevel1Length(activeIndices.length); // = 5
-    QuestStatus.resetLevel1Answers();                     // all -> null
+    QuestStatus.ensureLevel1Length(activeIndices.length);
+    QuestStatus.resetLevel1Answers();
 
-    // 3) Where to start in the 5
     int startSlot = widget.startIndex ?? _firstUnansweredSlot();
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    // 4) Animations
     _controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
@@ -119,28 +131,30 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     });
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
 
     final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return; // answered in THIS session
+    if (_sessionAnswers.containsKey(qIdx)) return;
 
     setState(() => isOptionSelected = true);
 
     final correctIndex = questions[qIdx]['correctIndex'] as int;
     final isCorrect = selectedIndex == correctIndex;
 
-    // Save for this run
     _sessionAnswers[qIdx] = isCorrect;
-
-    // Mirror into the 5-slot Level 1 progress so quests/medal align
     QuestStatus.level1Answers[currentSlot] = isCorrect;
 
     if (isCorrect) {
       final oldLvl = QuestStatus.level;
-      final levels = QuestStatus.addXp(20); // XP every playthrough
+      final levels = QuestStatus.addXp(20);
 
-      // XP / Level-up feedback
       showAnimatedPopup(
         icon: Icons.star,
         iconColor: Colors.yellow.shade700,
@@ -149,7 +163,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         bgColor: Colors.green.shade600,
       );
 
-      // Announce any new unlocks crossed by this level-up
       if (levels > 0) {
         final newlyUnlocked = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
         for (final key in newlyUnlocked) {
@@ -163,6 +176,22 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           await Future.delayed(const Duration(milliseconds: 300));
         }
       }
+
+      // ✅✅ Check Quest 4 (3 in a row)
+      if (QuestStatus.level1BestStreak >= 3 && !QuestStatus.quest4Claimed) {
+        if (QuestStatus.canClaimQuest4()) {
+          QuestStatus.claimQuest4();
+          showAnimatedPopup(
+            icon: Icons.whatshot,
+            iconColor: Colors.orange,
+            title: "Quest 4 Complete!",
+            subtitle: "3 correct in a row! +120 keys",
+            bgColor: Colors.deepOrange.shade600,
+          );
+          await Future.delayed(const Duration(milliseconds: 800));
+        }
+      }
+      // ✅✅ END Quest 4
     } else {
       final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
       showAnimatedPopup(
@@ -189,10 +218,42 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         bgColor: Colors.blue.shade600,
       );
 
-      // ---------- NEW: count a finished Alphabet round (for Quest 3) ----------
+      // ✅✅ Update quest counters
       QuestStatus.alphabetRoundsCompleted += 1;
 
-      // Medal once
+      // Check Quest 5 (3 rounds)
+      if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
+        if (QuestStatus.canClaimQuest5()) {
+          QuestStatus.claimQuest5();
+          await Future.delayed(const Duration(milliseconds: 500));
+          showAnimatedPopup(
+            icon: Icons.military_tech,
+            iconColor: Colors.amber,
+            title: "Quest 5 Complete!",
+            subtitle: "3 rounds finished! +200 keys",
+            bgColor: Colors.indigo.shade600,
+          );
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
+
+      // Check Quest 6 (perfect round)
+      if (sessionScore == activeIndices.length && !QuestStatus.quest6Claimed) {
+        if (QuestStatus.canClaimQuest6()) {
+          QuestStatus.claimQuest6();
+          await Future.delayed(const Duration(milliseconds: 500));
+          showAnimatedPopup(
+            icon: Icons.stars,
+            iconColor: Colors.yellow,
+            title: "Quest 6 Complete!",
+            subtitle: "Perfect round! +250 keys",
+            bgColor: Colors.green.shade700,
+          );
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
+      // ✅✅ END quest counters
+
       final justEarned = await QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
@@ -205,7 +266,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         await Future.delayed(const Duration(seconds: 2));
       }
 
-      // Streak bump (once per 24h)
       final didIncrease = QuestStatus.addStreakForLevel();
       if (didIncrease && mounted) {
         showAnimatedPopup(
@@ -231,7 +291,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
   }
 
-  // ---------- Custom Animated Popup ----------
   void showAnimatedPopup({
     required IconData icon,
     required Color iconColor,
@@ -260,7 +319,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     });
   }
 
-  // ---------- Kahoot Button ----------
   Widget kahootButton(String label, Color color, int index) {
     final qIdx = activeIndices[currentSlot];
     final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
@@ -329,7 +387,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   }
 }
 
-// ---------- Popup Widget ----------
 class SlideInPopup extends StatefulWidget {
   final IconData icon;
   final Color iconColor;
