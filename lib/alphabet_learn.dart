@@ -1,5 +1,9 @@
+// alphabet_learn.dart
+// Modified to work WITHOUT shared_preferences (in-memory only)
+// number_learn.dart - Updated to link with Quest 8
 import 'package:flutter/material.dart';
 import 'sign_video_player.dart';
+import 'quest_status.dart';
 
 class AlphabetLearnScreen extends StatefulWidget {
   const AlphabetLearnScreen({super.key});
@@ -18,10 +22,11 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
     };
   });
 
-  // UI state
-  final Set<String> _watched = {}; // session-only; you can persist later
+  // In-memory storage (resets when app restarts)
+  final Set<String> _watched = {};
   String _query = "";
   int _columns = 3;
+  bool _notifiedAllLearned = false;
 
   List<Map<String, String>> get _filtered {
     if (_query.trim().isEmpty) return _all;
@@ -42,13 +47,38 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
 
     if (watched == true) {
       setState(() => _watched.add(item['label']!));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Marked ${item['label']} as watched ✅'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+
+      // one-letter toast
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Marked ${item['label']} as watched ✅'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
+
+      // If all 26 are learned, mark quest flag and auto-claim Quest 2
+      if (_watched.length == 26 && !QuestStatus.learnedAlphabetAll) {
+        QuestStatus.markAlphabetLearnAll();
+
+        // Auto-claim Quest 2
+        if (QuestStatus.canClaimQuest2()) {
+          QuestStatus.claimQuest2();
+        }
+
+        if (!_notifiedAllLearned && mounted) {
+          _notifiedAllLearned = true;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All Alphabet learned! Quest 2 completed! +120 keys'),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -70,17 +100,23 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
           ),
         ),
         actions: [
-          // grid size toggle
           IconButton(
             tooltip: _columns == 3 ? "Bigger cards" : "More per row",
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
             icon: Icon(_columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt),
+            onLongPress: () {
+              setState(() => _watched.clear());
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Progress cleared')),
+                );
+              }
+            },
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search + Progress row
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
@@ -94,7 +130,8 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                       isDense: true,
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -104,7 +141,8 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEEF9FF),
                     borderRadius: BorderRadius.circular(10),
@@ -112,7 +150,8 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome, color: Color(0xFF0EA5E9), size: 18),
+                      const Icon(Icons.auto_awesome,
+                          color: Color(0xFF0EA5E9), size: 18),
                       const SizedBox(width: 6),
                       Text("$watchedCount / 26",
                           style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -123,7 +162,6 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
             ),
           ),
 
-          // Grid
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
@@ -139,7 +177,6 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                 final label = item['label']!;
                 final watched = _watched.contains(label);
 
-                // playful gradients per tile
                 final gradients = [
                   [const Color(0xFFFF9A9E), const Color(0xFFFAD0C4)],
                   [const Color(0xFFA18CD1), const Color(0xFFFBC2EB)],
@@ -181,7 +218,8 @@ class _LetterCard extends StatefulWidget {
   State<_LetterCard> createState() => _LetterCardState();
 }
 
-class _LetterCardState extends State<_LetterCard> with SingleTickerProviderStateMixin {
+class _LetterCardState extends State<_LetterCard>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl =
   AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
   late final Animation<double> _scale =
@@ -223,7 +261,6 @@ class _LetterCardState extends State<_LetterCard> with SingleTickerProviderState
           ),
           child: Stack(
             children: [
-              // BIG letter
               Center(
                 child: Text(
                   widget.label,
@@ -235,12 +272,12 @@ class _LetterCardState extends State<_LetterCard> with SingleTickerProviderState
                   ),
                 ),
               ),
-              // play pill
               Positioned(
                 right: 10,
                 bottom: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(999),
@@ -253,13 +290,13 @@ class _LetterCardState extends State<_LetterCard> with SingleTickerProviderState
                       Text(widget.watched ? "Watched" : "Learn",
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            color: widget.watched ? Colors.green : Colors.black87,
+                            color:
+                            widget.watched ? Colors.green : Colors.black87,
                           )),
                     ],
                   ),
                 ),
               ),
-              // watched badge
               if (widget.watched)
                 const Positioned(
                   left: 10,

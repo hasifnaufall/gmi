@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sign_video_player.dart';
+import 'quest_status.dart';
 
 class NumberLearnScreen extends StatefulWidget {
   const NumberLearnScreen({super.key});
@@ -14,13 +15,14 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
     final n = (i + 1).toString();
     return {
       "label": n,
-      "video": "assets/videos/numbers/$n.mp4", // <- put your files here
+      "video": "assets/videos/numbers/$n.mp4",
     };
   });
 
-  final Set<String> _watched = {}; // session-only “watched”
+  final Set<String> _watched = {}; // session-only "watched"
   String _query = "";
   int _columns = 3;
+  bool _notifiedAllLearned = false; // avoid duplicate notifications
 
   List<Map<String, String>> get _filtered {
     if (_query.trim().isEmpty) return _all;
@@ -41,13 +43,36 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
 
     if (watched == true) {
       setState(() => _watched.add(item['label']!));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Marked ${item['label']} as watched ✅'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Marked ${item['label']} as watched ✅'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
+
+      // If all 20 learned, auto-claim Quest 8
+      if (_watched.length == 20 && !QuestStatus.learnedNumbersAll) {
+        QuestStatus.markNumbersLearnAll();
+
+        if (QuestStatus.canClaimQuest8()) {
+          QuestStatus.claimQuest8();
+        }
+
+        if (!_notifiedAllLearned && mounted) {
+          _notifiedAllLearned = true;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All Numbers learned! Quest 8 completed! +120 keys 🎉'),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -138,7 +163,7 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
                 final label = item['label']!;
                 final watched = _watched.contains(label);
 
-                // colorful gradients (reuse from alphabet)
+                // colorful gradients
                 final gradients = [
                   [const Color(0xFFFF9A9E), const Color(0xFFFAD0C4)],
                   [const Color(0xFFA18CD1), const Color(0xFFFBC2EB)],

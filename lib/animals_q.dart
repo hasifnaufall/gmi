@@ -26,169 +26,169 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   final List<Map<String, dynamic>> rawQuestions = [
     // anai = termite
     {
-      "image": "assets/images/animal/anai.png",
+      "image": "assets/images/animal/anai.jpg",
       "options": ["Ant", "Termite", "Wasp", "Bee"],
       "correctIndex": 1
     },
     // angsa = goose
     {
-      "image": "assets/images/animal/angsa.png",
+      "image": "assets/images/animal/angsa.jpg",
       "options": ["Duck", "Goose", "Swan", "Turkey"],
       "correctIndex": 1
     },
     // anjing = dog
     {
-      "image": "assets/images/animal/anjing.png",
+      "image": "assets/images/animal/anjing.jpg",
       "options": ["Fox", "Wolf", "Dog", "Coyote"],
       "correctIndex": 2
     },
     // arnab = rabbit
     {
-      "image": "assets/images/animal/arnab.png",
+      "image": "assets/images/animal/arnab.jpg",
       "options": ["Hamster", "Rabbit", "Mouse", "Guinea Pig"],
       "correctIndex": 1
     },
     // ayam = chicken
     {
-      "image": "assets/images/animal/ayam.png",
+      "image": "assets/images/animal/ayam.jpg",
       "options": ["Chicken", "Duck", "Goose", "Turkey"],
       "correctIndex": 0
     },
     // babi = pig
     {
-      "image": "assets/images/animal/babi.png",
+      "image": "assets/images/animal/babi.jpg",
       "options": ["Boar", "Pig", "Cow", "Goat"],
       "correctIndex": 1
     },
     // badak sumbu = rhinoceros
     {
-      "image": "assets/images/animal/badak sumbu.png",
+      "image": "assets/images/animal/badak sumbu.jpg",
       "options": ["Hippopotamus", "Rhinoceros", "Buffalo", "Elephant"],
       "correctIndex": 1
     },
     // belalang = grasshopper
     {
-      "image": "assets/images/animal/belalang.png",
+      "image": "assets/images/animal/belalang.jpg",
       "options": ["Cricket", "Locust", "Grasshopper", "Praying Mantis"],
       "correctIndex": 2
     },
     // beruang = bear
     {
-      "image": "assets/images/animal/beruang.png",
+      "image": "assets/images/animal/beruang.jpg",
       "options": ["Bear", "Lion", "Tiger", "Wolf"],
       "correctIndex": 0
     },
     // biawak = monitor lizard
     {
-      "image": "assets/images/animal/biawak.png",
+      "image": "assets/images/animal/biawak.jpg",
       "options": ["Iguana", "Monitor Lizard", "Crocodile", "Gecko"],
       "correctIndex": 1
     },
     // biri (biri-biri) = sheep
     {
-      "image": "assets/images/animal/biri.png",
+      "image": "assets/images/animal/biri.jpg",
       "options": ["Goat", "Sheep", "Cow", "Yak"],
       "correctIndex": 1
     },
     // buaya = crocodile
     {
-      "image": "assets/images/animal/buaya.png",
+      "image": "assets/images/animal/buaya.jpg",
       "options": ["Alligator", "Crocodile", "Monitor Lizard", "Snake"],
       "correctIndex": 1
     },
     // burung = bird
     {
-      "image": "assets/images/animals/burung.png",
+      "image": "assets/images/animals/burung.jpg",
       "options": ["Bird", "Eagle", "Duck", "Owl"],
       "correctIndex": 0
     },
     // cicak = gecko
     {
-      "image": "assets/images/animal/cicak.png",
+      "image": "assets/images/animal/cicak.jpg",
       "options": ["Lizard", "Chameleon", "Gecko", "Newt"],
       "correctIndex": 2
     },
     // gajah = elephant
     {
-      "image": "assets/images/animal/gajah.png",
+      "image": "assets/images/animal/gajah.jpg",
       "options": ["Rhino", "Hippo", "Elephant", "Buffalo"],
       "correctIndex": 2
     },
     // gorila = gorilla
     {
-      "image": "assets/images/animal/gorila.png",
+      "image": "assets/images/animal/gorila.jpg",
       "options": ["Gorilla", "Chimpanzee", "Orangutan", "Baboon"],
       "correctIndex": 0
     },
     // harimau = tiger
     {
-      "image": "assets/images/animal/harimau.png",
+      "image": "assets/images/animal/harimau.jpg",
       "options": ["Lion", "Leopard", "Cheetah", "Tiger"],
       "correctIndex": 3
     },
     // helang = eagle
     {
-      "image": "assets/images/animal/helang.png",
+      "image": "assets/images/animal/helang.jpg",
       "options": ["Falcon", "Eagle", "Hawk", "Owl"],
       "correctIndex": 1
     },
     // ikan = fish
     {
-      "image": "assets/images/animal/ikan.png",
+      "image": "assets/images/animal/ikan.jpg",
       "options": ["Seal", "Dolphin", "Fish", "Shark"],
       "correctIndex": 2
     },
     // itik = duck
     {
-      "image": "assets/images/animal/itik.png",
+      "image": "assets/images/animal/itik.jpg",
       "options": ["Goose", "Turkey", "Chicken", "Duck"],
       "correctIndex": 3
     },
     // jengking = scorpion
     {
-      "image": "assets/images/animal/jengking.png",
+      "image": "assets/images/animal/jengking.jpg",
       "options": ["Scorpion", "Spider", "Centipede", "Beetle"],
       "correctIndex": 0
     },
     // kambing = goat
     {
-      "image": "assets/images/animal/kambing.png",
+      "image": "assets/images/animal/kambing.jpg",
       "options": ["Sheep", "Goat", "Cow", "Deer"],
       "correctIndex": 1
     },
     // kancil = mouse-deer
     {
-      "image": "assets/images/animal/kancil.png",
+      "image": "assets/images/animal/kancil.jpg",
       "options": ["Mouse-deer", "Deer", "Antelope", "Gazelle"],
       "correctIndex": 0
     },
     // labah (labah-labah) = spider
     {
-      "image": "assets/images/animal/Labah.png",
+      "image": "assets/images/animal/Labah.jpg",
       "options": ["Cockroach", "Ant", "Spider", "Mantis"],
       "correctIndex": 2
     },
     // merak = peacock
     {
-      "image": "assets/images/animal/merak.png",
+      "image": "assets/images/animal/merak.jpg",
       "options": ["Peacock", "Turkey", "Parrot", "Swan"],
       "correctIndex": 0
     },
     // rama-rama = butterfly
     {
-      "image": "assets/images/animal/rama-rama.png",
+      "image": "assets/images/animal/rama-rama.jpg",
       "options": ["Moth", "Butterfly", "Dragonfly", "Bee"],
       "correctIndex": 1
     },
     // singa = lion
     {
-      "image": "assets/images/animal/singa.png",
+      "image": "assets/images/animal/singa.jpg",
       "options": ["Cheetah", "Leopard", "Tiger", "Lion"],
       "correctIndex": 3
     },
     // zirafah = giraffe
     {
-      "image": "assets/images/animal/zirafah.png",
+      "image": "assets/images/animal/zirafah.jpg",
       "options": ["Giraffe", "Camel", "Alpaca", "Donkey"],
       "correctIndex": 0
     },

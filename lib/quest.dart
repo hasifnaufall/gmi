@@ -1,3 +1,4 @@
+// quest.dart
 import 'package:flutter/material.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
@@ -35,9 +36,7 @@ class _QuestScreenState extends State<QuestScreen> {
     }
   }
 
-  double get _targetProgress =>
-      (QuestStatus.claimedPoints / QuestStatus.levelGoalPoints).clamp(0, 1).toDouble();
-
+  double get _targetProgress => QuestStatus.chestProgress;
   bool get _isChestUnlocked =>
       QuestStatus.claimedPoints >= QuestStatus.levelGoalPoints;
 
@@ -47,34 +46,22 @@ class _QuestScreenState extends State<QuestScreen> {
     int leveled = 0;
 
     setState(() {
-      // Chest reward: grant 200 XP every chest; optional one-time achievement
       QuestStatus.awardAchievement('Welcome');
       leveled = QuestStatus.addXp(200);
+
+      int overflow = QuestStatus.claimedPoints - QuestStatus.levelGoalPoints;
       QuestStatus.chestsOpened += 1;
-    });
-
-    // XP toast
-    _showXpToast(xp: 200, leveledUp: leveled);
-
-    // Advance chest tier (e.g., 30 -> 50 -> 100 -> ...)
-    if (!mounted) return;
-    setState(() {
       QuestStatus.advanceChestTier();
-    });
-  }
 
-  /// Max consecutive TRUEs in the current Alphabet 5-question session.
-  int _alphabetBestStreak() {
-    int best = 0, cur = 0;
-    for (final v in QuestStatus.level1Answers) {
-      if (v == true) {
-        cur += 1;
-        if (cur > best) best = cur;
-      } else {
-        cur = 0;
+      while (overflow >= QuestStatus.levelGoalPoints) {
+        overflow -= QuestStatus.levelGoalPoints;
+        QuestStatus.chestsOpened += 1;
+        QuestStatus.advanceChestTier();
       }
-    }
-    return best;
+      QuestStatus.claimedPoints = overflow.clamp(0, 1 << 30);
+    });
+
+    _showXpToast(xp: 200, leveledUp: leveled);
   }
 
   @override
@@ -93,7 +80,7 @@ class _QuestScreenState extends State<QuestScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Compact Chest section
+          // Chest section
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
             child: Container(
@@ -124,7 +111,8 @@ class _QuestScreenState extends State<QuestScreen> {
                     curve: Curves.easeInOut,
                     tween: Tween<double>(begin: 0, end: _targetProgress),
                     builder: (context, value, _) {
-                      final shown = (value * QuestStatus.levelGoalPoints).round();
+                      final shown =
+                      (value * QuestStatus.levelGoalPoints).round();
                       return Column(
                         children: [
                           LinearProgressIndicator(
@@ -136,7 +124,8 @@ class _QuestScreenState extends State<QuestScreen> {
                           const SizedBox(height: 6),
                           Text(
                             '$shown/${QuestStatus.levelGoalPoints}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                         ],
                       );
@@ -151,9 +140,12 @@ class _QuestScreenState extends State<QuestScreen> {
                       label: Text(chestEnabled ? 'Open Chest' : 'Chest Locked'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        backgroundColor: chestEnabled ? Colors.blue : Colors.grey,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        backgroundColor:
+                        chestEnabled ? Colors.blue : Colors.grey,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -167,7 +159,7 @@ class _QuestScreenState extends State<QuestScreen> {
             child: ListView(
               padding: const EdgeInsets.only(top: 4, bottom: 8),
               children: [
-                // Quest 1 – Start Alphabet (answer >= 1 question)
+                // Q1 – Start Alphabet (enter/answer ≥ 1)
                 QuestItem(
                   title: 'Quest 1',
                   subtitle: 'Start "Alphabet" level',
@@ -185,104 +177,156 @@ class _QuestScreenState extends State<QuestScreen> {
                   },
                 ),
 
-                // Quest 2 – Get 3 correct answers in a row (Alphabet)
+                // Q2 – Learn ALL Alphabet (Learning Mode)
                 QuestItem(
                   title: 'Quest 2',
-                  subtitle: 'Get 3 correct answers in a row (Alphabet)',
+                  subtitle: 'Learn ALL Alphabet in Learning Mode',
                   points: 120,
                   isClaimed: QuestStatus.quest2Claimed,
-                  isCompleted: _alphabetBestStreak() >= 3,
+                  isCompleted: QuestStatus.learnedAlphabetAll,
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest2()) {
-                        // you can change reward/progress in claimQuest2() if desired
                         QuestStatus.claimQuest2();
+                        _showXpToast(xp: 80, leveledUp: 0);
+                      }
+                    });
+                  },
+                ),
+
+                // Q3 – Start Alphabet quiz
+                QuestItem(
+                  title: 'Quest 3',
+                  subtitle: 'Start "Alphabet" quiz',
+                  points: 80,
+                  isClaimed: QuestStatus.quest3Claimed,
+                  isCompleted: QuestStatus.alphabetQuizStarted,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest3()) {
+                        QuestStatus.claimQuest3();
+                        _showXpToast(xp: 60, leveledUp: 0);
+                      }
+                    });
+                  },
+                ),
+
+                // Q4 – 3 correct in a row (Alphabet)
+                QuestItem(
+                  title: 'Quest 4',
+                  subtitle: 'Get 3 correct answers in a row (Alphabet)',
+                  points: 120,
+                  isClaimed: QuestStatus.quest4Claimed,
+                  isCompleted: QuestStatus.level1BestStreak >= 3,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest4()) {
+                        QuestStatus.claimQuest4();
                         _showXpToast(xp: 100, leveledUp: 0);
                       }
                     });
                   },
                 ),
 
-                // Quest 3 – Finish 3 rounds of Alphabet
+                // Q5 – Finish 3 rounds of Alphabet
                 QuestItem(
-                  title: 'Quest 3',
+                  title: 'Quest 5',
                   subtitle: 'Finish 3 rounds of Alphabet level',
                   points: 200,
-                  isClaimed: QuestStatus.quest3Claimed,
+                  isClaimed: QuestStatus.quest5Claimed,
                   isCompleted: QuestStatus.alphabetRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest3()) {
-                        QuestStatus.claimQuest3();
+                      if (QuestStatus.canClaimQuest5()) {
+                        QuestStatus.claimQuest5();
                         _showXpToast(xp: 150, leveledUp: 0);
                       }
                     });
                   },
                 ),
 
-                // Quest 4 – Complete ONE Alphabet level without mistakes
+                // Q6 – Alphabet perfect round
                 QuestItem(
-                  title: 'Quest 4',
+                  title: 'Quest 6',
                   subtitle: 'Complete ONE Alphabet round without mistakes',
                   points: 250,
-                  isClaimed: QuestStatus.quest4Claimed,
+                  isClaimed: QuestStatus.quest6Claimed,
                   isCompleted: QuestStatus.level1Completed &&
-                      QuestStatus.level1Score == QuestStatus.level1Answers.length,
+                      QuestStatus.level1Score ==
+                          QuestStatus.level1Answers.length,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest4()) {
-                        QuestStatus.claimQuest4();
+                      if (QuestStatus.canClaimQuest6()) {
+                        QuestStatus.claimQuest6();
                         _showXpToast(xp: 180, leveledUp: 0);
                       }
                     });
                   },
                 ),
 
-                // Quest 5 – Unlock Numbers
+                // Q7 – Unlock Numbers
                 QuestItem(
-                  title: 'Quest 5',
+                  title: 'Quest 7',
                   subtitle: 'Unlock the "Number" level',
-                  points: 100,
-                  isClaimed: QuestStatus.quest5Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
+                  points: 150,
+                  isClaimed: QuestStatus.quest7Claimed,
+                  isCompleted:
+                  QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest5()) {
-                        QuestStatus.claimQuest5();
+                      if (QuestStatus.canClaimQuest7()) {
+                        QuestStatus.claimQuest7();
                         _showXpToast(xp: 120, leveledUp: 0);
                       }
                     });
                   },
                 ),
 
-                // Quest 6 – Numbers: complete all questions correctly (perfect round)
+                // Q8 – Learn ALL Numbers (Learning Mode)
                 QuestItem(
-                  title: 'Quest 6',
-                  subtitle: 'Complete all questions correctly in Numbers',
+                  title: 'Quest 8',
+                  subtitle: 'Learn ALL Numbers in Learning Mode',
+                  points: 120,
+                  isClaimed: QuestStatus.quest8Claimed,
+                  isCompleted: QuestStatus.learnedNumbersAll,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest8()) {
+                        QuestStatus.claimQuest8();
+                        _showXpToast(xp: 100, leveledUp: 0);
+                      }
+                    });
+                  },
+                ),
+
+                // Q9 – Numbers perfect round
+                QuestItem(
+                  title: 'Quest 9',
+                  subtitle: 'Complete ONE Numbers round without mistakes',
                   points: 200,
-                  isClaimed: QuestStatus.quest6Claimed,
+                  isClaimed: QuestStatus.quest9Claimed,
                   isCompleted: (QuestStatus.numbersPerfectRounds >= 1),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest6()) {
-                        QuestStatus.claimQuest6();
+                      if (QuestStatus.canClaimQuest9()) {
+                        QuestStatus.claimQuest9();
                         _showXpToast(xp: 160, leveledUp: 0);
                       }
                     });
                   },
                 ),
 
-                // Quest 7 – Numbers: finish 3 rounds
+                // Q10 – Finish 3 rounds of Numbers
                 QuestItem(
-                  title: 'Quest 7',
+                  title: 'Quest 10',
                   subtitle: 'Finish 3 rounds of Numbers level',
                   points: 200,
-                  isClaimed: QuestStatus.quest7Claimed,
+                  isClaimed: QuestStatus.quest10Claimed,
                   isCompleted: (QuestStatus.numbersRoundsCompleted >= 3),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest7()) {
-                        QuestStatus.claimQuest7();
+                      if (QuestStatus.canClaimQuest10()) {
+                        QuestStatus.claimQuest10();
                         _showXpToast(xp: 150, leveledUp: 0);
                       }
                     });
@@ -298,8 +342,8 @@ class _QuestScreenState extends State<QuestScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Task"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Quest"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "User"),
         ],
       ),
     );
@@ -335,7 +379,6 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Same constants as quiz_category.dart
     const double iconSize = 22;
     const TextStyle valueStyle =
     TextStyle(fontWeight: FontWeight.w700, fontSize: 16);
@@ -343,7 +386,7 @@ class _TopBar extends StatelessWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      toolbarHeight: 52, // same height as quiz_category
+      toolbarHeight: 52,
       flexibleSpace: SafeArea(
         bottom: false,
         child: Padding(
@@ -398,7 +441,9 @@ class QuestItem extends StatelessWidget {
       color: isClaimed ? Colors.green[100] : Colors.yellow[100],
       child: ListTile(
         dense: true,
-        title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        title: Text(title,
+            style:
+            const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 13)),
         trailing: FittedBox(
           fit: BoxFit.scaleDown,
@@ -412,11 +457,13 @@ class QuestItem extends StatelessWidget {
                 onPressed: canClaim ? onClaim : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(84, 34),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   backgroundColor: canClaim ? Colors.blue : Colors.grey,
                 ),
                 child: Text(isClaimed ? 'CLAIMED' : 'CLAIM',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -482,7 +529,8 @@ class _SlideInToastState extends State<_SlideInToast>
             color: widget.bgColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, 8)),
+              BoxShadow(
+                  color: Colors.black26, blurRadius: 16, offset: Offset(0, 8)),
             ],
           ),
           child: Row(
