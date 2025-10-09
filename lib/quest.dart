@@ -1,4 +1,3 @@
-// quest.dart
 import 'package:flutter/material.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
@@ -47,11 +46,11 @@ class _QuestScreenState extends State<QuestScreen> {
 
     setState(() {
       QuestStatus.awardAchievement('Welcome');
-      leveled = QuestStatus.addXp(200);
+      leveled = QuestStatus.addXp(200); // Chest grants +200 XP
 
       int overflow = QuestStatus.claimedPoints - QuestStatus.levelGoalPoints;
       QuestStatus.chestsOpened += 1;
-      QuestStatus.advanceChestTier();
+      QuestStatus.advanceChestTier(); // Next chest bar += 20
 
       while (overflow >= QuestStatus.levelGoalPoints) {
         overflow -= QuestStatus.levelGoalPoints;
@@ -62,11 +61,17 @@ class _QuestScreenState extends State<QuestScreen> {
     });
 
     _showXpToast(xp: 200, leveledUp: leveled);
+
+    // Sweep auto-claim in case any chest-related quests complete
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final bool chestEnabled = _isChestUnlocked;
+
+    // Optional: light sweep to reflect latest auto-claims when opening screen
+    QuestStatus.ensureUnlocksLoaded();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -159,7 +164,7 @@ class _QuestScreenState extends State<QuestScreen> {
             child: ListView(
               padding: const EdgeInsets.only(top: 4, bottom: 8),
               children: [
-                // Q1 – Start Alphabet (enter/answer ≥ 1)
+                // ======================= Q1 – Q4 : Alphabet (Free) =======================
                 QuestItem(
                   title: 'Quest 1',
                   subtitle: 'Start "Alphabet" level',
@@ -168,16 +173,11 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.completedQuestions >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest1()) {
-                        QuestStatus.claimQuest1();
-                        QuestStatus.addStreakForLevel();
-                        _showXpToast(xp: 50, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest1()) QuestStatus.claimQuest1();
                     });
                   },
                 ),
 
-                // Q2 – Learn ALL Alphabet (Learning Mode)
                 QuestItem(
                   title: 'Quest 2',
                   subtitle: 'Learn ALL Alphabet in Learning Mode',
@@ -186,15 +186,11 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedAlphabetAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest2()) {
-                        QuestStatus.claimQuest2();
-                        _showXpToast(xp: 80, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest2()) QuestStatus.claimQuest2();
                     });
                   },
                 ),
 
-                // Q3 – Start Alphabet quiz
                 QuestItem(
                   title: 'Quest 3',
                   subtitle: 'Start "Alphabet" quiz',
@@ -203,15 +199,11 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.alphabetQuizStarted,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest3()) {
-                        QuestStatus.claimQuest3();
-                        _showXpToast(xp: 60, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
                     });
                   },
                 ),
 
-                // Q4 – 3 correct in a row (Alphabet)
                 QuestItem(
                   title: 'Quest 4',
                   subtitle: 'Get 3 correct answers in a row (Alphabet)',
@@ -220,115 +212,275 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level1BestStreak >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest4()) {
-                        QuestStatus.claimQuest4();
-                        _showXpToast(xp: 100, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest4()) QuestStatus.claimQuest4();
                     });
                   },
                 ),
 
-                // Q5 – Finish 3 rounds of Alphabet
+                // ================ Q5 – Q8 : Numbers (Unlock at Level 5) ==================
                 QuestItem(
                   title: 'Quest 5',
-                  subtitle: 'Finish 3 rounds of Alphabet level',
-                  points: 200,
+                  subtitle: 'Start "Numbers" level',
+                  points: 100,
                   isClaimed: QuestStatus.quest5Claimed,
-                  isCompleted: QuestStatus.alphabetRoundsCompleted >= 3,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest5()) {
-                        QuestStatus.claimQuest5();
-                        _showXpToast(xp: 150, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
                     });
                   },
                 ),
 
-                // Q6 – Alphabet perfect round
                 QuestItem(
                   title: 'Quest 6',
-                  subtitle: 'Complete ONE Alphabet round without mistakes',
-                  points: 250,
-                  isClaimed: QuestStatus.quest6Claimed,
-                  isCompleted: QuestStatus.level1Completed &&
-                      QuestStatus.level1Score ==
-                          QuestStatus.level1Answers.length,
-                  onClaim: () {
-                    setState(() {
-                      if (QuestStatus.canClaimQuest6()) {
-                        QuestStatus.claimQuest6();
-                        _showXpToast(xp: 180, leveledUp: 0);
-                      }
-                    });
-                  },
-                ),
-
-                // Q7 – Unlock Numbers
-                QuestItem(
-                  title: 'Quest 7',
-                  subtitle: 'Unlock the "Number" level',
-                  points: 150,
-                  isClaimed: QuestStatus.quest7Claimed,
-                  isCompleted:
-                  QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
-                  onClaim: () {
-                    setState(() {
-                      if (QuestStatus.canClaimQuest7()) {
-                        QuestStatus.claimQuest7();
-                        _showXpToast(xp: 120, leveledUp: 0);
-                      }
-                    });
-                  },
-                ),
-
-                // Q8 – Learn ALL Numbers (Learning Mode)
-                QuestItem(
-                  title: 'Quest 8',
                   subtitle: 'Learn ALL Numbers in Learning Mode',
                   points: 120,
-                  isClaimed: QuestStatus.quest8Claimed,
+                  isClaimed: QuestStatus.quest6Claimed,
                   isCompleted: QuestStatus.learnedNumbersAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest8()) {
-                        QuestStatus.claimQuest8();
-                        _showXpToast(xp: 100, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
                     });
                   },
                 ),
 
-                // Q9 – Numbers perfect round
                 QuestItem(
-                  title: 'Quest 9',
+                  title: 'Quest 7',
                   subtitle: 'Complete ONE Numbers round without mistakes',
                   points: 200,
-                  isClaimed: QuestStatus.quest9Claimed,
-                  isCompleted: (QuestStatus.numbersPerfectRounds >= 1),
+                  isClaimed: QuestStatus.quest7Claimed,
+                  isCompleted: QuestStatus.numbersPerfectRounds >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest9()) {
-                        QuestStatus.claimQuest9();
-                        _showXpToast(xp: 160, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest7()) QuestStatus.claimQuest7();
                     });
                   },
                 ),
 
-                // Q10 – Finish 3 rounds of Numbers
                 QuestItem(
-                  title: 'Quest 10',
+                  title: 'Quest 8',
                   subtitle: 'Finish 3 rounds of Numbers level',
                   points: 200,
-                  isClaimed: QuestStatus.quest10Claimed,
-                  isCompleted: (QuestStatus.numbersRoundsCompleted >= 3),
+                  isClaimed: QuestStatus.quest8Claimed,
+                  isCompleted: QuestStatus.numbersRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest10()) {
-                        QuestStatus.claimQuest10();
-                        _showXpToast(xp: 150, leveledUp: 0);
-                      }
+                      if (QuestStatus.canClaimQuest8()) QuestStatus.claimQuest8();
+                    });
+                  },
+                ),
+
+                // ================= Q9 – Q12 : Colour (Unlock at Level 10) =================
+                QuestItem(
+                  title: 'Quest 9',
+                  subtitle: 'Start "Colour" level',
+                  points: 100,
+                  isClaimed: QuestStatus.quest9Claimed,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelColour),
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest9()) QuestStatus.claimQuest9();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 10',
+                  subtitle: 'Learn ALL Colours in Learning Mode',
+                  points: 120,
+                  isClaimed: QuestStatus.quest10Claimed,
+                  isCompleted: QuestStatus.learnedColoursAll,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest10()) QuestStatus.claimQuest10();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 11',
+                  subtitle: 'Get 5 correct answers in a row (Colour)',
+                  points: 150,
+                  isClaimed: QuestStatus.quest11Claimed,
+                  isCompleted: QuestStatus.colourBestStreak >= 5,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest11()) QuestStatus.claimQuest11();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 12',
+                  subtitle: 'Finish 2 Colour rounds',
+                  points: 200,
+                  isClaimed: QuestStatus.quest12Claimed,
+                  isCompleted: QuestStatus.colourRoundsCompleted >= 2,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest12()) QuestStatus.claimQuest12();
+                    });
+                  },
+                ),
+
+                // ================= Q13 – Q16 : Fruits (Unlock at Level 15) ================
+                QuestItem(
+                  title: 'Quest 13',
+                  subtitle: 'Start "Fruits" level',
+                  points: 100,
+                  isClaimed: QuestStatus.quest13Claimed,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelGreetings),
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest13()) QuestStatus.claimQuest13();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 14',
+                  subtitle: 'Learn ALL Fruits in Learning Mode',
+                  points: 120,
+                  isClaimed: QuestStatus.quest14Claimed,
+                  isCompleted: QuestStatus.learnedFruitsAll,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest14()) QuestStatus.claimQuest14();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 15',
+                  subtitle: 'Get 4 correct answers in a row (Fruits)',
+                  points: 150,
+                  isClaimed: QuestStatus.quest15Claimed,
+                  isCompleted: QuestStatus.fruitsBestStreak >= 4,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest15()) QuestStatus.claimQuest15();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 16',
+                  subtitle: 'Finish 2 Fruits rounds',
+                  points: 200,
+                  isClaimed: QuestStatus.quest16Claimed,
+                  isCompleted: QuestStatus.fruitsRoundsCompleted >= 2,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest16()) QuestStatus.claimQuest16();
+                    });
+                  },
+                ),
+
+                // ================= Q17 – Q20 : Animals (Unlock at Level 25) ===============
+                QuestItem(
+                  title: 'Quest 17',
+                  subtitle: 'Start "Animals" level',
+                  points: 100,
+                  isClaimed: QuestStatus.quest17Claimed,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb),
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest17()) QuestStatus.claimQuest17();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 18',
+                  subtitle: 'Learn ALL Animals in Learning Mode',
+                  points: 120,
+                  isClaimed: QuestStatus.quest18Claimed,
+                  isCompleted: QuestStatus.learnedAnimalsAll,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest18()) QuestStatus.claimQuest18();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 19',
+                  subtitle: 'Finish 3 Animals rounds',
+                  points: 150,
+                  isClaimed: QuestStatus.quest19Claimed,
+                  isCompleted: QuestStatus.animalsRoundsCompleted >= 3,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest19()) QuestStatus.claimQuest19();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 20',
+                  subtitle: 'Complete ONE Animals round without mistakes',
+                  points: 200,
+                  isClaimed: QuestStatus.quest20Claimed,
+                  isCompleted: QuestStatus.animalsPerfectRounds >= 1,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest20()) QuestStatus.claimQuest20();
+                    });
+                  },
+                ),
+
+                // ================= Q21 – Q24 : Simple Global Milestones ====================
+                QuestItem(
+                  title: 'Quest 21',
+                  subtitle: 'Open 3 chests',
+                  points: 150,
+                  isClaimed: QuestStatus.quest21Claimed,
+                  isCompleted: QuestStatus.chestsOpened >= 3,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest21()) QuestStatus.claimQuest21();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 22',
+                  subtitle: 'Reach Level 10',
+                  points: 150,
+                  isClaimed: QuestStatus.quest22Claimed,
+                  isCompleted: QuestStatus.level >= 10,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest22()) QuestStatus.claimQuest22();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 23',
+                  subtitle: 'Unlock all categories',
+                  points: 200,
+                  isClaimed: QuestStatus.quest23Claimed,
+                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers) &&
+                      QuestStatus.isContentUnlocked(QuestStatus.levelColour)  &&
+                      QuestStatus.isContentUnlocked(QuestStatus.levelGreetings) &&
+                      QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb),
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest23()) QuestStatus.claimQuest23();
+                    });
+                  },
+                ),
+
+                QuestItem(
+                  title: 'Quest 24',
+                  subtitle: 'Reach Level 25',
+                  points: 300,
+                  isClaimed: QuestStatus.quest24Claimed,
+                  isCompleted: QuestStatus.level >= 25,
+                  onClaim: () {
+                    setState(() {
+                      if (QuestStatus.canClaimQuest24()) QuestStatus.claimQuest24();
                     });
                   },
                 ),
