@@ -447,7 +447,9 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this)..forward();
+    controller = AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this)
+      ..forward();
     offset = Tween<Offset>(begin: const Offset(1.2, 0), end: Offset.zero)
         .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
   }
@@ -478,9 +480,12 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(widget.title,
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
                     Text(widget.subtitle,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14)),
                   ],
                 ),
               ),

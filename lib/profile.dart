@@ -5,6 +5,7 @@ import 'quest.dart';
 import 'login.dart';
 import 'quest_status.dart'; // keys + xp + chestsOpened + achievements
 import 'xp_popups.dart';    // 🎉 showAchievementPopup
+import 'user_progress_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,6 +16,43 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedTab = 0;
+
+  final UserProgressService _progressService = UserProgressService();
+  String _progressStatus = '';
+  Map<String, dynamic>? _progressData;
+
+  Future<void> _saveProgress() async {
+    try {
+      await _progressService.saveProgress(
+        level: QuestStatus.level,
+        score: QuestStatus.xp,
+        achievements: List<String>.from(QuestStatus.achievements ?? []),
+      );
+      setState(() {
+        _progressStatus = 'Progress Saved!';
+      });
+    } catch (e) {
+      setState(() {
+        _progressStatus = 'Save failed: $e';
+      });
+    }
+  }
+
+  Future<void> _loadProgress() async {
+    try {
+      final data = await _progressService.getProgress();
+      setState(() {
+        _progressData = data;
+        _progressStatus = data != null
+            ? 'Progress Loaded!'
+            : 'No progress found.';
+      });
+    } catch (e) {
+      setState(() {
+        _progressStatus = 'Load failed: $e';
+      });
+    }
+  }
 
   Future<void> _confirmLogout() async {
     final shouldLogout = await showDialog<bool>(
@@ -51,6 +89,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             (route) => false,
       );
     }
+  }
+
+  Widget _progressButtonsAndStatus() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: _saveProgress,
+              child: const Text('Save Progress'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: _loadProgress,
+              child: const Text('Load Progress'),
+            ),
+          ],
+        ),
+        if (_progressStatus.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(_progressStatus, style: const TextStyle(color: Colors.teal)),
+        ],
+        if (_progressData != null) ...[
+          const SizedBox(height: 8),
+          Text('Level: ${_progressData!['level']}'),
+          Text('Score: ${_progressData!['score']}'),
+          Text('Achievements: ${(_progressData!['achievements'] as List).join(', ')}'),
+        ]
+      ],
+    );
   }
 
   @override
@@ -181,7 +250,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // One source of truth for medals
   List<_Medal> _allMedals() {
     return [
       _Medal(
@@ -221,17 +289,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final xpToNext = QuestStatus.xpToNext;
     final progress = QuestStatus.xpProgress.clamp(0.0, 1.0);
 
-    // ✅ Dynamic streak label
     final int streak = QuestStatus.streakDays;
     final String streakLabel =
         "$streak DAY${streak == 1 ? '' : 'S'}\nSTREAK";
 
-    // ✅ Medal count from same list used by Achievements tab
     final medals = _allMedals();
     final unlockedCount = medals.where((m) => m.unlocked).length;
 
     return [
-      // -------- Level / XP Card --------
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -286,14 +351,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       const SizedBox(height: 20),
-
-      // -------- Dynamic stats row (streak/chests/medals) --------
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _TinyStat(
             icon: Icons.local_fire_department,
-            label: streakLabel,           // 🔥 dynamic streak here
+            label: streakLabel,
             color: Colors.orange,
           ),
           _TinyStat(
@@ -309,13 +372,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       const SizedBox(height: 20),
+      _progressButtonsAndStatus(), // <--- Progress buttons/status here!
       const Align(
         alignment: Alignment.centerLeft,
         child: Text("SETTINGS", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const SizedBox(height: 12),
-
-      // -------- Account row --------
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -386,8 +448,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 }
-
-// ======= UI helpers =======
 
 class _TinyStat extends StatelessWidget {
   final IconData icon;
