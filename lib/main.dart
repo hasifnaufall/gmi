@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-          user != null ? QuizCategoryScreen() : const LoginScreen(),
+          user != null ?  QuizCategoryScreen() : const LoginScreen(),
         ),
       );
     });

@@ -1,11 +1,24 @@
-// quiz.dart
 import 'package:flutter/material.dart';
 import 'quiz_category.dart';  // make sure this import is present
 import 'quest.dart';
 import 'profile.dart';
+import 'user_progress_service.dart';
+import 'quest_status.dart';
 
 class QuizScreen extends StatelessWidget {
   const QuizScreen({super.key});
+
+  void _saveProgressAfterQuiz(BuildContext context) async {
+    final _progressService = UserProgressService();
+    await _progressService.saveProgress(
+      level: QuestStatus.level,
+      score: QuestStatus.xp,
+      achievements: List<String>.from(QuestStatus.achievements ?? []),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Progress auto-saved!')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +27,6 @@ class QuizScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ... other widgets ...
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -22,7 +34,6 @@ class QuizScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios),
                     onPressed: () {
-                      // Navigate straight back to Home (category) page
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
@@ -32,6 +43,14 @@ class QuizScreen extends StatelessWidget {
                   const Spacer(),
                 ],
               ),
+            ),
+            // ... other widgets ...
+            ElevatedButton(
+              onPressed: () {
+                // Call this when quiz is completed!
+                _saveProgressAfterQuiz(context);
+              },
+              child: Text('Finish Quiz & Auto-Save Progress'),
             ),
             // ... rest of the page ...
           ],
