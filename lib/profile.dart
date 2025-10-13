@@ -23,11 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _saveProgress() async {
     try {
-      await _progressService.saveProgress(
-        level: QuestStatus.level,
-        score: QuestStatus.xp,
-        achievements: List<String>.from(QuestStatus.achievements ?? []),
-      );
+      await QuestStatus.autoSaveProgress(); // Use the comprehensive save method
       setState(() {
         _progressStatus = 'Progress Saved!';
       });
@@ -40,13 +36,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProgress() async {
     try {
-      final data = await _progressService.getProgress();
-      setState(() {
-        _progressData = data;
-        _progressStatus = data != null
-            ? 'Progress Loaded!'
-            : 'No progress found.';
-      });
+      final userId = _progressService.getCurrentUserId();
+      if (userId != null) {
+        await QuestStatus.loadProgressForUser(userId);
+        final data = await _progressService.getProgress();
+        setState(() {
+          _progressData = data;
+          _progressStatus = data != null
+              ? 'Progress Loaded!'
+              : 'No progress found.';
+        });
+      } else {
+        setState(() {
+          _progressStatus = 'No user logged in';
+        });
+      }
     } catch (e) {
       setState(() {
         _progressStatus = 'Load failed: $e';
@@ -81,6 +85,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (shouldLogout == true) {
+      // Only clear the current user ID - DO NOT reset progress data
+      // The progress should remain in Firestore for when user logs back in
+      QuestStatus.clearCurrentUser(); // Clear the current user ID
+      
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -445,6 +453,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       const SizedBox(height: 24),
+      // Debug section for testing
+      Card(
+        margin: EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Debug Info:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        QuestStatus.showCurrentProgress();
+                      },
+                      child: Text('Show Progress'),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await QuestStatus.forceSave();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Progress saved manually!')),
+                        );
+                      },
+                      child: Text('Force Save'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     ];
   }
 }
@@ -465,8 +511,8 @@ class _TinyStat extends StatelessWidget {
       children: [
         CircleAvatar(
           backgroundColor: color.withOpacity(0.2),
-          child: Icon(icon, color: color, size: 28),
           radius: 30,
+          child: Icon(icon, color: color, size: 28),
         ),
         const SizedBox(height: 6),
         Text(
