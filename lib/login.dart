@@ -4,7 +4,6 @@ import 'quiz_category.dart';
 import 'signup.dart';
 import 'auth_service.dart';
 import 'quest_status.dart';          // <-- Import your QuestStatus class
-import 'user_progress_service.dart'; // <-- Import your UserProgressService
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,19 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
 
-      // LOAD PROGRESS HERE
-      final _progressService = UserProgressService();
-      final progress = await _progressService.getProgress();
-      if (progress != null) {
-        QuestStatus.level = progress['level'];
-        QuestStatus.xp = progress['score'];
-        QuestStatus.achievements = Set<String>.from(progress['achievements'] ?? []);
-        // Add more QuestStatus fields as needed
-      } else {
-        // Optionally reset QuestStatus fields to default for new users
-        QuestStatus.level = 1;
-        QuestStatus.xp = 0;
-        QuestStatus.achievements = <String>{};
+      // Load comprehensive progress for the logged-in user
+      final user = auth.currentUser;
+      if (user != null) {
+        await QuestStatus.loadProgressForUser(user.uid)
+            .timeout(const Duration(seconds: 10));
       }
 
       Navigator.pushReplacement(
@@ -81,19 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await authService.signInWithGoogle();
 
-      // LOAD PROGRESS HERE
-      final _progressService = UserProgressService();
-      final progress = await _progressService.getProgress();
-      if (progress != null) {
-        QuestStatus.level = progress['level'];
-        QuestStatus.xp = progress['score'];
-        QuestStatus.achievements = Set<String>.from(progress['achievements'] ?? []);
-        // Add more QuestStatus fields as needed
-      } else {
-        // Optionally reset QuestStatus fields to default for new users
-        QuestStatus.level = 1;
-        QuestStatus.xp = 0;
-        QuestStatus.achievements = <String>{};
+      // Load comprehensive progress for the logged-in user
+      final user = auth.currentUser;
+      if (user != null) {
+        await QuestStatus.loadProgressForUser(user.uid)
+            .timeout(const Duration(seconds: 10));
       }
 
       Navigator.pushReplacement(

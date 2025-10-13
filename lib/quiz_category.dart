@@ -1,9 +1,9 @@
-//quiz_category.dart
 import 'package:flutter/material.dart';
 
 import 'profile.dart';
 import 'quest.dart';
 import 'quest_status.dart';
+import 'user_progress_service.dart';
 
 // Learn + Quiz screens
 import 'alphabet_learn.dart';
@@ -33,15 +33,67 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
+  bool _loadingProgress = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUnlocks();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      // Load user progress first
+      await _loadUserProgress();
+      // Then load unlocks
+      await _loadUnlocks();
+    } catch (e) {
+      print('Error during app initialization: $e');
+      // Don't reset on error - preserve any existing progress
+      if (mounted) {
+        setState(() {
+          _loadingProgress = false;
+          _loadingUnlocks = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadUserProgress() async {
+    try {
+      final userId = UserProgressService().getCurrentUserId();
+      if (userId != null) {
+        // Only load progress if user ID doesn't match (different user or after logout)
+        if (QuestStatus.currentUserId != userId) {
+          print('QuizCategoryScreen: Loading progress for user: $userId (different from current: ${QuestStatus.currentUserId})');
+          // Add timeout to prevent hanging
+          await QuestStatus.loadProgressForUser(userId)
+              .timeout(const Duration(seconds: 10));
+          print('User progress loaded successfully for user: $userId');
+          print('Loaded progress - Level: ${QuestStatus.level}, XP: ${QuestStatus.xp}, Chests: ${QuestStatus.chestsOpened}, Streak: ${QuestStatus.streakDays}');
+        } else {
+          print('QuizCategoryScreen: User progress already loaded for user: $userId');
+          print('Current progress - Level: ${QuestStatus.level}, XP: ${QuestStatus.xp}, Chests: ${QuestStatus.chestsOpened}, Streak: ${QuestStatus.streakDays}');
+        }
+      } else {
+        print('No user logged in - using default progress');
+        QuestStatus.resetToDefaults();
+      }
+    } catch (e) {
+      print('Error loading user progress: $e');
+      // Don't reset to defaults on error - keep existing progress
+    }
+    if (!mounted) return;
+    setState(() => _loadingProgress = false);
   }
 
   Future<void> _loadUnlocks() async {
-    await QuestStatus.ensureUnlocksLoaded();
+    try {
+      await QuestStatus.ensureUnlocksLoaded()
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      print('Error loading unlocks: $e');
+    }
     if (!mounted) return;
     setState(() => _loadingUnlocks = false);
   }
@@ -226,6 +278,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               SnackBar(content: Text('$title unlocked!')),
             );
             await onOpen();
+            await QuestStatus.autoSaveProgress();
             break;
           case UnlockStatus.alreadyUnlocked:
             await onOpen();
@@ -250,7 +303,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     final points = QuestStatus.userPoints;
     final streak = QuestStatus.streakDays;
 
-    if (_loadingUnlocks) {
+    if (_loadingUnlocks || _loadingProgress) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -316,7 +369,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             Icons.abc,
             Colors.lightBlue.shade200,
             true,
-            onTap: () {
+            onTap: () async {
               // Trigger Quest 1 immediately when Alphabet is clicked
               _triggerQuest1();
 
@@ -327,12 +380,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     context,
                     MaterialPageRoute(builder: (_) => const AlphabetLearnScreen()),
                   );
+                  await QuestStatus.autoSaveProgress();
                 },
                 onQuiz: () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AlphabetQuizScreen()),
                   );
+                  await QuestStatus.autoSaveProgress();
                   if (!mounted) return;
                   setState(() {});
                 },
@@ -359,12 +414,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         context,
                         MaterialPageRoute(builder: (_) => const NumberLearnScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                     },
                     onQuiz: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const NumberQuizScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -393,12 +450,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         context,
                         MaterialPageRoute(builder: (_) => const ColourLearnScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                     },
                     onQuiz: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ColourQuizScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -427,12 +486,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         context,
                         MaterialPageRoute(builder: (_) => const FruitsLearnScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                     },
                     onQuiz: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const FruitsQuizScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                       if (!mounted) return;
                       setState(() {});
                     },
@@ -461,12 +522,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         context,
                         MaterialPageRoute(builder: (_) => const AnimalsLearnScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                     },
                     onQuiz: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AnimalQuizScreen()),
                       );
+                      await QuestStatus.autoSaveProgress();
                       if (!mounted) return;
                       setState(() {});
                     },

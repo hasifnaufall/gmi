@@ -7,6 +7,7 @@ import 'quiz_category.dart';
 import 'quiz.dart';
 import 'profile.dart';
 import 'quest.dart';
+import 'quest_status.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +52,22 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        // Reset quest status if no user is logged in
+        QuestStatus.resetToDefaults();
+        QuestStatus.clearCurrentUser();
+      } else {
+        // Load progress for the current user
+        try {
+          await QuestStatus.loadProgressForUser(user.uid);
+          print('Progress loaded for persistent user: ${user.uid}');
+        } catch (e) {
+          print('Error loading progress for persistent user: $e');
+        }
+      }
 
       Navigator.pushReplacement(
         context,

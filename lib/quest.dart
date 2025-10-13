@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
 import 'quest_status.dart';
+import 'user_progress_service.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -12,6 +13,29 @@ class QuestScreen extends StatefulWidget {
 
 class _QuestScreenState extends State<QuestScreen> {
   int _selectedIndex = 1;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureUserProgressLoaded();
+  }
+
+  Future<void> _ensureUserProgressLoaded() async {
+    try {
+      final userId = UserProgressService().getCurrentUserId();
+      if (userId != null && QuestStatus.currentUserId != userId) {
+        // User has changed or progress not loaded for current user
+        await QuestStatus.loadProgressForUser(userId)
+            .timeout(const Duration(seconds: 5));
+      }
+    } catch (e) {
+      print('Error ensuring user progress in QuestScreen: $e');
+    }
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
@@ -68,6 +92,12 @@ class _QuestScreenState extends State<QuestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final bool chestEnabled = _isChestUnlocked;
 
     // Optional: light sweep to reflect latest auto-claims when opening screen
