@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'login.dart';
 import 'quiz_category.dart';
 import 'quiz.dart';
@@ -11,9 +12,7 @@ import 'quest_status.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WaveActApp());
 }
 
@@ -25,9 +24,15 @@ class WaveActApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'WaveAct',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Arial',
+      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Arial'),
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: [
+          const Breakpoint(start: 0, end: 450, name: MOBILE),
+          const Breakpoint(start: 451, end: 800, name: TABLET),
+          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+        ],
       ),
       home: const SplashScreen(),
       routes: {
@@ -73,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-          user != null ?  QuizCategoryScreen() : const LoginScreen(),
+              user != null ? QuizCategoryScreen() : const LoginScreen(),
         ),
       );
     });
@@ -84,10 +89,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Image(
-          image: AssetImage('assets/images/logo.png'),
-          width: 180,
-        ),
+        child: Image(image: AssetImage('assets/images/logo.png'), width: 180),
       ),
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'quiz_category.dart';
 import 'quest.dart';
 import 'login.dart';
 import 'quest_status.dart'; // keys + xp + chestsOpened + achievements
-import 'xp_popups.dart';    // 🎉 showAchievementPopup
+import 'xp_popups.dart'; // 🎉 showAchievementPopup
 import 'user_progress_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -65,7 +66,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Log out?'),
-        content: const Text('Are you sure you want to log out of your account?'),
+        content: const Text(
+          'Are you sure you want to log out of your account?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -88,13 +91,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Only clear the current user ID - DO NOT reset progress data
       // The progress should remain in Firestore for when user logs back in
       QuestStatus.clearCurrentUser(); // Clear the current user ID
-      
+
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (route) => false,
+        (route) => false,
       );
     }
   }
@@ -124,9 +127,177 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           Text('Level: ${_progressData!['level']}'),
           Text('Score: ${_progressData!['score']}'),
-          Text('Achievements: ${(_progressData!['achievements'] as List).join(', ')}'),
-        ]
+          Text(
+            'Achievements: ${(_progressData!['achievements'] as List).join(', ')}',
+          ),
+        ],
       ],
+    );
+  }
+
+  // Modern glassy bottom navigation bar with animated active pill
+  Widget _buildModernNavBar() {
+    final navItems = [
+      {
+        'label': 'Home',
+        'icon': Icons.home_outlined,
+        'activeIcon': Icons.home_rounded,
+        'color': const Color(0xFF2563EB),
+      },
+      {
+        'label': 'Task',
+        'icon': Icons.menu_book_outlined,
+        'activeIcon': Icons.menu_book_rounded,
+        'color': const Color(0xFF22C55E),
+      },
+      {
+        'label': 'Profile',
+        'icon': Icons.person_outline_rounded,
+        'activeIcon': Icons.person_rounded,
+        'color': const Color(0xFFF59E0B),
+      },
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Container(
+          height: 72,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.55),
+                  border: Border.all(color: Colors.white.withOpacity(0.7)),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = constraints.maxWidth / navItems.length;
+                    final accent = navItems[2]['color'] as Color;
+                    return Stack(
+                      children: [
+                        // Active pill background
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          left: 2 * itemWidth,
+                          top: 8,
+                          bottom: 8,
+                          child: Container(
+                            width: itemWidth,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  accent.withOpacity(0.18),
+                                  accent.withOpacity(0.08),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                        // Nav items row
+                        Row(
+                          children: List.generate(navItems.length, (i) {
+                            final active = i == 2;
+                            final icon =
+                                (active
+                                        ? navItems[i]['activeIcon']
+                                        : navItems[i]['icon'])
+                                    as IconData;
+                            final color = active
+                                ? navItems[i]['color'] as Color
+                                : Colors.black54;
+                            return Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () {
+                                    if (i == 0) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => QuizCategoryScreen(),
+                                        ),
+                                      );
+                                    } else if (i == 1) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const QuestScreen(),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: SizedBox(
+                                    height: 72,
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(icon, size: 24, color: color),
+                                          AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 180,
+                                            ),
+                                            switchInCurve: Curves.easeOut,
+                                            switchOutCurve: Curves.easeIn,
+                                            child: active
+                                                ? Padding(
+                                                    key: ValueKey('lbl$i'),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 8,
+                                                        ),
+                                                    child: Text(
+                                                      navItems[i]['label']
+                                                          as String,
+                                                      style: TextStyle(
+                                                        color: color,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : const SizedBox(
+                                                    key: ValueKey('empty'),
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -136,11 +307,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final double padding = width * 0.05;
     final user = FirebaseAuth.instance.currentUser;
     final username = user?.email?.split('@').first ?? 'User';
-
     final int opened = QuestStatus.chestsOpened;
-    final String chestLabel =
-    opened == 1 ? "1 CHEST\nOPENED" : "$opened CHESTS\nOPENED";
-
+    final String chestLabel = "CHESTS OPENED: $opened";
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
@@ -232,30 +400,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        selectedItemColor: Colors.teal,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const QuestScreen()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Task'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
+      bottomNavigationBar: _buildModernNavBar(),
     );
+    // ...existing code...
   }
 
   List<_Medal> _allMedals() {
@@ -288,18 +435,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _buildProfileContent(
-      BuildContext context,
-      User? user,
-      String chestLabel,
-      ) {
+    BuildContext context,
+    User? user,
+    String chestLabel,
+  ) {
     final level = QuestStatus.level;
     final xp = QuestStatus.xp;
     final xpToNext = QuestStatus.xpToNext;
     final progress = QuestStatus.xpProgress.clamp(0.0, 1.0);
 
     final int streak = QuestStatus.streakDays;
-    final String streakLabel =
-        "$streak DAY${streak == 1 ? '' : 'S'}\nSTREAK";
+    final String streakLabel = "$streak DAY${streak == 1 ? '' : 'S'}\nSTREAK";
 
     final medals = _allMedals();
     final unlockedCount = medals.where((m) => m.unlocked).length;
@@ -399,13 +545,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Google:", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  "Google:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(
                   user?.email ?? "No email linked",
                   style: TextStyle(color: Colors.grey[700]),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -461,7 +610,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Debug Info:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'Debug Info:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               SizedBox(height: 8),
               Row(
                 children: [
@@ -551,8 +703,12 @@ class _MedalChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnlocked = medal.unlocked;
-    final bg = isUnlocked ? medal.color.withOpacity(0.14) : Colors.grey.shade200;
-    final border = isUnlocked ? medal.color.withOpacity(0.45) : Colors.grey.withOpacity(0.35);
+    final bg = isUnlocked
+        ? medal.color.withOpacity(0.14)
+        : Colors.grey.shade200;
+    final border = isUnlocked
+        ? medal.color.withOpacity(0.45)
+        : Colors.grey.withOpacity(0.35);
     final fg = isUnlocked ? medal.color : Colors.grey;
 
     return GestureDetector(
@@ -577,13 +733,15 @@ class _MedalChip extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(medal.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: isUnlocked ? Colors.black : Colors.black54,
-                      )),
+                  Text(
+                    medal.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: isUnlocked ? Colors.black : Colors.black54,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     medal.description,
@@ -599,9 +757,14 @@ class _MedalChip extends StatelessWidget {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isUnlocked ? Colors.green.withOpacity(0.15) : Colors.grey.withOpacity(0.2),
+                        color: isUnlocked
+                            ? Colors.green.withOpacity(0.15)
+                            : Colors.grey.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
