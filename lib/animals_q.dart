@@ -16,6 +16,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   late List<int> activeIndices;
   late int currentSlot;
   bool isOptionSelected = false;
+  int? _pendingIndex; // selected option awaiting confirmation
 
   final Map<int, bool> _sessionAnswers = {};
 
@@ -28,179 +29,181 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     {
       "image": "assets/images/animal/anai.jpg",
       "options": ["Ant", "Termite", "Wasp", "Bee"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // angsa = goose
     {
       "image": "assets/images/animal/angsa.jpg",
       "options": ["Duck", "Goose", "Swan", "Turkey"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // anjing = dog
     {
       "image": "assets/images/animal/anjing.jpg",
       "options": ["Fox", "Wolf", "Dog", "Coyote"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // arnab = rabbit
     {
       "image": "assets/images/animal/arnab.jpg",
       "options": ["Hamster", "Rabbit", "Mouse", "Guinea Pig"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // ayam = chicken
     {
       "image": "assets/images/animal/ayam.jpg",
       "options": ["Chicken", "Duck", "Goose", "Turkey"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // babi = pig
     {
       "image": "assets/images/animal/babi.jpg",
       "options": ["Boar", "Pig", "Cow", "Goat"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // badak sumbu = rhinoceros
     {
       "image": "assets/images/animal/badak sumbu.jpg",
       "options": ["Hippopotamus", "Rhinoceros", "Buffalo", "Elephant"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // belalang = grasshopper
     {
       "image": "assets/images/animal/belalang.jpg",
       "options": ["Cricket", "Locust", "Grasshopper", "Praying Mantis"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // beruang = bear
     {
       "image": "assets/images/animal/beruang.jpg",
       "options": ["Bear", "Lion", "Tiger", "Wolf"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // biawak = monitor lizard
     {
       "image": "assets/images/animal/biawak.jpg",
       "options": ["Iguana", "Monitor Lizard", "Crocodile", "Gecko"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // biri (biri-biri) = sheep
     {
       "image": "assets/images/animal/biri.jpg",
       "options": ["Goat", "Sheep", "Cow", "Yak"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // buaya = crocodile
     {
       "image": "assets/images/animal/buaya.jpg",
       "options": ["Alligator", "Crocodile", "Monitor Lizard", "Snake"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // burung = bird
     {
       "image": "assets/images/animals/burung.jpg",
       "options": ["Bird", "Eagle", "Duck", "Owl"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // cicak = gecko
     {
       "image": "assets/images/animal/cicak.jpg",
       "options": ["Lizard", "Chameleon", "Gecko", "Newt"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // gajah = elephant
     {
       "image": "assets/images/animal/gajah.jpg",
       "options": ["Rhino", "Hippo", "Elephant", "Buffalo"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // gorila = gorilla
     {
       "image": "assets/images/animal/gorila.jpg",
       "options": ["Gorilla", "Chimpanzee", "Orangutan", "Baboon"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // harimau = tiger
     {
       "image": "assets/images/animal/harimau.jpg",
       "options": ["Lion", "Leopard", "Cheetah", "Tiger"],
-      "correctIndex": 3
+      "correctIndex": 3,
     },
     // helang = eagle
     {
       "image": "assets/images/animal/helang.jpg",
       "options": ["Falcon", "Eagle", "Hawk", "Owl"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // ikan = fish
     {
       "image": "assets/images/animal/ikan.jpg",
       "options": ["Seal", "Dolphin", "Fish", "Shark"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // itik = duck
     {
       "image": "assets/images/animal/itik.jpg",
       "options": ["Goose", "Turkey", "Chicken", "Duck"],
-      "correctIndex": 3
+      "correctIndex": 3,
     },
     // jengking = scorpion
     {
       "image": "assets/images/animal/jengking.jpg",
       "options": ["Scorpion", "Spider", "Centipede", "Beetle"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // kambing = goat
     {
       "image": "assets/images/animal/kambing.jpg",
       "options": ["Sheep", "Goat", "Cow", "Deer"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // kancil = mouse-deer
     {
       "image": "assets/images/animal/kancil.jpg",
       "options": ["Mouse-deer", "Deer", "Antelope", "Gazelle"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // labah (labah-labah) = spider
     {
       "image": "assets/images/animal/Labah.jpg",
       "options": ["Cockroach", "Ant", "Spider", "Mantis"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     // merak = peacock
     {
       "image": "assets/images/animal/merak.jpg",
       "options": ["Peacock", "Turkey", "Parrot", "Swan"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     // rama-rama = butterfly
     {
       "image": "assets/images/animal/rama-rama.jpg",
       "options": ["Moth", "Butterfly", "Dragonfly", "Bee"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     // singa = lion
     {
       "image": "assets/images/animal/singa.jpg",
       "options": ["Cheetah", "Leopard", "Tiger", "Lion"],
-      "correctIndex": 3
+      "correctIndex": 3,
     },
     // zirafah = giraffe
     {
       "image": "assets/images/animal/zirafah.jpg",
       "options": ["Giraffe", "Camel", "Alpaca", "Donkey"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
   ];
 
-
-  late final List<Map<String, dynamic>> questions =
-  rawQuestions.map((q) => {
-    "image": q["image"],
-    "options": List<String>.from(q["options"]),
-    "correctIndex": q["correctIndex"],
-  }).toList();
+  late final List<Map<String, dynamic>> questions = rawQuestions
+      .map(
+        (q) => {
+          "image": q["image"],
+          "options": List<String>.from(q["options"]),
+          "correctIndex": q["correctIndex"],
+        },
+      )
+      .toList();
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
 
@@ -237,9 +240,14 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -287,7 +295,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
         }
       }
     } else {
-      final correctText = (questions[qIdx]['options'] as List)[correctIndex].toString();
+      final correctText = (questions[qIdx]['options'] as List)[correctIndex]
+          .toString();
       _popup(
         icon: Icons.close,
         iconColor: Colors.redAccent,
@@ -301,7 +310,9 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
     if (_allAnsweredInSession()) {
       if (!mounted) return;
-      final sessionScore = activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      final sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
 
       _popup(
         icon: Icons.emoji_events,
@@ -328,8 +339,12 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     } else {
       final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
-        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+          0,
+          activeIndices.length - 1,
+        );
         isOptionSelected = false;
+        _pendingIndex = null;
         _controller.reset();
         _controller.forward();
       });
@@ -348,37 +363,188 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _Toast(icon: icon, iconColor: iconColor, title: title, subtitle: subtitle, bg: bg),
+        child: _Toast(
+          icon: icon,
+          iconColor: iconColor,
+          title: title,
+          subtitle: subtitle,
+          bg: bg,
+        ),
       ),
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
   }
 
-  Widget _kahootButton(String label, Color color, int index) {
-    final qIdx = activeIndices[currentSlot];
-    final already = _sessionAnswers.containsKey(qIdx);
-
+  Widget _optionTile(String label, int index) {
+    final answered = _sessionAnswers.containsKey(activeIndices[currentSlot]);
+    final isPending = _pendingIndex == index;
     return GestureDetector(
-      onTap: already ? null : () => handleAnswer(index),
-      child: Opacity(
-        opacity: already ? 0.6 : 1.0,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 4))],
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-              textAlign: TextAlign.center,
+      onTap: answered
+          ? null
+          : () {
+              setState(() => _pendingIndex = index);
+            },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFC6DDFF),
+          borderRadius: BorderRadius.circular(16),
+          border: isPending ? Border.all(color: Colors.teal, width: 2) : null,
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
             ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E4A8F),
+                ),
+              ),
+            ),
+            if (isPending)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.teal,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Selected',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar() {
+    final total = activeIndices.length;
+    int correct = 0, wrong = 0;
+    for (final i in activeIndices) {
+      if (_sessionAnswers.containsKey(i)) {
+        if (_sessionAnswers[i] == true) {
+          correct++;
+        } else {
+          wrong++;
+        }
+      }
+    }
+    final remaining = total - correct - wrong;
+
+    Widget seg(Color c, int flex) => Expanded(
+      flex: flex,
+      child: Container(color: c),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Row(
+            children: [
+              if (correct > 0) seg(Colors.green, correct),
+              if (wrong > 0) seg(Colors.red, wrong),
+              if (remaining > 0) seg(Colors.grey.shade400, remaining),
+            ],
           ),
         ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Correct: $correct',
+              style: const TextStyle(fontSize: 12, color: Colors.green),
+            ),
+            Text(
+              'Wrong: $wrong',
+              style: const TextStyle(fontSize: 12, color: Colors.red),
+            ),
+            Text(
+              'Left: $remaining',
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConfirmBar(List<String> options) {
+    final qIdx = activeIndices[currentSlot];
+    final already = _sessionAnswers.containsKey(qIdx);
+    if (_pendingIndex == null || already) return const SizedBox.shrink();
+
+    final label = options[_pendingIndex!];
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Confirm "$label"?',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          TextButton(
+            onPressed: () => setState(() => _pendingIndex = null),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2C5CB0),
+            ),
+            onPressed: () {
+              final idx = _pendingIndex;
+              if (idx != null) handleAnswer(idx);
+            },
+            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -387,40 +553,86 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List).map((e) => e.toString()).toList();
+    final options = (question['options'] as List)
+        .map((e) => e.toString())
+        .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Animals Level"), backgroundColor: Colors.blue.shade700),
-      body: Container(
-        color: Colors.blue.shade100,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SlideTransition(
-            position: _offsetAnimation,
-            child: Column(
-              children: [
-                Text(
-                  "Question ${currentSlot + 1} of ${activeIndices.length}",
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      appBar: AppBar(
+        title: const Text("Animals Level"),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF2C5CB0),
+        elevation: 0,
+      ),
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SlideTransition(
+          position: _offsetAnimation,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Question ${currentSlot + 1} of ${activeIndices.length}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 20),
-                Image.asset(question['image'], fit: BoxFit.contain, height: 180),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.2,
-                    children: List.generate(options.length, (i) {
-                      return _kahootButton(
-                        options[i],
-                        const [Colors.redAccent, Colors.blueAccent, Colors.orangeAccent, Colors.greenAccent][i],
-                        i,
-                      );
-                    }),
+              ),
+              const SizedBox(height: 10),
+              _buildProgressBar(),
+              const SizedBox(height: 14),
+              // Question card with image + fallback
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.white, Colors.grey.shade100],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    question['image'],
+                    fit: BoxFit.contain,
+                    height: 180,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 180,
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  itemCount: options.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemBuilder: (_, i) => _optionTile(options[i], i),
+                ),
+              ),
+              _buildConfirmBar(options),
+            ],
           ),
         ),
       ),
@@ -434,7 +646,13 @@ class _Toast extends StatefulWidget {
   final String title;
   final String subtitle;
   final Color bg;
-  const _Toast({required this.icon, required this.iconColor, required this.title, required this.subtitle, required this.bg});
+  const _Toast({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.bg,
+  });
 
   @override
   State<_Toast> createState() => _ToastState();
@@ -448,10 +666,13 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     controller = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this)
-      ..forward();
-    offset = Tween<Offset>(begin: const Offset(1.2, 0), end: Offset.zero)
-        .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    )..forward();
+    offset = Tween<Offset>(
+      begin: const Offset(1.2, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
   }
 
   @override
@@ -479,13 +700,21 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title,
-                        style: const TextStyle(color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold)),
-                    Text(widget.subtitle,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 14)),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
