@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'login.dart';
 import 'quiz_category.dart';
 import 'quiz.dart';
@@ -11,9 +12,7 @@ import 'quest_status.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WaveActApp());
 }
 
@@ -28,6 +27,25 @@ class WaveActApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         fontFamily: 'Arial',
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+          },
+        ),
+      ),
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: [
+          const Breakpoint(start: 0, end: 450, name: MOBILE),
+          const Breakpoint(start: 451, end: 800, name: TABLET),
+          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+        ],
       ),
       home: const SplashScreen(),
       routes: {
@@ -36,6 +54,33 @@ class WaveActApp extends StatelessWidget {
         '/quiz': (context) => const QuizScreen(),
         '/quests': (context) => const QuestScreen(),
       },
+    );
+  }
+}
+
+// A subtle, immersive fade+scale transition used globally
+class _SmoothFadeScaleTransitionsBuilder extends PageTransitionsBuilder {
+  const _SmoothFadeScaleTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.98, end: 1.0).animate(curved),
+        child: child,
+      ),
     );
   }
 }
@@ -73,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-          user != null ?  QuizCategoryScreen() : const LoginScreen(),
+              user != null ? QuizCategoryScreen() : const LoginScreen(),
         ),
       );
     });
@@ -84,10 +129,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Image(
-          image: AssetImage('assets/images/logo.png'),
-          width: 180,
-        ),
+        child: Image(image: AssetImage('assets/images/logo.png'), width: 180),
       ),
     );
   }

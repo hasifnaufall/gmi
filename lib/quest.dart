@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'quiz_category.dart';
 import 'profile.dart';
 import 'quest_status.dart';
@@ -26,8 +27,9 @@ class _QuestScreenState extends State<QuestScreen> {
       final userId = UserProgressService().getCurrentUserId();
       if (userId != null && QuestStatus.currentUserId != userId) {
         // User has changed or progress not loaded for current user
-        await QuestStatus.loadProgressForUser(userId)
-            .timeout(const Duration(seconds: 5));
+        await QuestStatus.loadProgressForUser(
+          userId,
+        ).timeout(const Duration(seconds: 5));
       }
     } catch (e) {
       print('Error ensuring user progress in QuestScreen: $e');
@@ -93,9 +95,7 @@ class _QuestScreenState extends State<QuestScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final bool chestEnabled = _isChestUnlocked;
@@ -146,8 +146,8 @@ class _QuestScreenState extends State<QuestScreen> {
                     curve: Curves.easeInOut,
                     tween: Tween<double>(begin: 0, end: _targetProgress),
                     builder: (context, value, _) {
-                      final shown =
-                      (value * QuestStatus.levelGoalPoints).round();
+                      final shown = (value * QuestStatus.levelGoalPoints)
+                          .round();
                       return Column(
                         children: [
                           LinearProgressIndicator(
@@ -160,7 +160,9 @@ class _QuestScreenState extends State<QuestScreen> {
                           Text(
                             '$shown/${QuestStatus.levelGoalPoints}',
                             style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w600),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       );
@@ -175,12 +177,16 @@ class _QuestScreenState extends State<QuestScreen> {
                       label: Text(chestEnabled ? 'Open Chest' : 'Chest Locked'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        backgroundColor:
-                        chestEnabled ? Colors.blue : Colors.grey,
+                        backgroundColor: chestEnabled
+                            ? Colors.blue
+                            : Colors.grey,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         textStyle: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -203,7 +209,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.completedQuestions >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest1()) QuestStatus.claimQuest1();
+                      if (QuestStatus.canClaimQuest1())
+                        QuestStatus.claimQuest1();
                     });
                   },
                 ),
@@ -216,7 +223,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedAlphabetAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest2()) QuestStatus.claimQuest2();
+                      if (QuestStatus.canClaimQuest2())
+                        QuestStatus.claimQuest2();
                     });
                   },
                 ),
@@ -229,7 +237,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.alphabetQuizStarted,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
+                      if (QuestStatus.canClaimQuest3())
+                        QuestStatus.claimQuest3();
                     });
                   },
                 ),
@@ -242,7 +251,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level1BestStreak >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest4()) QuestStatus.claimQuest4();
+                      if (QuestStatus.canClaimQuest4())
+                        QuestStatus.claimQuest4();
                     });
                   },
                 ),
@@ -253,10 +263,13 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Numbers" level',
                   points: 100,
                   isClaimed: QuestStatus.quest5Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
+                  isCompleted: QuestStatus.isContentUnlocked(
+                    QuestStatus.levelNumbers,
+                  ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
+                      if (QuestStatus.canClaimQuest5())
+                        QuestStatus.claimQuest5();
                     });
                   },
                 ),
@@ -269,7 +282,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedNumbersAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+                      if (QuestStatus.canClaimQuest6())
+                        QuestStatus.claimQuest6();
                     });
                   },
                 ),
@@ -282,7 +296,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.numbersPerfectRounds >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest7()) QuestStatus.claimQuest7();
+                      if (QuestStatus.canClaimQuest7())
+                        QuestStatus.claimQuest7();
                     });
                   },
                 ),
@@ -295,7 +310,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.numbersRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest8()) QuestStatus.claimQuest8();
+                      if (QuestStatus.canClaimQuest8())
+                        QuestStatus.claimQuest8();
                     });
                   },
                 ),
@@ -306,10 +322,13 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Colour" level',
                   points: 100,
                   isClaimed: QuestStatus.quest9Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelColour),
+                  isCompleted: QuestStatus.isContentUnlocked(
+                    QuestStatus.levelColour,
+                  ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest9()) QuestStatus.claimQuest9();
+                      if (QuestStatus.canClaimQuest9())
+                        QuestStatus.claimQuest9();
                     });
                   },
                 ),
@@ -322,7 +341,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedColoursAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest10()) QuestStatus.claimQuest10();
+                      if (QuestStatus.canClaimQuest10())
+                        QuestStatus.claimQuest10();
                     });
                   },
                 ),
@@ -335,7 +355,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.colourBestStreak >= 5,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest11()) QuestStatus.claimQuest11();
+                      if (QuestStatus.canClaimQuest11())
+                        QuestStatus.claimQuest11();
                     });
                   },
                 ),
@@ -348,7 +369,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.colourRoundsCompleted >= 2,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest12()) QuestStatus.claimQuest12();
+                      if (QuestStatus.canClaimQuest12())
+                        QuestStatus.claimQuest12();
                     });
                   },
                 ),
@@ -359,10 +381,13 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Fruits" level',
                   points: 100,
                   isClaimed: QuestStatus.quest13Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelGreetings),
+                  isCompleted: QuestStatus.isContentUnlocked(
+                    QuestStatus.levelGreetings,
+                  ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest13()) QuestStatus.claimQuest13();
+                      if (QuestStatus.canClaimQuest13())
+                        QuestStatus.claimQuest13();
                     });
                   },
                 ),
@@ -375,7 +400,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedFruitsAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest14()) QuestStatus.claimQuest14();
+                      if (QuestStatus.canClaimQuest14())
+                        QuestStatus.claimQuest14();
                     });
                   },
                 ),
@@ -388,7 +414,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.fruitsBestStreak >= 4,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest15()) QuestStatus.claimQuest15();
+                      if (QuestStatus.canClaimQuest15())
+                        QuestStatus.claimQuest15();
                     });
                   },
                 ),
@@ -401,7 +428,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.fruitsRoundsCompleted >= 2,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest16()) QuestStatus.claimQuest16();
+                      if (QuestStatus.canClaimQuest16())
+                        QuestStatus.claimQuest16();
                     });
                   },
                 ),
@@ -412,10 +440,13 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Animals" level',
                   points: 100,
                   isClaimed: QuestStatus.quest17Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb),
+                  isCompleted: QuestStatus.isContentUnlocked(
+                    QuestStatus.levelCommonVerb,
+                  ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest17()) QuestStatus.claimQuest17();
+                      if (QuestStatus.canClaimQuest17())
+                        QuestStatus.claimQuest17();
                     });
                   },
                 ),
@@ -428,7 +459,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedAnimalsAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest18()) QuestStatus.claimQuest18();
+                      if (QuestStatus.canClaimQuest18())
+                        QuestStatus.claimQuest18();
                     });
                   },
                 ),
@@ -441,7 +473,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.animalsRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest19()) QuestStatus.claimQuest19();
+                      if (QuestStatus.canClaimQuest19())
+                        QuestStatus.claimQuest19();
                     });
                   },
                 ),
@@ -454,7 +487,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.animalsPerfectRounds >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest20()) QuestStatus.claimQuest20();
+                      if (QuestStatus.canClaimQuest20())
+                        QuestStatus.claimQuest20();
                     });
                   },
                 ),
@@ -468,7 +502,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.chestsOpened >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest21()) QuestStatus.claimQuest21();
+                      if (QuestStatus.canClaimQuest21())
+                        QuestStatus.claimQuest21();
                     });
                   },
                 ),
@@ -481,7 +516,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level >= 10,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest22()) QuestStatus.claimQuest22();
+                      if (QuestStatus.canClaimQuest22())
+                        QuestStatus.claimQuest22();
                     });
                   },
                 ),
@@ -491,13 +527,19 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Unlock all categories',
                   points: 200,
                   isClaimed: QuestStatus.quest23Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(QuestStatus.levelNumbers) &&
-                      QuestStatus.isContentUnlocked(QuestStatus.levelColour)  &&
-                      QuestStatus.isContentUnlocked(QuestStatus.levelGreetings) &&
-                      QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb),
+                  isCompleted:
+                      QuestStatus.isContentUnlocked(QuestStatus.levelNumbers) &&
+                      QuestStatus.isContentUnlocked(QuestStatus.levelColour) &&
+                      QuestStatus.isContentUnlocked(
+                        QuestStatus.levelGreetings,
+                      ) &&
+                      QuestStatus.isContentUnlocked(
+                        QuestStatus.levelCommonVerb,
+                      ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest23()) QuestStatus.claimQuest23();
+                      if (QuestStatus.canClaimQuest23())
+                        QuestStatus.claimQuest23();
                     });
                   },
                 ),
@@ -510,7 +552,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level >= 25,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest24()) QuestStatus.claimQuest24();
+                      if (QuestStatus.canClaimQuest24())
+                        QuestStatus.claimQuest24();
                     });
                   },
                 ),
@@ -519,19 +562,160 @@ class _QuestScreenState extends State<QuestScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Quest"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "User"),
-        ],
+      bottomNavigationBar: _buildModernNavBar(),
+    );
+  }
+
+  // Modern glassy bottom navigation bar with animated active pill
+  Widget _buildModernNavBar() {
+    final navItems = [
+      {
+        'label': 'Home',
+        'icon': Icons.home_outlined,
+        'activeIcon': Icons.home_rounded,
+        'color': const Color(0xFF2563EB),
+      },
+      {
+        'label': 'Quest',
+        'icon': Icons.menu_book_outlined,
+        'activeIcon': Icons.menu_book_rounded,
+        'color': const Color(0xFF22C55E),
+      },
+      {
+        'label': 'Profile',
+        'icon': Icons.person_outline_rounded,
+        'activeIcon': Icons.person_rounded,
+        'color': const Color(0xFFF59E0B),
+      },
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Container(
+          height: 72,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.55),
+                  border: Border.all(color: Colors.white.withOpacity(0.7)),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = constraints.maxWidth / navItems.length;
+                    final accent = navItems[_selectedIndex]['color'] as Color;
+                    return Stack(
+                      children: [
+                        // Active pill background
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          left: _selectedIndex * itemWidth,
+                          top: 8,
+                          bottom: 8,
+                          child: Container(
+                            width: itemWidth,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  accent.withOpacity(0.18),
+                                  accent.withOpacity(0.08),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                        // Nav items row
+                        Row(
+                          children: List.generate(navItems.length, (i) {
+                            final active = i == _selectedIndex;
+                            final icon =
+                                (active
+                                        ? navItems[i]['activeIcon']
+                                        : navItems[i]['icon'])
+                                    as IconData;
+                            final color = active
+                                ? navItems[i]['color'] as Color
+                                : Colors.black54;
+                            return Expanded(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () => _onItemTapped(i),
+                                  child: SizedBox(
+                                    height: 72,
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(icon, size: 24, color: color),
+                                          AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 180,
+                                            ),
+                                            switchInCurve: Curves.easeOut,
+                                            switchOutCurve: Curves.easeIn,
+                                            child: active
+                                                ? Padding(
+                                                    key: ValueKey('lbl$i'),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 8,
+                                                        ),
+                                                    child: Text(
+                                                      navItems[i]['label']
+                                                          as String,
+                                                      style: TextStyle(
+                                                        color: color,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : const SizedBox(
+                                                    key: ValueKey('empty'),
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // --------------------------------------------------------------------
   // Local animated XP toast
   // --------------------------------------------------------------------
   void _showXpToast({required int xp, required int leveledUp}) {
@@ -562,8 +746,10 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double iconSize = 22;
-    const TextStyle valueStyle =
-    TextStyle(fontWeight: FontWeight.w700, fontSize: 16);
+    const TextStyle valueStyle = TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 16,
+    );
 
     return AppBar(
       backgroundColor: Colors.white,
@@ -577,17 +763,24 @@ class _TopBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(children: [
-                const Icon(Icons.key, color: Colors.amber, size: iconSize),
-                const SizedBox(width: 6),
-                Text('$points', style: valueStyle),
-              ]),
-              Row(children: [
-                const Icon(Icons.local_fire_department,
-                    color: Colors.red, size: iconSize),
-                const SizedBox(width: 6),
-                Text('$streak', style: valueStyle),
-              ]),
+              Row(
+                children: [
+                  const Icon(Icons.key, color: Colors.amber, size: iconSize),
+                  const SizedBox(width: 6),
+                  Text('$points', style: valueStyle),
+                ],
+              ),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_fire_department,
+                    color: Colors.red,
+                    size: iconSize,
+                  ),
+                  const SizedBox(width: 6),
+                  Text('$streak', style: valueStyle),
+                ],
+              ),
             ],
           ),
         ),
@@ -623,9 +816,10 @@ class QuestItem extends StatelessWidget {
       color: isClaimed ? Colors.green[100] : Colors.yellow[100],
       child: ListTile(
         dense: true,
-        title: Text(title,
-            style:
-            const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 13)),
         trailing: FittedBox(
           fit: BoxFit.scaleDown,
@@ -639,13 +833,19 @@ class QuestItem extends StatelessWidget {
                 onPressed: canClaim ? onClaim : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(84, 34),
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   backgroundColor: canClaim ? Colors.blue : Colors.grey,
                 ),
-                child: Text(isClaimed ? 'CLAIMED' : 'CLAIM',
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                child: Text(
+                  isClaimed ? 'CLAIMED' : 'CLAIM',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ),
@@ -687,9 +887,10 @@ class _SlideInToastState extends State<_SlideInToast>
       vsync: this,
       duration: const Duration(milliseconds: 240),
     )..forward();
-    _slide = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
-        .chain(CurveTween(curve: Curves.easeOut))
-        .animate(_ctrl);
+    _slide = Tween<Offset>(
+      begin: const Offset(1.1, 0),
+      end: Offset.zero,
+    ).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
   }
 
   @override
@@ -712,7 +913,10 @@ class _SlideInToastState extends State<_SlideInToast>
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
               BoxShadow(
-                  color: Colors.black26, blurRadius: 16, offset: Offset(0, 8)),
+                color: Colors.black26,
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
             ],
           ),
           child: Row(
@@ -724,17 +928,24 @@ class _SlideInToastState extends State<_SlideInToast>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14)),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(widget.subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 12)),
+                    Text(
+                      widget.subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),

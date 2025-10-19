@@ -104,7 +104,173 @@ app.post('/feedback', async (req, res) => {
   }
 });
 
+// ===== USER PROGRESS ROUTES =====
 
+// Get all users and their progress
+app.get('/users/progress', async (req, res) => {
+  try {
+    const snapshot = await db.collection('progress').get();
+    const users = snapshot.docs.map(doc => ({
+      userId: doc.id,
+      ...doc.data(),
+      lastStreakUtc: doc.data().lastStreakUtc ? new Date(doc.data().lastStreakUtc).toISOString() : null
+    }));
+    res.send(users);
+  } catch (error) {
+    console.error('Error fetching user progress:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Get specific user progress
+app.get('/users/progress/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const doc = await db.collection('progress').doc(userId).get();
+    if (!doc.exists) {
+      return res.status(404).send({ error: 'User progress not found' });
+    }
+    const data = doc.data();
+    res.send({
+      userId: doc.id,
+      ...data,
+      lastStreakUtc: data.lastStreakUtc ? new Date(data.lastStreakUtc).toISOString() : null
+    });
+  } catch (error) {
+    console.error('Error fetching user progress:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Get all users from Auth
+app.get('/users/auth', async (req, res) => {
+  try {
+    const listUsers = await admin.auth().listUsers(1000);
+    const users = listUsers.users.map(user => ({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      disabled: user.disabled,
+      creationTime: user.metadata.creationTime,
+      lastSignInTime: user.metadata.lastSignInTime,
+      providerData: user.providerData
+    }));
+    res.send(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Combined users (auth + progress)
+app.get('/users/combined', async (req, res) => {
+  try {
+    const listUsers = await admin.auth().listUsers(1000);
+    const authUsers = listUsers.users.map(user => ({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      disabled: user.disabled,
+      creationTime: user.metadata.creationTime,
+      lastSignInTime: user.metadata.lastSignInTime
+    }));
+
+    const progressSnapshot = await db.collection('progress').get();
+    const progressData = {};
+    progressSnapshot.docs.forEach(doc => {
+      progressData[doc.id] = doc.data();
+    });
+
+    const combinedUsers = authUsers.map(user => ({
+      ...user,
+      progress: progressData[user.uid] || null
+    }));
+
+    res.send(combinedUsers);
+  } catch (error) {
+    console.error('Error fetching combined user data:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// ===== ANALYTICS ROUTES =====
+
+// Get user stats summary
+app.get('/analytics/summary', async (req, res) => {
+  try {
+    const authUsers = await admin.auth().listUsers(1000);
+    const totalUsers = authUsers.users.length;
+
+    const progressSnapshot = await db.collection('progress').get();
+    const progressStats = {
+      totalUsersWithProgress: progressSnapshot.size,
+      totalLevel: 0,
+      totalXP: 0,
+      totalChests: 0,
+      totalStreaks: 0,
+      maxLevel: 0,
+      maxXP: 0
+    };
+
+    progressSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      progressStats.totalLevel += data.level || 0;
+      progressStats.totalXP += data.score || 0;
+      progressStats.totalChests += data.chestsOpened || 0;
+      progressStats.totalStreaks += data.streakDays || 0;
+      progressStats.maxLevel = Math.max(progressStats.maxLevel, data.level || 0);
+      progressStats.maxXP = Math.max(progressStats.maxXP, data.score || 0);
+    });
+
+    res.send({
+      totalUsers,
+      ...progressStats,
+      avgLevel: progressStats.totalUsersWithProgress > 0 ? progressStats.totalLevel / progressStats.totalUsersWithProgress : 0,
+      avgXP: progressStats.totalUsersWithProgress > 0 ? progressStats.totalXP / progressStats.totalUsersWithProgress : 0
+    });
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Global leaderboard endpoint
+app.get('/leaderboard', async (req, res) => {
+  try {
+    const snapshot = await db.collection('progress')
+      .orderBy('level', 'desc')
+      .limit(20)
+      .get();
+    const leaderboard = snapshot.docs.map(doc => ({
+      userId: doc.id,
+      ...doc.data()
+    }));
+    res.send(leaderboard);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Display name change history endpoint
+app.get('/display-name-changes', async (req, res) => {
+  try {
+    const snapshot = await db.collection('display_name_changes')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get();
+    const changes = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    res.send(changes);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
 
 // Listen
 const PORT = process.env.PORT || 5000;

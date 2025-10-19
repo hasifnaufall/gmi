@@ -22,7 +22,7 @@ class UserProgressService {
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception('No user logged in');
-    
+
     // This saves progress PER-USER, using their UID as document
     await _firestore.collection('progress').doc(user.uid).set({
       'level': level,
@@ -46,7 +46,7 @@ class UserProgressService {
   Future<Map<String, dynamic>?> getProgress() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception('No user logged in');
-    
+
     // This loads progress PER-USER, using their UID as document
     var doc = await _firestore.collection('progress').doc(user.uid).get();
     return doc.exists ? doc.data() : null;
