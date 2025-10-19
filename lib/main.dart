@@ -24,7 +24,20 @@ class WaveActApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'WaveAct',
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Arial'),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Arial',
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+            TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+          },
+        ),
+      ),
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,
         breakpoints: [
@@ -41,6 +54,33 @@ class WaveActApp extends StatelessWidget {
         '/quiz': (context) => const QuizScreen(),
         '/quests': (context) => const QuestScreen(),
       },
+    );
+  }
+}
+
+// A subtle, immersive fade+scale transition used globally
+class _SmoothFadeScaleTransitionsBuilder extends PageTransitionsBuilder {
+  const _SmoothFadeScaleTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.98, end: 1.0).animate(curved),
+        child: child,
+      ),
     );
   }
 }

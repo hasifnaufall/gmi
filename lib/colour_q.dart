@@ -127,151 +127,205 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     super.dispose();
   }
 
+  Future<bool> _confirmExitQuiz() async {
+    final first =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Leave quiz?'),
+            content: const Text("You'll lose your current round progress."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!first) return false;
+
+    final second =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Are you sure?'),
+            content: const Text(
+              "This action can't be undone and your progress this round will be lost.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Stay'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Leave'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    return second;
+  }
+
   @override
   Widget build(BuildContext context) {
     final q = questions[index];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Colour Quiz'),
+    return WillPopScope(
+      onWillPop: () async => await _confirmExitQuiz(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Colour Quiz'),
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF2C5CB0),
+          elevation: 0,
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF2C5CB0),
-        elevation: 0,
-      ),
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SlideTransition(
-          position: _slide,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Question ${index + 1} of ${questions.length}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _buildProgressBar(),
-              const SizedBox(height: 14),
-              // Prompt image (sign for the colour)
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, Colors.grey.shade100],
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SlideTransition(
+            position: _slide,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Question ${index + 1} of ${questions.length}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
-                padding: const EdgeInsets.all(12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    q.promptImage,
-                    fit: BoxFit.contain,
-                    height: 220,
-                    errorBuilder: (_, __, ___) => Container(
+                const SizedBox(height: 10),
+                _buildProgressBar(),
+                const SizedBox(height: 14),
+                // Prompt image (sign for the colour)
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.grey.shade100],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      q.promptImage,
+                      fit: BoxFit.contain,
                       height: 220,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 48,
-                          color: Colors.grey,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 220,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Expanded(
-                child: GridView.builder(
-                  itemCount: q.options.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemBuilder: (_, i) {
-                    final opt = q.options[i];
-                    final isPending = _pendingIndex == i;
-                    return GestureDetector(
-                      onTap: locked
-                          ? null
-                          : () => setState(() => _pendingIndex = i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        margin: const EdgeInsets.all(4),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC6DDFF),
-                          borderRadius: BorderRadius.circular(16),
-                          border: isPending
-                              ? Border.all(color: Colors.teal, width: 2)
-                              : null,
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
+                const SizedBox(height: 14),
+                Expanded(
+                  child: GridView.builder(
+                    itemCount: q.options.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1.2,
                         ),
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Text(
-                                opt.name,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E4A8F),
+                    itemBuilder: (_, i) {
+                      final opt = q.options[i];
+                      final isPending = _pendingIndex == i;
+                      return GestureDetector(
+                        onTap: locked
+                            ? null
+                            : () => setState(() => _pendingIndex = i),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          margin: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFC6DDFF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: isPending
+                                ? Border.all(color: Colors.teal, width: 2)
+                                : null,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Text(
+                                  opt.name,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E4A8F),
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (isPending)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Selected',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                              if (isPending)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      'Selected',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              _buildConfirmBar(q),
-            ],
+                _buildConfirmBar(q),
+              ],
+            ),
           ),
         ),
       ),

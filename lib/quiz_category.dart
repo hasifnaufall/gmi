@@ -265,6 +265,99 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
+  // Show clear requirements when content is locked
+  void _showRequirementsDialog({required String title, required String key}) {
+    final requiredLevel = QuestStatus.requiredLevelFor(key);
+    final haveLevel = QuestStatus.level >= requiredLevel;
+    final cost = QuestStatus.unlockCost;
+    final haveKeys = QuestStatus.userPoints >= cost;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("$title is locked"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  haveLevel ? Icons.check_circle : Icons.cancel,
+                  color: haveLevel ? Colors.green : Colors.redAccent,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Reach Level $requiredLevel (current: ${QuestStatus.level})",
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  haveKeys ? Icons.check_circle : Icons.cancel,
+                  color: haveKeys ? Colors.green : Colors.redAccent,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Have $cost keys (current: ${QuestStatus.userPoints})",
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          if (haveLevel && haveKeys)
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final result = await QuestStatus.attemptUnlock(key);
+                if (!mounted) return;
+                switch (result) {
+                  case UnlockStatus.success:
+                    setState(() {});
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('$title unlocked!')));
+                    await QuestStatus.autoSaveProgress();
+                    break;
+                  case UnlockStatus.alreadyUnlocked:
+                    setState(() {});
+                    break;
+                  case UnlockStatus.needLevel:
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Reach Level $requiredLevel to unlock $title',
+                        ),
+                      ),
+                    );
+                    break;
+                  case UnlockStatus.needKeys:
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('You need $cost keys to unlock $title'),
+                      ),
+                    );
+                    break;
+                }
+              },
+              child: const Text('Unlock now'),
+            ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleOpenOrUnlock({
     required String key,
     required String title,
@@ -283,21 +376,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     final requiredLevel = QuestStatus.requiredLevelFor(key);
 
-    if (QuestStatus.level < requiredLevel) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reach Level $requiredLevel to unlock $title')),
-      );
-      return;
-    }
+    final hasLevel = QuestStatus.level >= requiredLevel;
+    final hasKeys = QuestStatus.userPoints >= QuestStatus.unlockCost;
 
-    if (QuestStatus.userPoints < QuestStatus.unlockCost) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'You need ${QuestStatus.unlockCost} keys to unlock $title',
-          ),
-        ),
-      );
+    // If not eligible, show a requirements dialog instead of silently blocking
+    if (!hasLevel || !hasKeys) {
+      _showRequirementsDialog(title: title, key: key);
       return;
     }
 
@@ -428,6 +512,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        icon: Icons.local_fire_department,
+                        iconColor: Colors.deepOrange,
+                        label: 'Streak',
+                        value: '${QuestStatus.streakDays} days',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(child: SizedBox.shrink()),
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 // "Let's play" title
@@ -466,18 +565,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                           onLearn: () async {
                             await Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => const AlphabetLearnScreen(),
-                              ),
+                              _buildImmersiveRoute(const AlphabetLearnScreen()),
                             );
                             await QuestStatus.autoSaveProgress();
                           },
                           onQuiz: () async {
                             await Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => const AlphabetQuizScreen(),
-                              ),
+                              _buildImmersiveRoute(const AlphabetQuizScreen()),
                             );
                             await QuestStatus.autoSaveProgress();
                             if (!mounted) return;
@@ -504,8 +599,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onLearn: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NumberLearnScreen(),
+                                  _buildImmersiveRoute(
+                                    const NumberLearnScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -513,8 +608,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onQuiz: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NumberQuizScreen(),
+                                  _buildImmersiveRoute(
+                                    const NumberQuizScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -544,8 +639,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onLearn: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ColourLearnScreen(),
+                                  _buildImmersiveRoute(
+                                    const ColourLearnScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -553,8 +648,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onQuiz: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ColourQuizScreen(),
+                                  _buildImmersiveRoute(
+                                    const ColourQuizScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -584,8 +679,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onLearn: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const FruitsLearnScreen(),
+                                  _buildImmersiveRoute(
+                                    const FruitsLearnScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -593,8 +688,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onQuiz: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const FruitsQuizScreen(),
+                                  _buildImmersiveRoute(
+                                    const FruitsQuizScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -624,8 +719,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onLearn: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AnimalsLearnScreen(),
+                                  _buildImmersiveRoute(
+                                    const AnimalsLearnScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -633,8 +728,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onQuiz: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AnimalQuizScreen(),
+                                  _buildImmersiveRoute(
+                                    const AnimalQuizScreen(),
                                   ),
                                 );
                                 await QuestStatus.autoSaveProgress();
@@ -716,7 +811,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: isUnlocked ? onTap : null,
+      onTap: isUnlocked
+          ? onTap
+          : () {
+              // Show requirements dialog when locked card is tapped
+              _showRequirementsDialog(title: title, key: _mapTitleToKey(title));
+            },
       child: Container(
         decoration: BoxDecoration(
           // Soft pastel tint derived from the icon color for a minimalist colorful card
@@ -808,7 +908,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                       child: Icon(
                         Icons.lock,
                         size: 32,
-                        color: Colors.grey.shade400,
+                        color: Colors.grey.shade500,
                       ),
                     ),
                   ),
@@ -818,6 +918,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         ),
       ),
     );
+  }
+
+  // Map visible title to the QuestStatus content key
+  String _mapTitleToKey(String title) {
+    switch (title.toLowerCase()) {
+      case 'alphabet':
+        return QuestStatus.levelAlphabet;
+      case 'number':
+      case 'numbers':
+        return QuestStatus.levelNumbers;
+      case 'colour':
+      case 'colors':
+      case 'colours':
+        return QuestStatus.levelColour;
+      case 'fruits':
+        return QuestStatus.levelGreetings;
+      case 'animals':
+        return QuestStatus.levelCommonVerb;
+      default:
+        return title; // fallback
+    }
   }
 
   // Create a soft pastel from a base color (keeps hue, reduces saturation, increases lightness)
@@ -838,6 +959,35 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     final hsl = HSLColor.fromColor(color);
     final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
     return hsl.withLightness(lightness).toColor();
+  }
+
+  // Build an immersive route transition (fade + slight slide + scale)
+  Route _buildImmersiveRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.02, 0.02),
+              end: Offset.zero,
+            ).animate(curved),
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.985, end: 1).animate(curved),
+              child: child,
+            ),
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 260),
+      reverseTransitionDuration: const Duration(milliseconds: 220),
+    );
   }
 
   // Modern glassy bottom navigation bar with animated active pill

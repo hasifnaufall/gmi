@@ -190,6 +190,56 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     super.dispose();
   }
 
+  Future<bool> _confirmExitQuiz() async {
+    final first =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Leave quiz?'),
+            content: const Text("You'll lose your current round progress."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!first) return false;
+
+    final second =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Are you sure?'),
+            content: const Text(
+              "This action can't be undone and your progress this round will be lost.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Stay'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Leave'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    return second;
+  }
+
   Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
 
@@ -546,81 +596,85 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         .map((e) => e.toString())
         .toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Number Level"),
+    return WillPopScope(
+      onWillPop: () async => await _confirmExitQuiz(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Number Level"),
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF2C5CB0),
+          elevation: 0,
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF2C5CB0),
-        elevation: 0,
-      ),
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SlideTransition(
-          position: _offsetAnimation,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _buildProgressBar(),
-              const SizedBox(height: 14),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, Colors.grey.shade100],
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SlideTransition(
+            position: _offsetAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Question ${currentSlot + 1} of ${activeIndices.length}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
-                padding: const EdgeInsets.all(12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    question['image'],
-                    fit: BoxFit.contain,
-                    height: 180,
-                    errorBuilder: (_, __, ___) => Container(
+                const SizedBox(height: 10),
+                _buildProgressBar(),
+                const SizedBox(height: 14),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.grey.shade100],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      question['image'],
+                      fit: BoxFit.contain,
                       height: 180,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 48,
-                          color: Colors.grey,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 180,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: GridView.builder(
-                  itemCount: options.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1.2,
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.builder(
+                    itemCount: options.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1.2,
+                        ),
+                    itemBuilder: (_, i) => _optionTile(options[i], i),
                   ),
-                  itemBuilder: (_, i) => _optionTile(options[i], i),
                 ),
-              ),
-              _buildConfirmBar(options),
-            ],
+                _buildConfirmBar(options),
+              ],
+            ),
           ),
         ),
       ),

@@ -198,7 +198,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             title: "Quest 3 Completed!",
             subtitle: "Started Alphabet Quiz! +80 keys",
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
+              colors: [Color(0xFFFF4B4A), Color(0xFF2C5CB0)],
             ),
           );
         });
@@ -269,10 +269,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
       showAnimatedPopup(
         icon: Icons.star,
-        iconColor: Colors.yellow,
+        iconColor: Colors.white,
         title: "Correct!",
         subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
-        bgColor: Colors.green.shade600,
+        bgColor: const Color(0xFF2C5CB0),
       );
 
       if (levels > 0) {
@@ -283,10 +283,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         for (final key in newlyUnlocked) {
           showAnimatedPopup(
             icon: Icons.lock_open,
-            iconColor: Colors.lightGreenAccent,
+            iconColor: Colors.white,
             title: "New Level Unlocked!",
             subtitle: QuestStatus.titleFor(key),
-            bgColor: Colors.teal.shade700,
+            bgColor: const Color(0xFFFF4B4A),
           );
           await Future.delayed(const Duration(milliseconds: 300));
         }
@@ -297,10 +297,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           QuestStatus.claimQuest4();
           showAnimatedPopup(
             icon: Icons.whatshot,
-            iconColor: Colors.orange,
+            iconColor: Colors.white,
             title: "Quest 4 Complete!",
             subtitle: "3 correct in a row! +120 keys",
-            bgColor: Colors.deepOrange.shade600,
+            bgColor: const Color(0xFFFF4B4A),
           );
           await Future.delayed(const Duration(milliseconds: 800));
         }
@@ -310,10 +310,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           (questions[qIdx]['options'] as List<String>)[correctIndex];
       showAnimatedPopup(
         icon: Icons.close,
-        iconColor: Colors.redAccent,
+        iconColor: Colors.white,
         title: "Incorrect",
         subtitle: "Correct: $correctLetter",
-        bgColor: Colors.red.shade600,
+        bgColor: const Color(0xFFFF4B4A),
       );
     }
 
@@ -328,10 +328,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
       showAnimatedPopup(
         icon: Icons.emoji_events,
-        iconColor: Colors.amber,
+        iconColor: Colors.white,
         title: "Quiz Complete!",
         subtitle: "Score: $sessionScore/${activeIndices.length}",
-        bgColor: Colors.blue.shade600,
+        bgColor: const Color(0xFF2C5CB0),
       );
 
       QuestStatus.alphabetRoundsCompleted += 1;
@@ -343,10 +343,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           await Future.delayed(const Duration(milliseconds: 500));
           showAnimatedPopup(
             icon: Icons.military_tech,
-            iconColor: Colors.amber,
+            iconColor: Colors.white,
             title: "Quest 5 Complete!",
             subtitle: "3 rounds finished! +200 keys",
-            bgColor: Colors.indigo.shade600,
+            bgColor: const Color(0xFFFF4B4A),
           );
           await Future.delayed(const Duration(seconds: 2));
         }
@@ -358,10 +358,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           await Future.delayed(const Duration(milliseconds: 500));
           showAnimatedPopup(
             icon: Icons.stars,
-            iconColor: Colors.yellow,
+            iconColor: Colors.white,
             title: "Quest 6 Complete!",
             subtitle: "Perfect round! +250 keys",
-            bgColor: Colors.green.shade700,
+            bgColor: const Color(0xFF2C5CB0),
           );
           await Future.delayed(const Duration(seconds: 2));
         }
@@ -371,10 +371,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       if (justEarned && mounted) {
         showAnimatedPopup(
           icon: Icons.military_tech,
-          iconColor: Colors.amber,
+          iconColor: Colors.white,
           title: "Medal unlocked!",
           subtitle: "Finish your first quiz",
-          bgColor: Colors.indigo.shade600,
+          bgColor: const Color(0xFFFF4B4A),
         );
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -383,11 +383,11 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       if (didIncrease && mounted) {
         showAnimatedPopup(
           icon: Icons.local_fire_department,
-          iconColor: Colors.orange,
+          iconColor: Colors.white,
           title: "Streak +1!",
           subtitle:
               "Current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays == 1 ? '' : 's'}",
-          bgColor: Colors.deepOrange.shade600,
+          bgColor: const Color(0xFF2C5CB0),
         );
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -419,7 +419,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         child: Center(
           child: FloatingMessage(
             message: message,
-            backgroundColor: Colors.blue.withOpacity(0.9),
+            backgroundColor: const Color(0xFF2C5CB0).withOpacity(0.9),
           ),
         ),
       ),
@@ -429,6 +429,64 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     Future.delayed(const Duration(seconds: 2), () {
       entry.remove();
     });
+  }
+
+  // Double confirmation before leaving the quiz
+  Future<bool> _confirmExitQuiz() async {
+    final first =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Leave quiz?'),
+            content: const Text('You\'ll lose your current round progress.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!first) return false;
+
+    final second =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            title: const Text('Are you sure?'),
+            content: const Text(
+              'This action can\'t be undone and your progress this round will be lost.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Stay'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Leave'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    return second;
+  }
+
+  Future<void> _handleBackPressed() async {
+    final shouldExit = await _confirmExitQuiz();
+    if (shouldExit && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _showAchievementToast({
@@ -493,32 +551,35 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     final question = questions[qIdx];
     final options = question['options'] as List<String>;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _offsetAnimation,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  // Header with progress
-                  _buildHeader(),
-                  const SizedBox(height: 12),
-                  _buildProgressBar(),
-                  const SizedBox(height: 16),
+    return WillPopScope(
+      onWillPop: () async => await _confirmExitQuiz(),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _offsetAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    // Header with progress
+                    _buildHeader(),
+                    const SizedBox(height: 12),
+                    _buildProgressBar(),
+                    const SizedBox(height: 16),
 
-                  // Question Card
-                  _buildQuestionCard(question),
-                  const SizedBox(height: 32),
+                    // Question Card
+                    _buildQuestionCard(question),
+                    const SizedBox(height: 32),
 
-                  // Options Grid
-                  _buildOptionsGrid(options, qIdx, question),
-                  const SizedBox(height: 12),
-                  if (_pendingIndex != null) _buildConfirmBar(options),
-                ],
+                    // Options Grid
+                    _buildOptionsGrid(options, qIdx, question),
+                    const SizedBox(height: 12),
+                    if (_pendingIndex != null) _buildConfirmBar(options),
+                  ],
+                ),
               ),
             ),
           ),
@@ -532,33 +593,33 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7FAFF),
+        color: const Color(0xFFF0F4FF),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: const Color(0xFF2C5CB0).withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFC6DDFF)),
+        border: Border.all(color: const Color(0xFF2C5CB0).withOpacity(0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFC6DDFF),
+              color: const Color(0xFF2C5CB0),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                const Icon(Icons.touch_app, color: Color(0xFF1E4A8F), size: 18),
+                const Icon(Icons.touch_app, color: Colors.white, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   'Selected: ${options[idx]}',
                   style: const TextStyle(
-                    color: Color(0xFF1E4A8F),
+                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -570,13 +631,16 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             onPressed: () {
               setState(() => _pendingIndex = null);
             },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF2C5CB0),
+            ),
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
-              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFF4AFF7C),
+              foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -599,11 +663,11 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return Row(
       children: [
         IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _handleBackPressed,
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF2C5CB0).withOpacity(0.08),
+              color: const Color(0xFF2C5CB0).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -639,7 +703,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFFF6B6B), Color(0xFFEE5A52)],
+              colors: [Color(0xFFFF4B4A), Color(0xFF2C5CB0)],
             ),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -698,7 +762,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     if (hasCorrect) {
       bars.add(
         segment(
-          color: const Color(0xFF34C759),
+          color: const Color(0xFF44b427),
           flex: correct,
           radius: hasWrong || hasRemaining
               ? const BorderRadius.only(
@@ -713,7 +777,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       bars.add(const SizedBox(width: 1));
       bars.add(
         segment(
-          color: const Color(0xFFFF6B6B),
+          color: const Color(0xFFFF4B4A),
           flex: wrong,
           radius: (!hasCorrect && !hasRemaining)
               ? BorderRadius.circular(8)
@@ -747,7 +811,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: const Color(0xFF2C5CB0).withOpacity(0.08),
                 blurRadius: 6,
                 offset: const Offset(0, 3),
               ),
@@ -762,12 +826,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             _legendDot(
               label: 'Correct',
               count: correct,
-              color: const Color(0xFF34C759),
+              color: const Color(0xFF44b427),
             ),
             _legendDot(
               label: 'Wrong',
               count: wrong,
-              color: const Color(0xFFFF6B6B),
+              color: const Color(0xFFFF4B4A),
             ),
           ],
         ),
@@ -808,16 +872,17 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFEAF2FF), Color(0xFFDDEAFF)],
+          colors: [Color(0xFFE8F0FF), Color(0xFFF0F4FF)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: const Color(0xFF2C5CB0).withOpacity(0.1),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(color: const Color(0xFF2C5CB0).withOpacity(0.1)),
       ),
       child: Column(
         children: [
@@ -839,11 +904,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: const Color(0xFF2C5CB0).withOpacity(0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
               ],
+              border: Border.all(
+                color: const Color(0xFF2C5CB0).withOpacity(0.1),
+              ),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -857,16 +925,18 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(
                             Icons.broken_image_rounded,
                             size: 36,
-                            color: Color(0xFF9AA3B2),
+                            color: Color(0xFF2C5CB0).withOpacity(0.5),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             'Image not found',
-                            style: TextStyle(color: Color(0xFF9AA3B2)),
+                            style: TextStyle(
+                              color: Color(0xFF2C5CB0).withOpacity(0.7),
+                            ),
                           ),
                         ],
                       ),
@@ -950,10 +1020,10 @@ class OptionCard extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: isSelected ? null : const Color(0xFFC6DDFF),
+        color: isSelected ? null : const Color(0xFF2C5CB0).withOpacity(0.1),
         gradient: isSelected
             ? const LinearGradient(
-                colors: [Color(0xFF00F2C3), Color(0xFF00D8B2)],
+                colors: [Color(0xFF2C5CB0), Color(0xFFFF4B4A)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
@@ -962,18 +1032,18 @@ class OptionCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? const Color(0xFF00F2C3).withOpacity(0.35)
-                : Colors.black.withOpacity(0.08),
+                ? const Color(0xFF2C5CB0).withOpacity(0.35)
+                : const Color(0xFF2C5CB0).withOpacity(0.1),
             blurRadius: isSelected ? 14 : 10,
             offset: const Offset(0, 6),
           ),
         ],
         border: isSelected
-            ? Border.all(color: const Color(0xFF00F2C3), width: 2)
+            ? Border.all(color: const Color(0xFF2C5CB0), width: 2)
             : Border.all(
                 color: isPending
-                    ? const Color(0xFF00D8B2)
-                    : const Color(0xFF2C5CB0),
+                    ? const Color(0xFF311E76)
+                    : const Color(0xFF2C5CB0).withOpacity(0.3),
                 width: isPending ? 2 : 1.2,
               ),
       ),
@@ -994,7 +1064,7 @@ class OptionCard extends StatelessWidget {
                     color: isSelected
                         ? Colors.white
                         : (isPending
-                              ? const Color(0xFF00D8B2)
+                              ? const Color(0xFF311E76)
                               : const Color(0xFF2C5CB0)),
                     shape: BoxShape.circle,
                   ),
@@ -1005,7 +1075,7 @@ class OptionCard extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: isSelected
-                            ? const Color(0xFF00D8B2)
+                            ? const Color(0xFF2C5CB0)
                             : Colors.white,
                       ),
                     ),
@@ -1020,7 +1090,7 @@ class OptionCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFF1E4A8F),
+                          : const Color(0xFF2C5CB0),
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -1200,7 +1270,7 @@ class SessionCompleteDialog extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1E2A47), Color(0xFF152642)],
+            colors: [Color(0xFF2C5CB0), Color(0xFFFF4B4A)],
           ),
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
@@ -1218,14 +1288,12 @@ class SessionCompleteDialog extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                ),
+                color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.emoji_events_rounded,
-                color: Colors.white,
+                color: Color(0xFF2C5CB0),
                 size: 40,
               ),
             ),
@@ -1253,9 +1321,7 @@ class SessionCompleteDialog extends StatelessWidget {
               width: double.infinity,
               height: 50,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF6B6B), Color(0xFFEE5A52)],
-                ),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Material(
@@ -1270,7 +1336,7 @@ class SessionCompleteDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Color(0xFF2C5CB0),
                       ),
                     ),
                   ),
