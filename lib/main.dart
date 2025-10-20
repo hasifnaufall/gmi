@@ -8,6 +8,8 @@ import 'quiz_category.dart';
 import 'quiz.dart';
 import 'profile.dart';
 import 'quest.dart';
+
+import 'leaderboard.dart';
 import 'quest_status.dart';
 
 void main() async {
@@ -53,6 +55,8 @@ class WaveActApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/quiz': (context) => const QuizScreen(),
         '/quests': (context) => const QuestScreen(),
+        '/quest': (context) => const QuestScreen(),
+        '/leaderboard': (context) => const LeaderboardPage(),
       },
     );
   }

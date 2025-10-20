@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
+import 'leaderboard.dart';
 import 'profile.dart';
 import 'quest.dart';
 import 'quest_status.dart';
@@ -137,6 +138,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         );
         break;
       case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+        );
+        break;
+      case 3:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -1004,6 +1011,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book_rounded,
         'color': const Color(0xFF22C55E), // green
+      },
+      {
+        'label': 'Ranking',
+        'icon': Icons.leaderboard_outlined,
+        'activeIcon': Icons.leaderboard,
+        'color': const Color(0xFF63539C), // purple
       },
       {
         'label': 'Profile',

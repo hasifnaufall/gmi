@@ -352,7 +352,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
       }
       // ✅✅ END UPDATE
 
-      final justEarned = await QuestStatus.markFirstQuizMedalEarned();
+      final justEarned = QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
           icon: Icons.military_tech,
@@ -490,10 +490,11 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     int correct = 0, wrong = 0;
     for (final i in activeIndices) {
       if (_sessionAnswers.containsKey(i)) {
-        if (_sessionAnswers[i] == true)
+        if (_sessionAnswers[i] == true) {
           correct++;
-        else
+        } else {
           wrong++;
+        }
       }
     }
     final remaining = total - correct - wrong;

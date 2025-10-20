@@ -423,10 +423,11 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     int correct = 0, wrong = 0;
     for (final i in activeIndices) {
       if (_sessionAnswers.containsKey(i)) {
-        if (_sessionAnswers[i] == true)
+        if (_sessionAnswers[i] == true) {
           correct++;
-        else
+        } else {
           wrong++;
+        }
       }
     }
     final remaining = total - correct - wrong;

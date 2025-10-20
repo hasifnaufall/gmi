@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'leaderboard.dart';
 import 'login.dart';
 import 'quest.dart';
 import 'quest_status.dart';
@@ -169,6 +170,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _showFeedbackDialog() async {
+    final controller = TextEditingController();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        String? localError;
+        bool sending = false;
+        return StatefulBuilder(
+          builder: (ctx, setStateDialog) {
+            Future<void> doSend() async {
+              final message = controller.text.trim();
+              if (message.isEmpty) {
+                setStateDialog(() => localError = 'Please enter your feedback');
+                return;
+              }
+              if (message.length < 10) {
+                setStateDialog(
+                  () => localError = 'Feedback must be at least 10 characters',
+                );
+                return;
+              }
+
+              setStateDialog(() => sending = true);
+              try {
+                await _progressService.submitFeedback(message);
+                if (mounted) {
+                  Navigator.of(ctx).pop(true);
+                }
+              } catch (e) {
+                setStateDialog(() {
+                  sending = false;
+                  localError = 'Failed to send feedback: $e';
+                });
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.feedback, color: const Color(0xFF2C5CB0)),
+                  const SizedBox(width: 8),
+                  const Text('Send Feedback'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Share your thoughts, suggestions, or report issues.',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    maxLines: 5,
+                    maxLength: 500,
+                    decoration: InputDecoration(
+                      hintText: 'Type your message here...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      errorText: localError,
+                      errorMaxLines: 2,
+                    ),
+                    enabled: !sending,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: sending
+                      ? null
+                      : () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: sending ? null : doSend,
+                  icon: sending
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send),
+                  label: const Text('Send'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2C5CB0),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Feedback sent! Thank you for your input.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   Widget _buildModernNavBar() {
     final navItems = [
       {
@@ -182,6 +297,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book_rounded,
         'color': const Color(0xFF2C5CB0),
+      },
+      {
+        'label': 'Ranking',
+        'icon': Icons.leaderboard_outlined,
+        'activeIcon': Icons.leaderboard,
+        'color': const Color(0xFF63539C),
       },
       {
         'label': 'Profile',
@@ -226,7 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         AnimatedPositioned(
                           duration: const Duration(milliseconds: 260),
                           curve: Curves.easeOutCubic,
-                          left: 2 * itemWidth,
+                          left: 3 * itemWidth,
                           top: 8,
                           bottom: 8,
                           child: Container(
@@ -246,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         Row(
                           children: List.generate(navItems.length, (i) {
-                            final active = i == 2;
+                            final active = i == 3;
                             final icon =
                                 (active
                                         ? navItems[i]['activeIcon']
@@ -273,6 +394,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => const QuestScreen(),
+                                        ),
+                                      );
+                                    } else if (i == 2) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const LeaderboardPage(),
                                         ),
                                       );
                                     }
@@ -638,6 +767,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildAchievementsRow(),
+
+            const SizedBox(height: 24),
+
+            // Feedback Button
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: ElevatedButton.icon(
+                onPressed: _showFeedbackDialog,
+                icon: const Icon(Icons.feedback_outlined),
+                label: const Text('Send Feedback'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+              ),
+            ),
 
             const SizedBox(height: 28),
           ],

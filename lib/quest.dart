@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'leaderboard.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
 import 'quest_status.dart';
@@ -53,6 +54,12 @@ class _QuestScreenState extends State<QuestScreen> {
       case 1:
         break; // stay here
       case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+        );
+        break;
+      case 3:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -209,8 +216,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.completedQuestions >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest1())
+                      if (QuestStatus.canClaimQuest1()) {
                         QuestStatus.claimQuest1();
+                      }
                     });
                   },
                 ),
@@ -223,8 +231,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedAlphabetAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest2())
+                      if (QuestStatus.canClaimQuest2()) {
                         QuestStatus.claimQuest2();
+                      }
                     });
                   },
                 ),
@@ -237,8 +246,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.alphabetQuizStarted,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest3())
+                      if (QuestStatus.canClaimQuest3()) {
                         QuestStatus.claimQuest3();
+                      }
                     });
                   },
                 ),
@@ -251,8 +261,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level1BestStreak >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest4())
+                      if (QuestStatus.canClaimQuest4()) {
                         QuestStatus.claimQuest4();
+                      }
                     });
                   },
                 ),
@@ -268,8 +279,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest5())
+                      if (QuestStatus.canClaimQuest5()) {
                         QuestStatus.claimQuest5();
+                      }
                     });
                   },
                 ),
@@ -282,8 +294,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedNumbersAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest6())
+                      if (QuestStatus.canClaimQuest6()) {
                         QuestStatus.claimQuest6();
+                      }
                     });
                   },
                 ),
@@ -296,8 +309,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.numbersPerfectRounds >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest7())
+                      if (QuestStatus.canClaimQuest7()) {
                         QuestStatus.claimQuest7();
+                      }
                     });
                   },
                 ),
@@ -310,8 +324,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.numbersRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest8())
+                      if (QuestStatus.canClaimQuest8()) {
                         QuestStatus.claimQuest8();
+                      }
                     });
                   },
                 ),
@@ -327,8 +342,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest9())
+                      if (QuestStatus.canClaimQuest9()) {
                         QuestStatus.claimQuest9();
+                      }
                     });
                   },
                 ),
@@ -341,8 +357,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedColoursAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest10())
+                      if (QuestStatus.canClaimQuest10()) {
                         QuestStatus.claimQuest10();
+                      }
                     });
                   },
                 ),
@@ -355,8 +372,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.colourBestStreak >= 5,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest11())
+                      if (QuestStatus.canClaimQuest11()) {
                         QuestStatus.claimQuest11();
+                      }
                     });
                   },
                 ),
@@ -369,8 +387,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.colourRoundsCompleted >= 2,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest12())
+                      if (QuestStatus.canClaimQuest12()) {
                         QuestStatus.claimQuest12();
+                      }
                     });
                   },
                 ),
@@ -386,8 +405,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest13())
+                      if (QuestStatus.canClaimQuest13()) {
                         QuestStatus.claimQuest13();
+                      }
                     });
                   },
                 ),
@@ -400,8 +420,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedFruitsAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest14())
+                      if (QuestStatus.canClaimQuest14()) {
                         QuestStatus.claimQuest14();
+                      }
                     });
                   },
                 ),
@@ -414,8 +435,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.fruitsBestStreak >= 4,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest15())
+                      if (QuestStatus.canClaimQuest15()) {
                         QuestStatus.claimQuest15();
+                      }
                     });
                   },
                 ),
@@ -428,8 +450,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.fruitsRoundsCompleted >= 2,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest16())
+                      if (QuestStatus.canClaimQuest16()) {
                         QuestStatus.claimQuest16();
+                      }
                     });
                   },
                 ),
@@ -445,8 +468,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest17())
+                      if (QuestStatus.canClaimQuest17()) {
                         QuestStatus.claimQuest17();
+                      }
                     });
                   },
                 ),
@@ -459,8 +483,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.learnedAnimalsAll,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest18())
+                      if (QuestStatus.canClaimQuest18()) {
                         QuestStatus.claimQuest18();
+                      }
                     });
                   },
                 ),
@@ -473,8 +498,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.animalsRoundsCompleted >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest19())
+                      if (QuestStatus.canClaimQuest19()) {
                         QuestStatus.claimQuest19();
+                      }
                     });
                   },
                 ),
@@ -487,8 +513,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.animalsPerfectRounds >= 1,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest20())
+                      if (QuestStatus.canClaimQuest20()) {
                         QuestStatus.claimQuest20();
+                      }
                     });
                   },
                 ),
@@ -502,8 +529,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.chestsOpened >= 3,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest21())
+                      if (QuestStatus.canClaimQuest21()) {
                         QuestStatus.claimQuest21();
+                      }
                     });
                   },
                 ),
@@ -516,8 +544,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level >= 10,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest22())
+                      if (QuestStatus.canClaimQuest22()) {
                         QuestStatus.claimQuest22();
+                      }
                     });
                   },
                 ),
@@ -538,8 +567,9 @@ class _QuestScreenState extends State<QuestScreen> {
                       ),
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest23())
+                      if (QuestStatus.canClaimQuest23()) {
                         QuestStatus.claimQuest23();
+                      }
                     });
                   },
                 ),
@@ -552,8 +582,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   isCompleted: QuestStatus.level >= 25,
                   onClaim: () {
                     setState(() {
-                      if (QuestStatus.canClaimQuest24())
+                      if (QuestStatus.canClaimQuest24()) {
                         QuestStatus.claimQuest24();
+                      }
                     });
                   },
                 ),
@@ -580,6 +611,12 @@ class _QuestScreenState extends State<QuestScreen> {
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book_rounded,
         'color': const Color(0xFF22C55E),
+      },
+      {
+        'label': 'Ranking',
+        'icon': Icons.leaderboard_outlined,
+        'activeIcon': Icons.leaderboard,
+        'color': const Color(0xFF63539C),
       },
       {
         'label': 'Profile',
