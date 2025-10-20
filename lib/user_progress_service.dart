@@ -157,4 +157,36 @@ class UserProgressService {
     }
     return null;
   }
+
+  /// Submit user feedback to Firestore
+  Future<void> submitFeedback(String message) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('No user logged in');
+
+    // Get display name
+    String displayName = 'Anonymous';
+    try {
+      final name = await getDisplayName();
+      if (name != null && name.isNotEmpty) {
+        displayName = name;
+      } else if (user.email != null) {
+        displayName = user.email!.split('@').first;
+      }
+    } catch (e) {
+      print('Error getting display name for feedback: $e');
+    }
+
+    // Save feedback to Firestore
+    await _firestore.collection('feedback').add({
+      'userId': user.uid,
+      'userName': displayName,
+      'userEmail': user.email ?? '',
+      'message': message,
+      'timestamp': FieldValue.serverTimestamp(),
+      'status': 'new', // new, read, resolved
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+
+    print('Feedback submitted by $displayName');
+  }
 }

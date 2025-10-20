@@ -258,7 +258,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   }
 
   Future<bool> _confirmExitQuiz() async {
-    final first = await showDialog<bool>(
+    final first =
+        await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (_) => AlertDialog(
@@ -280,7 +281,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
     if (!first) return false;
 
-    final second = await showDialog<bool>(
+    final second =
+        await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (_) => AlertDialog(
@@ -672,12 +674,13 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                 Expanded(
                   child: GridView.builder(
                     itemCount: options.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1.2,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1.2,
+                        ),
                     itemBuilder: (_, i) => _optionTile(options[i], i),
                   ),
                 ),

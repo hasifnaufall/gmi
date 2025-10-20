@@ -20,8 +20,43 @@ app.get('/', (req, res) => {
   res.send('Admin Dashboard Backend Running');
 });
 
+// ===== AUTH MIDDLEWARE =====
+async function verifyAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : null;
+    if (!token) {
+      return res.status(401).send({ error: 'Missing Authorization Bearer token' });
+    }
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.user = decoded; // { uid, email, ... }
+    next();
+  } catch (err) {
+    console.error('Auth verification failed:', err);
+    return res.status(401).send({ error: 'Invalid or expired token' });
+  }
+}
+
+async function requireAdmin(req, res, next) {
+  try {
+    const uid = req.user?.uid;
+    if (!uid) return res.status(401).send({ error: 'Unauthenticated' });
+    const doc = await db.collection('admins').doc(uid).get();
+    const isAdmin = doc.exists && (doc.data().isAdmin === true);
+    if (!isAdmin) {
+      return res.status(403).send({ error: 'Forbidden: admin access only' });
+    }
+    next();
+  } catch (err) {
+    console.error('Admin check failed:', err);
+    return res.status(500).send({ error: 'Admin check failed' });
+  }
+}
+
 // Get activities by user
-app.get('/activities/user/:userId', async (req, res) => {
+app.get('/activities/user/:userId', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
     const snapshot = await db.collection('activities')
@@ -40,7 +75,7 @@ app.get('/activities/user/:userId', async (req, res) => {
 });
 
 // Add activity (fixed!)
-app.post('/activity', async (req, res) => {
+app.post('/activity', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const { userId, type, details } = req.body;
     if (!userId || !type) {
@@ -59,7 +94,7 @@ app.post('/activity', async (req, res) => {
     }
 });
 
-app.get('/test-firestore', async (req, res) => {
+app.get('/test-firestore', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const collections = await db.listCollections();
     res.send({ collections: collections.map(col => col.id) });
@@ -69,7 +104,7 @@ app.get('/test-firestore', async (req, res) => {
   }
 });
 
-app.get('/activities/recent', async (req, res) => {
+app.get('/activities/recent', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection('activities')
       .orderBy('timestamp', 'desc')
@@ -86,6 +121,8 @@ app.get('/activities/recent', async (req, res) => {
   }
 });
 
+// Optional: allow unauthenticated feedback posting from apps using Admin SDK rules.
+// If you prefer to restrict to authenticated users only, add verifyAuth here too.
 app.post('/feedback', async (req, res) => {
   try {
     const { userId, message } = req.body;
@@ -107,7 +144,7 @@ app.post('/feedback', async (req, res) => {
 // ===== USER PROGRESS ROUTES =====
 
 // Get all users and their progress
-app.get('/users/progress', async (req, res) => {
+app.get('/users/progress', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection('progress').get();
     const users = snapshot.docs.map(doc => ({
@@ -123,7 +160,7 @@ app.get('/users/progress', async (req, res) => {
 });
 
 // Get specific user progress
-app.get('/users/progress/:userId', async (req, res) => {
+app.get('/users/progress/:userId', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
     const doc = await db.collection('progress').doc(userId).get();
@@ -143,7 +180,7 @@ app.get('/users/progress/:userId', async (req, res) => {
 });
 
 // Get all users from Auth
-app.get('/users/auth', async (req, res) => {
+app.get('/users/auth', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const listUsers = await admin.auth().listUsers(1000);
     const users = listUsers.users.map(user => ({
@@ -165,7 +202,7 @@ app.get('/users/auth', async (req, res) => {
 });
 
 // Combined users (auth + progress)
-app.get('/users/combined', async (req, res) => {
+app.get('/users/combined', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const listUsers = await admin.auth().listUsers(1000);
     const authUsers = listUsers.users.map(user => ({
@@ -200,7 +237,7 @@ app.get('/users/combined', async (req, res) => {
 // ===== ANALYTICS ROUTES =====
 
 // Get user stats summary
-app.get('/analytics/summary', async (req, res) => {
+app.get('/analytics/summary', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const authUsers = await admin.auth().listUsers(1000);
     const totalUsers = authUsers.users.length;
@@ -239,7 +276,7 @@ app.get('/analytics/summary', async (req, res) => {
 });
 
 // Global leaderboard endpoint
-app.get('/leaderboard', async (req, res) => {
+app.get('/leaderboard', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection('progress')
       .orderBy('level', 'desc')
@@ -256,7 +293,7 @@ app.get('/leaderboard', async (req, res) => {
 });
 
 // Display name change history endpoint
-app.get('/display-name-changes', async (req, res) => {
+app.get('/display-name-changes', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection('display_name_changes')
       .orderBy('timestamp', 'desc')
@@ -268,6 +305,48 @@ app.get('/display-name-changes', async (req, res) => {
     }));
     res.send(changes);
   } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// ===== FEEDBACK ROUTES =====
+
+// Get all feedback
+app.get('/feedback', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection('feedback')
+      .orderBy('timestamp', 'desc')
+      .limit(100)
+      .get();
+    const feedback = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    res.send(feedback);
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Update feedback status
+app.put('/feedback/:feedbackId/status', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    const { feedbackId } = req.params;
+    const { status } = req.body;
+    
+    if (!['new', 'read', 'resolved'].includes(status)) {
+      return res.status(400).send({ error: 'Invalid status. Must be: new, read, or resolved' });
+    }
+
+    await db.collection('feedback').doc(feedbackId).update({
+      status: status,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.send({ success: true, feedbackId, status });
+  } catch (error) {
+    console.error('Error updating feedback status:', error);
     res.status(500).send({ error: error.message });
   }
 });

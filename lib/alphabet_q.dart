@@ -367,7 +367,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         }
       }
 
-      final justEarned = await QuestStatus.markFirstQuizMedalEarned();
+      final justEarned = QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
           icon: Icons.military_tech,
