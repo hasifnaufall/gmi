@@ -33,6 +33,7 @@ flutter:
     - assets/images/number/
     - assets/images/colour/
     - assets/images/animal/
+    - assets/images/fruit/
     - assets/videos/alphabet/
     - assets/videos/numbers/
     - assets/videos/colours/

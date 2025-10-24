@@ -1,5 +1,7 @@
+// quest.dart
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+
 import 'leaderboard.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
@@ -28,9 +30,8 @@ class _QuestScreenState extends State<QuestScreen> {
       final userId = UserProgressService().getCurrentUserId();
       if (userId != null && QuestStatus.currentUserId != userId) {
         // User has changed or progress not loaded for current user
-        await QuestStatus.loadProgressForUser(
-          userId,
-        ).timeout(const Duration(seconds: 5));
+        await QuestStatus.loadProgressForUser(userId)
+            .timeout(const Duration(seconds: 5));
       }
     } catch (e) {
       print('Error ensuring user progress in QuestScreen: $e');
@@ -95,7 +96,7 @@ class _QuestScreenState extends State<QuestScreen> {
 
     _showXpToast(xp: 200, leveledUp: leveled);
 
-    // Sweep auto-claim in case any chest-related quests complete
+    // Rebuild to reflect latest values
     setState(() {});
   }
 
@@ -107,13 +108,13 @@ class _QuestScreenState extends State<QuestScreen> {
 
     final bool chestEnabled = _isChestUnlocked;
 
-    // Optional: light sweep to reflect latest auto-claims when opening screen
+    // Lightweight refresh (no auto-claim inside)
     QuestStatus.ensureUnlocksLoaded();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56), // compact height
+        preferredSize: const Size.fromHeight(56),
         child: _TopBar(
           points: QuestStatus.userPoints,
           streak: QuestStatus.streakDays,
@@ -153,8 +154,8 @@ class _QuestScreenState extends State<QuestScreen> {
                     curve: Curves.easeInOut,
                     tween: Tween<double>(begin: 0, end: _targetProgress),
                     builder: (context, value, _) {
-                      final shown = (value * QuestStatus.levelGoalPoints)
-                          .round();
+                      final shown =
+                      (value * QuestStatus.levelGoalPoints).round();
                       return Column(
                         children: [
                           LinearProgressIndicator(
@@ -184,9 +185,8 @@ class _QuestScreenState extends State<QuestScreen> {
                       label: Text(chestEnabled ? 'Open Chest' : 'Chest Locked'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        backgroundColor: chestEnabled
-                            ? Colors.blue
-                            : Colors.grey,
+                        backgroundColor:
+                        chestEnabled ? Colors.blue : Colors.grey,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -222,7 +222,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 2',
                   subtitle: 'Learn ALL Alphabet in Learning Mode',
@@ -237,7 +236,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 3',
                   subtitle: 'Start "Alphabet" quiz',
@@ -252,7 +250,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 4',
                   subtitle: 'Get 3 correct answers in a row (Alphabet)',
@@ -274,9 +271,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Numbers" level',
                   points: 100,
                   isClaimed: QuestStatus.quest5Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(
-                    QuestStatus.levelNumbers,
-                  ),
+                  isCompleted:
+                  QuestStatus.isContentUnlocked(QuestStatus.levelNumbers),
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest5()) {
@@ -285,7 +281,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 6',
                   subtitle: 'Learn ALL Numbers in Learning Mode',
@@ -300,7 +295,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 7',
                   subtitle: 'Complete ONE Numbers round without mistakes',
@@ -315,7 +309,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 8',
                   subtitle: 'Finish 3 rounds of Numbers level',
@@ -337,9 +330,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Colour" level',
                   points: 100,
                   isClaimed: QuestStatus.quest9Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(
-                    QuestStatus.levelColour,
-                  ),
+                  isCompleted:
+                  QuestStatus.isContentUnlocked(QuestStatus.levelColour),
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest9()) {
@@ -348,7 +340,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 10',
                   subtitle: 'Learn ALL Colours in Learning Mode',
@@ -363,7 +354,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 11',
                   subtitle: 'Get 5 correct answers in a row (Colour)',
@@ -378,7 +368,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 12',
                   subtitle: 'Finish 2 Colour rounds',
@@ -400,9 +389,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Fruits" level',
                   points: 100,
                   isClaimed: QuestStatus.quest13Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(
-                    QuestStatus.levelGreetings,
-                  ),
+                  isCompleted:
+                  QuestStatus.isContentUnlocked(QuestStatus.levelGreetings),
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest13()) {
@@ -411,7 +399,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 14',
                   subtitle: 'Learn ALL Fruits in Learning Mode',
@@ -426,7 +413,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 15',
                   subtitle: 'Get 4 correct answers in a row (Fruits)',
@@ -441,7 +427,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 16',
                   subtitle: 'Finish 2 Fruits rounds',
@@ -463,9 +448,8 @@ class _QuestScreenState extends State<QuestScreen> {
                   subtitle: 'Start "Animals" level',
                   points: 100,
                   isClaimed: QuestStatus.quest17Claimed,
-                  isCompleted: QuestStatus.isContentUnlocked(
-                    QuestStatus.levelCommonVerb,
-                  ),
+                  isCompleted:
+                  QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb),
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest17()) {
@@ -474,7 +458,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 18',
                   subtitle: 'Learn ALL Animals in Learning Mode',
@@ -489,7 +472,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 19',
                   subtitle: 'Finish 3 Animals rounds',
@@ -504,7 +486,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 20',
                   subtitle: 'Complete ONE Animals round without mistakes',
@@ -535,7 +516,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 22',
                   subtitle: 'Reach Level 10',
@@ -550,21 +530,18 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 23',
                   subtitle: 'Unlock all categories',
                   points: 200,
                   isClaimed: QuestStatus.quest23Claimed,
                   isCompleted:
-                      QuestStatus.isContentUnlocked(QuestStatus.levelNumbers) &&
+                  QuestStatus.isContentUnlocked(QuestStatus.levelNumbers) &&
                       QuestStatus.isContentUnlocked(QuestStatus.levelColour) &&
                       QuestStatus.isContentUnlocked(
-                        QuestStatus.levelGreetings,
-                      ) &&
+                          QuestStatus.levelGreetings) &&
                       QuestStatus.isContentUnlocked(
-                        QuestStatus.levelCommonVerb,
-                      ),
+                          QuestStatus.levelCommonVerb),
                   onClaim: () {
                     setState(() {
                       if (QuestStatus.canClaimQuest23()) {
@@ -573,7 +550,6 @@ class _QuestScreenState extends State<QuestScreen> {
                     });
                   },
                 ),
-
                 QuestItem(
                   title: 'Quest 24',
                   subtitle: 'Reach Level 25',
@@ -684,11 +660,10 @@ class _QuestScreenState extends State<QuestScreen> {
                         Row(
                           children: List.generate(navItems.length, (i) {
                             final active = i == _selectedIndex;
-                            final icon =
-                                (active
-                                        ? navItems[i]['activeIcon']
-                                        : navItems[i]['icon'])
-                                    as IconData;
+                            final icon = (active
+                                ? navItems[i]['activeIcon']
+                                : navItems[i]['icon'])
+                            as IconData;
                             final color = active
                                 ? navItems[i]['color'] as Color
                                 : Colors.black54;
@@ -713,24 +688,23 @@ class _QuestScreenState extends State<QuestScreen> {
                                             switchOutCurve: Curves.easeIn,
                                             child: active
                                                 ? Padding(
-                                                    key: ValueKey('lbl$i'),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 8,
-                                                        ),
-                                                    child: Text(
-                                                      navItems[i]['label']
-                                                          as String,
-                                                      style: TextStyle(
-                                                        color: color,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  )
+                                              key: ValueKey('lbl$i'),
+                                              padding:
+                                              const EdgeInsets.only(
+                                                  left: 8),
+                                              child: Text(
+                                                navItems[i]['label']
+                                                as String,
+                                                style: TextStyle(
+                                                  color: color,
+                                                  fontWeight:
+                                                  FontWeight.w600,
+                                                ),
+                                              ),
+                                            )
                                                 : const SizedBox(
-                                                    key: ValueKey('empty'),
-                                                  ),
+                                              key: ValueKey('empty'),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -754,7 +728,6 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   // Local animated XP toast
-  // --------------------------------------------------------------------
   void _showXpToast({required int xp, required int leveledUp}) {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
@@ -870,10 +843,8 @@ class QuestItem extends StatelessWidget {
                 onPressed: canClaim ? onClaim : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(84, 34),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   backgroundColor: canClaim ? Colors.blue : Colors.grey,
                 ),
                 child: Text(

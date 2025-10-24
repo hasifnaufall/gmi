@@ -6,6 +6,7 @@ class QuestStatus {
   // Save coalescing to avoid excessive Firestore writes
   static bool _saving = false;
   static bool _saveQueued = false;
+
   // ================= Content Keys & Level Thresholds =================
   static const String levelAlphabet   = 'alphabet';
   static const String levelNumbers    = 'numbers';
@@ -91,37 +92,99 @@ class QuestStatus {
   static bool firstQuizMedalEarned    = false; // used by markFirstQuizMedalEarned()
 
   // ---- Helper setters to be called from Learning/Quiz screens:
+  // (Calls to _autoClaimAll() are now no-op; kept for compatibility)
   // Alphabet helpers
-    static void markAlphabetLearnAll() { learnedAlphabetAll = true; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void markAlphabetQuizStarted() { alphabetQuizStarted = true; markFirstQuizMedalEarned(); _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incAlphabetRoundsCompleted() { alphabetRoundsCompleted++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
+  static void markAlphabetLearnAll() {
+    learnedAlphabetAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void markAlphabetQuizStarted() {
+    alphabetQuizStarted = true;
+    markFirstQuizMedalEarned();
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incAlphabetRoundsCompleted() {
+    alphabetRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
 
   // Numbers helpers
-    static void markNumbersLearnAll() { learnedNumbersAll = true; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incNumbersRoundsCompleted() { numbersRoundsCompleted++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incNumbersPerfectRounds() { numbersPerfectRounds++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
+  static void markNumbersLearnAll() {
+    learnedNumbersAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incNumbersRoundsCompleted() {
+    numbersRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incNumbersPerfectRounds() {
+    numbersPerfectRounds++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
 
   // Colour helpers
-    static void markColoursLearnAll() { learnedColoursAll = true; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incColourRoundsCompleted() { colourRoundsCompleted++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void updateColourBestStreak(int streak) { if (streak > colourBestStreak) colourBestStreak = streak; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
+  static void markColoursLearnAll() {
+    learnedColoursAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incColourRoundsCompleted() {
+    colourRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void updateColourBestStreak(int streak) {
+    if (streak > colourBestStreak) colourBestStreak = streak;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
 
   // Fruits helpers
-    static void markFruitsLearnAll() { learnedFruitsAll = true; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incFruitsRoundsCompleted() { fruitsRoundsCompleted++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void updateFruitsBestStreak(int streak) { if (streak > fruitsBestStreak) fruitsBestStreak = streak; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
+  static void markFruitsLearnAll() {
+    learnedFruitsAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incFruitsRoundsCompleted() {
+    fruitsRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void updateFruitsBestStreak(int streak) {
+    if (streak > fruitsBestStreak) fruitsBestStreak = streak;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
 
   // Animals helpers
-    static void markAnimalsLearnAll() { learnedAnimalsAll = true; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incAnimalsRoundsCompleted() { animalsRoundsCompleted++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
-    static void incAnimalsPerfectRounds() { animalsPerfectRounds++; _autoClaimAll(); Future.microtask(() => autoSaveProgress()); }
+  static void markAnimalsLearnAll() {
+    learnedAnimalsAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incAnimalsRoundsCompleted() {
+    animalsRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incAnimalsPerfectRounds() {
+    animalsPerfectRounds++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
 
   /// Call this from any quiz when the user answers a question.
-  /// Applies +25 XP for correct and then auto-claims any newly satisfied quests.
+  /// Applies +25 XP for correct and then (no auto-claim; manual-claim only).
   static void onAnswer({required bool correct}) {
     if (correct) addXp(xpPerCorrect);
     _autoClaimAll();
-     Future.microtask(() => autoSaveProgress());
+    Future.microtask(() => autoSaveProgress());
   }
 
   // ================= Chest Progress (goal grows +20 per chest) =================
@@ -135,27 +198,28 @@ class QuestStatus {
   // Each chest opened raises the next goal by +20
   static void advanceChestTier() {
     levelGoalPoints += 20;
-     Future.microtask(() => autoSaveProgress());
+    Future.microtask(() => autoSaveProgress());
   }
 
   static void _applyChestProgress(int progress) {
     if (progress <= 0) return;
+    // Add progress ONLY. Do NOT auto-open chests here.
+    // The chest will be opened manually via the UI button (_openChest).
     claimedPoints += progress;
-    while (claimedPoints >= levelGoalPoints && levelGoalPoints > 0) {
-      claimedPoints -= levelGoalPoints;
-      chestsOpened += 1;
-      advanceChestTier();
-    }
-    if (claimedPoints < 0) claimedPoints = 0;
-      Future.microtask(() => autoSaveProgress());
+
+    // (Optional) You can clamp the progress shown on the bar to 1.0 in the getter,
+    // which you already do via chestProgress. So no extra math needed here.
+
+    Future.microtask(() => autoSaveProgress());
   }
+
 
   // ================= Achievements =================
   static Set<String> achievements = <String>{};
   static bool awardAchievement(String name) {
     if (achievements.contains(name)) return false;
     achievements.add(name);
-      Future.microtask(() => autoSaveProgress());
+    Future.microtask(() => autoSaveProgress());
     return true;
   }
 
@@ -176,9 +240,9 @@ class QuestStatus {
       xp -= xpToNext;
       level += 1;
       levelsUp += 1;
-        Future.microtask(() => autoSaveProgress());
-    }
       Future.microtask(() => autoSaveProgress());
+    }
+    Future.microtask(() => autoSaveProgress());
     return levelsUp;
   }
 
@@ -206,13 +270,12 @@ class QuestStatus {
     userPoints -= unlockCost;
     _unlockedContent.add(key);
 
-    // Auto-claim dispatcher may unlock related quests immediately
-    _autoClaimAll();
+    // No auto-claim; user must press CLAIM buttons.
     await autoSaveProgress();
     return UnlockStatus.success;
   }
 
-  // ================= Quests (Q1 – Q24) with auto-claim =================
+  // ================= Quests (Q1 – Q24) with MANUAL claim =================
 
   // ---- Claimed flags
   static bool quest1Claimed  = false; // Start Alphabet
@@ -244,133 +307,133 @@ class QuestStatus {
   static bool canClaimQuest1() => completedQuestions >= 1 && !quest1Claimed;
   static int  claimQuest1({int reward = 100, int progress = 15}) {
     if (!canClaimQuest1()) return 0;
-     quest1Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest1Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
   }
 
   static bool canClaimQuest2() => learnedAlphabetAll && !quest2Claimed;
   static int  claimQuest2({int reward = 120, int progress = 15}) {
     if (!canClaimQuest2()) return 0;
-     quest2Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest2Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
   }
 
   static bool canClaimQuest3() => alphabetQuizStarted && !quest3Claimed;
   static int  claimQuest3({int reward = 80, int progress = 10}) {
     if (!canClaimQuest3()) return 0;
-     quest3Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(60); return reward;
+    quest3Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(60); return reward;
   }
 
   static bool canClaimQuest4() => level1BestStreak >= 3 && !quest4Claimed;
   static int  claimQuest4({int reward = 120, int progress = 15}) {
     if (!canClaimQuest4()) return 0;
-     quest4Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
+    quest4Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
   }
 
   static bool canClaimQuest5() => isContentUnlocked(levelNumbers) && !quest5Claimed;
   static int  claimQuest5({int reward = 100, int progress = 15}) {
     if (!canClaimQuest5()) return 0;
-     quest5Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest5Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
   }
 
   static bool canClaimQuest6() => learnedNumbersAll && !quest6Claimed;
   static int  claimQuest6({int reward = 120, int progress = 15}) {
     if (!canClaimQuest6()) return 0;
-     quest6Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest6Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
   }
 
   static bool canClaimQuest7() => numbersPerfectRounds >= 1 && !quest7Claimed;
   static int  claimQuest7({int reward = 200, int progress = 20}) {
     if (!canClaimQuest7()) return 0;
-     quest7Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(160); return reward;
+    quest7Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(160); return reward;
   }
 
   static bool canClaimQuest8() => numbersRoundsCompleted >= 3 && !quest8Claimed;
   static int  claimQuest8({int reward = 200, int progress = 20}) {
     if (!canClaimQuest8()) return 0;
-     quest8Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+    quest8Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
   }
 
   static bool canClaimQuest9() => isContentUnlocked(levelColour) && !quest9Claimed;
   static int  claimQuest9({int reward = 100, int progress = 15}) {
     if (!canClaimQuest9()) return 0;
-     quest9Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest9Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
   }
 
   static bool canClaimQuest10() => learnedColoursAll && !quest10Claimed;
   static int  claimQuest10({int reward = 120, int progress = 15}) {
     if (!canClaimQuest10()) return 0;
-     quest10Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest10Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
   }
 
   static bool canClaimQuest11() => colourBestStreak >= 5 && !quest11Claimed;
   static int  claimQuest11({int reward = 150, int progress = 15}) {
     if (!canClaimQuest11()) return 0;
-     quest11Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
+    quest11Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
   }
 
   static bool canClaimQuest12() => colourRoundsCompleted >= 2 && !quest12Claimed;
   static int  claimQuest12({int reward = 200, int progress = 20}) {
     if (!canClaimQuest12()) return 0;
-     quest12Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+    quest12Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
   }
 
   static bool canClaimQuest13() => isContentUnlocked(levelGreetings) && !quest13Claimed;
   static int  claimQuest13({int reward = 100, int progress = 15}) {
     if (!canClaimQuest13()) return 0;
-     quest13Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest13Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
   }
 
   static bool canClaimQuest14() => learnedFruitsAll && !quest14Claimed;
   static int  claimQuest14({int reward = 120, int progress = 15}) {
     if (!canClaimQuest14()) return 0;
-     quest14Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest14Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
   }
 
   static bool canClaimQuest15() => fruitsBestStreak >= 4 && !quest15Claimed;
   static int  claimQuest15({int reward = 150, int progress = 15}) {
     if (!canClaimQuest15()) return 0;
-     quest15Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
+    quest15Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(100); return reward;
   }
 
   static bool canClaimQuest16() => fruitsRoundsCompleted >= 2 && !quest16Claimed;
   static int  claimQuest16({int reward = 200, int progress = 20}) {
     if (!canClaimQuest16()) return 0;
-     quest16Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+    quest16Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
   }
 
   static bool canClaimQuest17() => isContentUnlocked(levelCommonVerb) && !quest17Claimed;
   static int  claimQuest17({int reward = 100, int progress = 15}) {
     if (!canClaimQuest17()) return 0;
-     quest17Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest17Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
   }
 
   static bool canClaimQuest18() => learnedAnimalsAll && !quest18Claimed;
   static int  claimQuest18({int reward = 120, int progress = 15}) {
     if (!canClaimQuest18()) return 0;
-     quest18Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest18Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
   }
 
   static bool canClaimQuest19() => animalsRoundsCompleted >= 3 && !quest19Claimed;
   static int  claimQuest19({int reward = 150, int progress = 20}) {
     if (!canClaimQuest19()) return 0;
-     quest19Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+    quest19Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
   }
 
   static bool canClaimQuest20() => animalsPerfectRounds >= 1 && !quest20Claimed;
   static int  claimQuest20({int reward = 200, int progress = 20}) {
     if (!canClaimQuest20()) return 0;
-     quest20Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(180); return reward;
+    quest20Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(180); return reward;
   }
 
   static bool canClaimQuest21() => chestsOpened >= 3 && !quest21Claimed;
   static int  claimQuest21({int reward = 150, int progress = 20}) {
     if (!canClaimQuest21()) return 0;
-     quest21Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(120); return reward;
+    quest21Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(120); return reward;
   }
 
   static bool canClaimQuest22() => level >= 10 && !quest22Claimed;
   static int  claimQuest22({int reward = 150, int progress = 20}) {
     if (!canClaimQuest22()) return 0;
-     quest22Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(120); return reward;
+    quest22Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(120); return reward;
   }
 
   static bool canClaimQuest23() =>
@@ -381,48 +444,26 @@ class QuestStatus {
           !quest23Claimed;
   static int  claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
-     quest23Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(160); return reward;
+    quest23Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(160); return reward;
   }
 
   static bool canClaimQuest24() => level >= 25 && !quest24Claimed;
   static int  claimQuest24({int reward = 300, int progress = 30}) {
     if (!canClaimQuest24()) return 0;
-     quest24Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(200); return reward;
+    quest24Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(200); return reward;
   }
 
-  // Auto-claim dispatcher (idempotent; safe to call often)
+  // ================== AUTO-CLAIM DISABLED ==================
+  // We keep the function to avoid refactors, but it's a no-op now.
   static void _autoClaimAll() {
-    if (canClaimQuest1())  { claimQuest1(); }
-    if (canClaimQuest2())  { claimQuest2(); }
-    if (canClaimQuest3())  { claimQuest3(); }
-    if (canClaimQuest4())  { claimQuest4(); }
-    if (canClaimQuest5())  { claimQuest5(); }
-    if (canClaimQuest6())  { claimQuest6(); }
-    if (canClaimQuest7())  { claimQuest7(); }
-    if (canClaimQuest8())  { claimQuest8(); }
-    if (canClaimQuest9())  { claimQuest9(); }
-    if (canClaimQuest10()) { claimQuest10(); }
-    if (canClaimQuest11()) { claimQuest11(); }
-    if (canClaimQuest12()) { claimQuest12(); }
-    if (canClaimQuest13()) { claimQuest13(); }
-    if (canClaimQuest14()) { claimQuest14(); }
-    if (canClaimQuest15()) { claimQuest15(); }
-    if (canClaimQuest16()) { claimQuest16(); }
-    if (canClaimQuest17()) { claimQuest17(); }
-    if (canClaimQuest18()) { claimQuest18(); }
-    if (canClaimQuest19()) { claimQuest19(); }
-    if (canClaimQuest20()) { claimQuest20(); }
-    if (canClaimQuest21()) { claimQuest21(); }
-    if (canClaimQuest22()) { claimQuest22(); }
-    if (canClaimQuest23()) { claimQuest23(); }
-    if (canClaimQuest24()) { claimQuest24(); }
+    // Manual-claim only. Do not auto-claim anything here.
     Future.microtask(() => autoSaveProgress());
   }
 
   // ================= Utility / Titles / Newly Unlocked =================
   static Future<void> ensureUnlocksLoaded() async {
+    // Previously called _autoClaimAll(); now we just ensure state is consistent.
     await Future.delayed(const Duration(milliseconds: 1));
-    _autoClaimAll(); // ensure state is up-to-date at entry
   }
 
   static List<String> unlockedBetween(int oldLevel, int newLevel) {
@@ -467,8 +508,8 @@ class QuestStatus {
       streakDays += 1;
       if (streakDays > longestStreak) longestStreak = streakDays;
       lastStreakUtc = n;
-      _autoClaimAll();
-        Future.microtask(() => autoSaveProgress());
+      _autoClaimAll(); // no-op
+      Future.microtask(() => autoSaveProgress());
       return true;
     }
     return false;
@@ -478,13 +519,16 @@ class QuestStatus {
     streakDays = 0;
     longestStreak = 0;
     lastStreakUtc = null;
-      Future.microtask(() => autoSaveProgress());
+    Future.microtask(() => autoSaveProgress());
   }
 
   // ================= User Session Management =================
   static String? _currentUserId;
 
   /// Reset all static variables to default values (for user switching)
+  // Flag to prevent auto-saving during progress loading
+  static bool _loadingProgress = false;
+
   static void resetToDefaults() {
     // reset quest claims
     quest1Claimed = quest2Claimed = quest3Claimed = false;
@@ -529,68 +573,52 @@ class QuestStatus {
     resetStreak();
 
     firstQuizMedalEarned = false;
-    
+
     // Reset level 1 answers
     level1Answers = List<bool?>.filled(5, null);
-    
-    // Note: Don't save progress here to avoid potential performance issues
   }
-
-  /// Load progress for a specific user, ensuring isolation between users
-  // Flag to prevent auto-saving during progress loading
-  static bool _loadingProgress = false;
 
   static Future<void> loadProgressForUser(String userId) async {
     print('loadProgressForUser called for userId: $userId');
     print('Current userId: $_currentUserId');
-    
-    // Set loading flag to prevent auto-saves during loading
+
     _loadingProgress = true;
-    
+
     try {
-      // Always reset to defaults first to ensure clean state
-      // This is especially important after logout when _currentUserId is null
       if (_currentUserId != userId) {
         print('Loading different user or after logout - resetting to defaults first');
         resetToDefaults();
       }
-      
+
       _currentUserId = userId;
-      
+
       final progress = await UserProgressService().getProgress();
       print('Progress data from Firestore: $progress');
-      
+
       if (progress != null) {
         loadFromProgress(progress);
         print('Progress loaded for user: $userId');
         print('Level after loading: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints');
       } else {
         print('No saved progress found for user: $userId - using defaults');
-        // Start fresh for new users (resetToDefaults already called above)
-        _currentUserId = userId; // Keep the user ID even with defaults
+        _currentUserId = userId;
       }
     } catch (e) {
       print('Error loading progress for user $userId: $e');
-      // Don't reset on error - preserve any existing progress
-      // But make sure we have the right user ID
       _currentUserId = userId;
     } finally {
-      // Always clear loading flag
       _loadingProgress = false;
       print('Progress loading completed for user: $userId');
     }
   }
 
-  /// Get the current user ID
   static String? get currentUserId => _currentUserId;
 
-  /// Clear the current user ID (for logout)
   static void clearCurrentUser() {
     _currentUserId = null;
     print('Current user ID cleared');
   }
 
-  /// Debug method to show current progress
   static void showCurrentProgress() {
     print('=== CURRENT PROGRESS ===');
     print('User ID: $_currentUserId');
@@ -604,14 +632,12 @@ class QuestStatus {
     print('========================');
   }
 
-  /// Debug method to manually trigger save (for testing)
   static Future<void> forceSave() async {
     print('forceSave: Forcing save of current progress...');
     await autoSaveProgress();
     print('forceSave: Save completed');
   }
 
-  /// Debug method to check if progress is currently being loaded
   static bool get isLoadingProgress => _loadingProgress;
 
   // ================= Resets =================
@@ -619,7 +645,6 @@ class QuestStatus {
     for (int i = 0; i < level1Answers.length; i++) {
       level1Answers[i] = null;
     }
-    // Save progress asynchronously without blocking
     Future.microtask(() => autoSaveProgress());
   }
 
@@ -669,24 +694,20 @@ class QuestStatus {
     resetStreak();
 
     firstQuizMedalEarned = false;
-    
-    // Save progress asynchronously without blocking
+
     Future.microtask(() => autoSaveProgress());
   }
 
   /// Save all progress to Firestore for the current user (coalesced)
   static Future<void> autoSaveProgress() async {
-    // Don't save if we're currently loading progress to avoid overwriting with default values
     if (_loadingProgress) {
       print('autoSaveProgress: Currently loading progress - skipping save to avoid overwriting');
       return;
     }
-    
-    // If no user is logged in yet (e.g., on splash or after logout), skip saving.
+
     final currentUserId = UserProgressService().getCurrentUserId();
     if (currentUserId == null || _currentUserId == null) {
       print('autoSaveProgress: No user logged in (Firebase: $currentUserId, QuestStatus: $_currentUserId) - skipping save');
-      // Clear saving flags to avoid getting stuck
       _saving = false;
       _saveQueued = false;
       return;
@@ -765,7 +786,6 @@ class QuestStatus {
       _saving = false;
       if (_saveQueued) {
         _saveQueued = false;
-        // Coalesce multiple quick calls into one follow-up save
         Future.delayed(const Duration(milliseconds: 200), () => autoSaveProgress());
       }
     }
@@ -783,7 +803,7 @@ class QuestStatus {
     chestsOpened = data['chestsOpened'] ?? 0;
     streakDays = data['streakDays'] ?? 0;
     longestStreak = data['longestStreak'] ?? 0;
-    
+
     if (data['lastStreakUtc'] != null) {
       lastStreakUtc = DateTime.fromMillisecondsSinceEpoch(data['lastStreakUtc']);
     }
