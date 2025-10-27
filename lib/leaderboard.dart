@@ -201,25 +201,17 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       height: 50,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: isCurrentUser
-            ? LinearGradient(
-                colors: [Color(0xFFFF3B30), Color(0xFFFF6B6B)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : LinearGradient(
-                colors: [Color(0xFF2D2D2D), Color(0xFF1A1A1A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        color: isCurrentUser
+            ? Color(0xFFFF3B30).withOpacity(0.1)
+            : Colors.white,
         border: Border.all(color: _getRankColor(rank), width: 2),
         boxShadow: [
           BoxShadow(
             color: isCurrentUser
-                ? Color(0xFFFF3B30).withOpacity(0.3)
-                : Colors.black26,
-            blurRadius: 8,
-            offset: Offset(0, 4),
+                ? Color(0xFFFF3B30).withOpacity(0.2)
+                : Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -241,9 +233,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFFFAFFDC),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFFAFFDC),
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
@@ -253,7 +245,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             Text(
               'Global Leaderboard',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black87,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -266,10 +258,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             padding: const EdgeInsets.only(right: 8),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.black.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -282,7 +274,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     padding: const EdgeInsets.all(10),
                     child: Icon(
                       Icons.refresh_rounded,
-                      color: Colors.white,
+                      color: Colors.black87,
                       size: 22,
                     ),
                   ),
@@ -367,37 +359,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       return Container(
                         margin: EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          gradient: isCurrentUser
-                              ? LinearGradient(
-                                  colors: [
-                                    Color(0xFFFF3B30).withOpacity(0.2),
-                                    Color(0xFFFF6B6B).withOpacity(0.1),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : LinearGradient(
-                                  colors: [
-                                    Color(0xFF1E1E1E),
-                                    Color(0xFF2A2A2A),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                          color: isCurrentUser
+                              ? Color(0xFFFFF0F0)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isCurrentUser
                                 ? Color(0xFFFF3B30)
-                                : Colors.white.withOpacity(0.1),
+                                : Colors.black.withOpacity(0.1),
                             width: isCurrentUser ? 2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: isCurrentUser
-                                  ? Color(0xFFFF3B30).withOpacity(0.2)
-                                  : Colors.black26,
+                                  ? Color(0xFFFF3B30).withOpacity(0.15)
+                                  : Colors.black.withOpacity(0.05),
                               blurRadius: 8,
-                              offset: Offset(0, 4),
+                              offset: Offset(0, 2),
                             ),
                           ],
                         ),
@@ -413,7 +391,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                 child: Text(
                                   entry['displayName'],
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.black87,
                                     fontSize: 16,
                                     fontWeight: isCurrentUser
                                         ? FontWeight.bold
@@ -455,7 +433,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                               Text(
                                 'Level ${entry['level']}',
                                 style: TextStyle(
-                                  color: Colors.grey,
+                                  color: Colors.black54,
                                   fontSize: 14,
                                 ),
                               ),
@@ -493,24 +471,28 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         'icon': Icons.home_outlined,
         'activeIcon': Icons.home_rounded,
         'color': const Color(0xFF2563EB),
+        'emoji': '🏠',
       },
       {
         'label': 'Quest',
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book_rounded,
         'color': const Color(0xFF22C55E),
+        'emoji': '📚',
       },
       {
         'label': 'Ranking',
         'icon': Icons.leaderboard_outlined,
         'activeIcon': Icons.leaderboard,
         'color': const Color(0xFF63539C),
+        'emoji': '🏆',
       },
       {
         'label': 'Profile',
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
+        'emoji': '👤',
       },
     ];
 
@@ -519,70 +501,65 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Container(
-          height: 64,
+          height: 67,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(25),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE94057), Color(0xFF8A2387)],
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Color(0xFFE94057).withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(navItems.length, (index) {
-              final item = navItems[index];
-              final bool isSelected = _selectedIndex == index;
+            children: List.generate(navItems.length, (i) {
+              final active = i == _selectedIndex;
+              final color = active
+                  ? Colors.white
+                  : Colors.white.withOpacity(0.7);
+              final emoji = navItems[i]['emoji'] as String;
+
               return Expanded(
-                child: GestureDetector(
-                  onTap: () => _onNavBarTap(index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.ease,
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? (item['color'] as Color).withOpacity(0.15)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSelected
-                              ? item['activeIcon'] as IconData
-                              : item['icon'] as IconData,
-                          color: isSelected
-                              ? item['color'] as Color
-                              : Colors.grey[500],
-                          size: 24,
-                        ),
-                        if (isSelected)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: Text(
-                              item['label'] as String,
-                              style: TextStyle(
-                                color: item['color'] as Color,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => _onNavBarTap(i),
+                    child: Container(
+                      decoration: active
+                          ? BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.2),
+                                  Colors.white.withOpacity(0.1),
+                                ],
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              borderRadius: BorderRadius.circular(20),
+                            )
+                          : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          const SizedBox(height: 4),
+                          Text(
+                            navItems[i]['label'] as String,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: active
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              fontSize: 11,
                             ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

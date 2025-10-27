@@ -1,6 +1,4 @@
 //profile.dart
-import 'dart:ui' as ui;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -291,25 +289,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'label': 'Home',
         'icon': Icons.home_outlined,
         'activeIcon': Icons.home_rounded,
-        'color': const Color(0xFF2C5CB0),
+        'color': const Color(0xFF2563EB),
+        'emoji': '🏠',
       },
       {
-        'label': 'Task',
+        'label': 'Quest',
         'icon': Icons.menu_book_outlined,
         'activeIcon': Icons.menu_book_rounded,
-        'color': const Color(0xFF2C5CB0),
+        'color': const Color(0xFF22C55E),
+        'emoji': '📚',
       },
       {
         'label': 'Ranking',
         'icon': Icons.leaderboard_outlined,
         'activeIcon': Icons.leaderboard,
         'color': const Color(0xFF63539C),
+        'emoji': '🏆',
       },
       {
         'label': 'Profile',
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
-        'color': const Color(0xFFFF4B4A),
+        'color': const Color(0xFFF59E0B),
+        'emoji': '👤',
       },
     ];
 
@@ -318,148 +320,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Container(
-          height: 72,
+          height: 67,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(25),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE94057), Color(0xFF8A2387)],
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Color(0xFFE94057).withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  border: Border.all(color: Colors.white.withOpacity(0.9)),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final itemWidth = constraints.maxWidth / navItems.length;
-                    final accent = navItems[2]['color'] as Color;
-                    return Stack(
-                      children: [
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 260),
-                          curve: Curves.easeOutCubic,
-                          left: 3 * itemWidth,
-                          top: 8,
-                          bottom: 8,
-                          child: Container(
-                            width: itemWidth,
-                            decoration: BoxDecoration(
+          child: Row(
+            children: List.generate(navItems.length, (i) {
+              final active = i == 3; // Profile is index 3
+              final color = active
+                  ? Colors.white
+                  : Colors.white.withOpacity(0.7);
+              final emoji = navItems[i]['emoji'] as String;
+
+              return Expanded(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => _onItemTapped(i),
+                    child: Container(
+                      decoration: active
+                          ? BoxDecoration(
                               gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
                                 colors: [
-                                  accent.withOpacity(0.25),
-                                  accent.withOpacity(0.15),
+                                  Colors.white.withOpacity(0.2),
+                                  Colors.white.withOpacity(0.1),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(20),
+                            )
+                          : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          const SizedBox(height: 4),
+                          Text(
+                            navItems[i]['label'] as String,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: active
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              fontSize: 11,
                             ),
                           ),
-                        ),
-                        Row(
-                          children: List.generate(navItems.length, (i) {
-                            final active = i == 3;
-                            final icon =
-                                (active
-                                        ? navItems[i]['activeIcon']
-                                        : navItems[i]['icon'])
-                                    as IconData;
-                            final color = active
-                                ? navItems[i]['color'] as Color
-                                : Colors.grey.shade600;
-                            return Expanded(
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(16),
-                                  onTap: () {
-                                    if (i == 0) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => QuizCategoryScreen(),
-                                        ),
-                                      );
-                                    } else if (i == 1) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const QuestScreen(),
-                                        ),
-                                      );
-                                    } else if (i == 2) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const LeaderboardPage(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: SizedBox(
-                                    height: 72,
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(icon, size: 24, color: color),
-                                          AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 180,
-                                            ),
-                                            switchInCurve: Curves.easeOut,
-                                            switchOutCurve: Curves.easeIn,
-                                            child: active
-                                                ? Padding(
-                                                    key: ValueKey('lbl$i'),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 8,
-                                                        ),
-                                                    child: Text(
-                                                      navItems[i]['label']
-                                                          as String,
-                                                      style: TextStyle(
-                                                        color: color,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  )
-                                                : const SizedBox(
-                                                    key: ValueKey('empty'),
-                                                  ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
-                    );
-                  },
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            }),
           ),
         ),
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
+      );
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const QuestScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+      );
+    }
+    // index 3 is Profile - already on this page
   }
 
   @override
@@ -476,9 +424,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final streakDays = QuestStatus.streakDays;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFAFFDC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFAFFDC),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C5CB0)),
