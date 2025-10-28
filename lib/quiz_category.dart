@@ -168,7 +168,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  // Mark Quest 1 progress when Alphabet is clicked (no auto-claim)
   void _triggerQuest1() {
     if (QuestStatus.completedQuestions == 0 && !QuestStatus.quest1Claimed) {
       if (QuestStatus.level1Answers.isEmpty ||
@@ -179,7 +178,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  /// Center popup (transparent outside) with back button + Learn/Quiz
   Future<void> _openLevelChoice({
     required String title,
     required VoidCallback onLearn,
@@ -189,11 +187,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Learn or Quiz',
-      barrierColor: Colors.transparent, // invisible background
+      barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (_, __, ___) {
         return GestureDetector(
-          onTap: () => Navigator.of(context).pop(), // close on outside tap
+          onTap: () => Navigator.of(context).pop(),
           child: Material(
             type: MaterialType.transparency,
             child: Center(
@@ -316,6 +314,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
+  // Fun and friendly requirements dialog
   void _showRequirementsDialog({required String title, required String key}) {
     final requiredLevel = QuestStatus.requiredLevelFor(key);
     final haveLevel = QuestStatus.level >= requiredLevel;
@@ -324,84 +323,291 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text("$title is locked"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  haveLevel ? Icons.check_circle : Icons.cancel,
-                  color: haveLevel ? Colors.green : Colors.redAccent,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Reach Level $requiredLevel (current: ${QuestStatus.level})",
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(
-                  haveKeys ? Icons.check_circle : Icons.cancel,
-                  color: haveKeys ? Colors.green : Colors.redAccent,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Have $cost keys (current: ${QuestStatus.userPoints})",
-                  ),
-                ),
-              ],
-            ),
-          ],
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFFFFF4E6),
+                const Color(0xFFFFE8CC),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          if (haveLevel && haveKeys)
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                final result = await QuestStatus.attemptUnlock(key);
-                if (!mounted) return;
-                switch (result) {
-                  case UnlockStatus.success:
-                    setState(() {});
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('$title unlocked!')));
-                    await QuestStatus.autoSaveProgress();
-                    break;
-                  case UnlockStatus.alreadyUnlocked:
-                    setState(() {});
-                    break;
-                  case UnlockStatus.needLevel:
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Reach Level $requiredLevel to unlock $title',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Lock emoji
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    '🔒',
+                    style: TextStyle(fontSize: 36),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                '$title is locked!',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF2D3748),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Complete these to unlock:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+
+              // Requirements with emojis
+              _buildFunRequirementRow(
+                emoji: '🏆',
+                text: 'Level $requiredLevel',
+                subtext: 'You\'re at level ${QuestStatus.level}',
+                isCompleted: haveLevel,
+              ),
+              const SizedBox(height: 12),
+              _buildFunRequirementRow(
+                emoji: '🔑',
+                text: '$cost Keys',
+                subtext: 'You have ${QuestStatus.userPoints} keys',
+                isCompleted: haveKeys,
+              ),
+              const SizedBox(height: 24),
+
+              // Action buttons
+              if (haveLevel && haveKeys)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      final result = await QuestStatus.attemptUnlock(key);
+                      if (!mounted) return;
+                      switch (result) {
+                        case UnlockStatus.success:
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Text('🎉  '),
+                                  Text('$title unlocked!'),
+                                ],
+                              ),
+                              backgroundColor: const Color(0xFF22C55E),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                          await QuestStatus.autoSaveProgress();
+                          break;
+                        case UnlockStatus.alreadyUnlocked:
+                          setState(() {});
+                          break;
+                        case UnlockStatus.needLevel:
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Reach Level $requiredLevel to unlock $title',
+                              ),
+                              backgroundColor: const Color(0xFFF87171),
+                            ),
+                          );
+                          break;
+                        case UnlockStatus.needKeys:
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('You need $cost keys to unlock $title'),
+                              backgroundColor: const Color(0xFFF87171),
+                            ),
+                          );
+                          break;
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6B35),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '✨ Unlock Now',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                    );
-                    break;
-                  case UnlockStatus.needKeys:
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('You need $cost keys to unlock $title'),
-                      ),
-                    );
-                    break;
-                }
-              },
-              child: const Text('Unlock now'),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Got it!',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFFF6B35),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFunRequirementRow({
+    required String emoji,
+    required String text,
+    required String subtext,
+    required bool isCompleted,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isCompleted
+              ? const Color(0xFF22C55E).withOpacity(0.3)
+              : Colors.grey.shade300,
+          width: 2,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Emoji
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isCompleted
+                  ? const Color(0xFF22C55E).withOpacity(0.1)
+                  : Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 24),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isCompleted
+                        ? const Color(0xFF2D3748)
+                        : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtext,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Check mark
+          if (isCompleted)
+            Container(
+              width: 28,
+              height: 28,
+              decoration: const BoxDecoration(
+                color: Color(0xFF22C55E),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check,
+                color: Colors.white,
+                size: 18,
+              ),
+            )
+          else
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.close,
+                color: Colors.grey.shade500,
+                size: 18,
+              ),
             ),
         ],
       ),
@@ -480,16 +686,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     final isNumbersUnlocked =
         kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+            QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
     final isColourUnlocked =
         kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+            QuestStatus.isContentUnlocked(QuestStatus.levelColour);
     final isFruitsUnlocked =
         kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+            QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
     final isAnimalsUnlocked =
         kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+            QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Container(
       color: const Color(0xFFFAFFDC),
@@ -556,7 +762,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // Category grid (images contained within cards)
+                // Category grid
                 GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
@@ -825,7 +1031,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-  /// Category card with contained image layout
   Widget _categoryTile({
     required String title,
     required int questions,
@@ -852,18 +1057,15 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         borderRadius: BorderRadius.circular(18),
         child: Stack(
           children: [
-            // Card content
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Image area at top
                   SizedBox(
                     height: 70,
                     child: Stack(
                       children: [
-                        // Soft badge background
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
@@ -875,7 +1077,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                             ),
                           ),
                         ),
-                        // Image positioned on the right
                         if (imageAsset != null)
                           Positioned(
                             right: 0,
@@ -906,8 +1107,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 ],
               ),
             ),
-
-            // Lock overlay
             if (!isUnlocked)
               Positioned.fill(
                 child: Container(
@@ -920,8 +1119,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   ),
                 ),
               ),
-
-            // Tap target
             Positioned.fill(
               child: Material(
                 color: Colors.transparent,
@@ -930,9 +1127,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onTap: isUnlocked
                       ? onTap
                       : () => _showRequirementsDialog(
-                          title: title,
-                          key: _mapTitleToKey(title),
-                        ),
+                    title: title,
+                    key: _mapTitleToKey(title),
+                  ),
                 ),
               ),
             ),
@@ -990,7 +1187,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-  // Glassy bottom navigation bar
   Widget _buildModernNavBar() {
     final navItems = [
       {
@@ -1019,7 +1215,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '�',
+        'emoji': '👤',
       },
     ];
 
@@ -1057,14 +1253,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     child: Container(
                       decoration: active
                           ? BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            )
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.2),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      )
                           : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
