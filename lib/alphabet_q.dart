@@ -554,7 +554,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFAFFDC),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
