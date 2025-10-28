@@ -74,28 +74,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
+              backgroundColor: Color(0xFFFAFFDC),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
-              title: const Text('Edit Display Name'),
+              title: Text(
+                'Edit Display Name',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      labelText: 'Display name',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      errorText: localError,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    enabled: !saving,
+                    child: TextField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        labelText: 'Display name',
+                        labelStyle: TextStyle(color: Colors.black54),
+                        prefixIcon: Icon(
+                          Icons.person_outline,
+                          color: Color(0xFF2c5cb0),
+                        ),
+                        errorText: localError,
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
+                      ),
+                      enabled: !saving,
+                    ),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: saving ? null : () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancel'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Color(0xFF2c5cb0),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
                 ),
                 ElevatedButton.icon(
                   onPressed: saving ? null : doSave,
@@ -108,11 +150,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.save),
+                      : const Icon(Icons.save_rounded, size: 18),
                   label: const Text('Save'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2C5CB0),
                     foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
                   ),
                 ),
               ],
@@ -123,9 +170,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Display name updated')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Display name updated',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: Color(0xFF2c5cb0),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.all(16),
+        ),
+      );
     }
   }
 
@@ -134,23 +192,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       barrierDismissible: true,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Log out?'),
-        content: const Text(
+        backgroundColor: Color(0xFFFAFFDC),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Log out?',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        content: Text(
           'Are you sure you want to log out of your account?',
+          style: TextStyle(color: Colors.black87, fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Color(0xFF2c5cb0),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: Text(
+              'Cancel',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded, size: 18),
             label: const Text('Log out'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF4B4A),
               foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
             ),
           ),
         ],
@@ -206,14 +285,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
+              backgroundColor: Color(0xFFFAFFDC),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
               title: Row(
                 children: [
-                  Icon(Icons.feedback, color: const Color(0xFF2C5CB0)),
+                  Icon(Icons.feedback_rounded, color: const Color(0xFF2C5CB0)),
                   const SizedBox(width: 8),
-                  const Text('Send Feedback'),
+                  Text(
+                    'Send Feedback',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
                 ],
               ),
               content: Column(
@@ -222,22 +309,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     'Share your thoughts, suggestions, or report issues.',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: controller,
-                    maxLines: 5,
-                    maxLength: 500,
-                    decoration: InputDecoration(
-                      hintText: 'Type your message here...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      errorText: localError,
-                      errorMaxLines: 2,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    enabled: !sending,
+                    child: TextField(
+                      controller: controller,
+                      maxLines: 5,
+                      maxLength: 500,
+                      decoration: InputDecoration(
+                        hintText: 'Type your message here...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.all(16),
+                        errorText: localError,
+                        errorMaxLines: 2,
+                      ),
+                      enabled: !sending,
+                    ),
                   ),
                 ],
               ),
@@ -246,7 +351,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: sending
                       ? null
                       : () => Navigator.of(ctx).pop(false),
-                  child: const Text('Cancel'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Color(0xFF2c5cb0),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
                 ),
                 ElevatedButton.icon(
                   onPressed: sending ? null : doSend,
@@ -259,11 +371,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.send),
+                      : const Icon(Icons.send_rounded, size: 18),
                   label: const Text('Send'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2C5CB0),
                     foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
                   ),
                 ),
               ],
@@ -275,9 +392,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feedback sent! Thank you for your input.'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(
+            'Feedback sent! Thank you for your input.',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: Color(0xFF22C55E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.all(16),
         ),
       );
     }
@@ -311,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '👤',
+        'emoji': '�',
       },
     ];
 
@@ -323,14 +448,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: 67,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE94057), Color(0xFF8A2387)],
-            ),
+            color: const Color(0xFF6ac5e6),
             boxShadow: [
               BoxShadow(
-                color: Color(0xFFE94057).withOpacity(0.4),
+                color: Color(0xFF6ac5e6).withOpacity(0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),

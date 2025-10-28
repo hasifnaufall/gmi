@@ -1019,7 +1019,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '👤',
+        'emoji': '�',
       },
     ];
 
@@ -1031,14 +1031,10 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           height: 67,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE94057), Color(0xFF8A2387)],
-            ),
+            color: const Color(0xFF6ac5e6),
             boxShadow: [
               BoxShadow(
-                color: Color(0xFFE94057).withOpacity(0.4),
+                color: Color(0xFF6ac5e6).withOpacity(0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
