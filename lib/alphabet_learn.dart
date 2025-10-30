@@ -1,6 +1,7 @@
 // alphabet_learn.dart
 // Modified to work WITHOUT shared_preferences (in-memory only)
 // number_learn.dart - Updated to link with Quest 8
+
 import 'package:flutter/material.dart';
 import 'sign_video_player.dart';
 import 'quest_status.dart';
@@ -130,8 +131,7 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                       isDense: true,
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -141,8 +141,7 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEEF9FF),
                     borderRadius: BorderRadius.circular(10),
@@ -150,18 +149,15 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome,
-                          color: Color(0xFF0EA5E9), size: 18),
+                      const Icon(Icons.auto_awesome, color: Color(0xFF0EA5E9), size: 18),
                       const SizedBox(width: 6),
-                      Text("$watchedCount / 26",
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text("$watchedCount / 26", style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
@@ -220,8 +216,8 @@ class _LetterCard extends StatefulWidget {
 
 class _LetterCardState extends State<_LetterCard>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-  AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
+  late final AnimationController _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 120));
   late final Animation<double> _scale =
   Tween<double>(begin: 1.0, end: 0.97).animate(_ctrl);
 
@@ -276,23 +272,21 @@ class _LetterCardState extends State<_LetterCard>
                 right: 10,
                 bottom: 10,
                 child: Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.play_circle_fill, size: 18,
+                      Icon(Icons.play_circle_fill,
+                          size: 18,
                           color: widget.watched ? Colors.green : Colors.black87),
                       const SizedBox(width: 6),
                       Text(widget.watched ? "Watched" : "Learn",
                           style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color:
-                            widget.watched ? Colors.green : Colors.black87,
-                          )),
+                              fontWeight: FontWeight.w800,
+                              color: widget.watched ? Colors.green : Colors.black87)),
                     ],
                   ),
                 ),
