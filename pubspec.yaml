@@ -20,6 +20,7 @@ dependencies:
   chewie: ^1.8.1
   cupertino_icons: ^1.0.8
   responsive_framework: ^1.1.1
+  audioplayers: ^6.5.1
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +43,5 @@ flutter:
     - assets/images/mfd.jpg
     - assets/images/logo.png
     - assets/images/google.png
+    - assets/audio/streak.wav
+    - assets/audio/level_complete.wav

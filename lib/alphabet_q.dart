@@ -1,7 +1,9 @@
 // lib/alphabet_q.dart
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
 import 'quest_status.dart';
+import 'main.dart';
 
 class AlphabetQuizScreen extends StatefulWidget {
   final int? startIndex;
@@ -83,7 +85,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   void initState() {
     super.initState();
 
-    // Mark quest 3 when alphabet quiz opens
+    // Mark quest 3 when alphabet quiz opens (no SFX here)
     if (!QuestStatus.alphabetQuizStarted) {
       QuestStatus.markAlphabetQuizStarted();
       if (QuestStatus.canClaimQuest3()) {
@@ -137,6 +139,25 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  // ---- FAST FINISH: play sfx, show popup, quick pop ----
+  void _finishSessionFast({required int sessionScore}) {
+    // 1) SFX immediately
+    Sfx.playQuizComplete();
+
+    // 2) Popup (non-blocking)
+    showAnimatedPopup(
+      icon: Icons.emoji_events,
+      title: "Quiz Complete!",
+      subtitle: "Score: $sessionScore/${activeIndices.length}",
+      bgColor: const Color(0xFF2C5CB0),
+    );
+
+    // 3) Pop soon (don’t block on other work)
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) Navigator.of(context).pop();
+    });
   }
 
   Future<void> handleAnswer(int selectedIndex) async {
@@ -208,51 +229,48 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     await Future.delayed(const Duration(milliseconds: 250));
 
+    // ====== FINISH SESSION (non-blocking) ======
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
-      final sessionScore = activeIndices
-          .where((i) => _sessionAnswers[i] == true)
-          .length;
+      final sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
 
-      showAnimatedPopup(
-        icon: Icons.emoji_events,
-        title: "Quiz Complete!",
-        subtitle: "Score: $sessionScore/${activeIndices.length}",
-        bgColor: const Color(0xFF2C5CB0),
-      );
+      // Play quiz-complete sound and pop soon.
+      _finishSessionFast(sessionScore: sessionScore);
 
+      // Fire-and-forget achievements/quests AFTER we scheduled the pop.
+      // ---------------------------------------------------------------
+      // Round counter
       QuestStatus.alphabetRoundsCompleted += 1;
 
-      if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-          !QuestStatus.quest5Claimed) {
+      // Quest 5 (3 rounds)
+      if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
         if (QuestStatus.canClaimQuest5()) {
           QuestStatus.claimQuest5();
-          await Future.delayed(const Duration(milliseconds: 500));
           showAnimatedPopup(
             icon: Icons.military_tech,
             title: "Quest 5 Complete!",
             subtitle: "3 rounds finished! +200 keys",
             bgColor: const Color(0xFFFF4B4A),
           );
-          await Future.delayed(const Duration(seconds: 2));
         }
       }
 
+      // Quest 6 (perfect round)
       if (sessionScore == activeIndices.length && !QuestStatus.quest6Claimed) {
         if (QuestStatus.canClaimQuest6()) {
           QuestStatus.claimQuest6();
-          await Future.delayed(const Duration(milliseconds: 500));
           showAnimatedPopup(
             icon: Icons.stars,
             title: "Quest 6 Complete!",
             subtitle: "Perfect round! +250 keys",
             bgColor: const Color(0xFF2C5CB0),
           );
-          await Future.delayed(const Duration(seconds: 2));
         }
       }
 
+      // Medal (first quiz)
       final justEarned = QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
         showAnimatedPopup(
@@ -261,11 +279,12 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           subtitle: "Finish your first quiz",
           bgColor: const Color(0xFFFF4B4A),
         );
-        await Future.delayed(const Duration(seconds: 2));
       }
 
+      // Streak increase (also plays SFX)
       final didIncrease = QuestStatus.addStreakForLevel();
       if (didIncrease && mounted) {
+        Sfx.playStreak();
         showAnimatedPopup(
           icon: Icons.local_fire_department,
           title: "Streak +1!",
@@ -273,24 +292,24 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           "Current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays == 1 ? '' : 's'}",
           bgColor: const Color(0xFF2C5CB0),
         );
-        await Future.delayed(const Duration(seconds: 2));
       }
 
-      if (!mounted) return;
-      Navigator.pop(context);
-    } else {
-      final nextSlot = _nextUnansweredSlotAfter(currentSlot);
-      setState(() {
-        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
-          0,
-          activeIndices.length - 1,
-        );
-        isOptionSelected = false;
-        _pendingIndex = null;
-        _controller.reset();
-        _controller.forward();
-      });
+      // We already scheduled pop above.
+      return;
     }
+
+    // Continue to next question
+    final nextSlot = _nextUnansweredSlotAfter(currentSlot);
+    setState(() {
+      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+        0,
+        activeIndices.length - 1,
+      );
+      isOptionSelected = false;
+      _pendingIndex = null;
+      _controller.reset();
+      _controller.forward();
+    });
   }
 
   void _showFloatingMessage(String message) {
@@ -398,8 +417,8 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                               fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Text(subtitle,
-                          style:
-                          const TextStyle(color: Colors.white70, fontSize: 12)),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12)),
                     ],
                   ),
                 ),
