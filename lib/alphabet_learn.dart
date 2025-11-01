@@ -17,17 +17,23 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
   // Build A–Z with video paths
   final List<Map<String, String>> _all = List.generate(26, (i) {
     final letter = String.fromCharCode('A'.codeUnitAt(0) + i);
-    return {
-      "label": letter,
-      "video": "assets/videos/alphabet/$letter.mp4",
-    };
+    return {"label": letter, "video": "assets/videos/alphabet/$letter.mp4"};
   });
 
-  // In-memory storage (resets when app restarts)
-  final Set<String> _watched = {};
   String _query = "";
   int _columns = 3;
   bool _notifiedAllLearned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print(
+      'alphabet_learn: Screen initialized. Watched alphabet count: ${QuestStatus.watchedAlphabet.length}',
+    );
+    print(
+      'alphabet_learn: Watched items: ${QuestStatus.watchedAlphabet.toList()}',
+    );
+  }
 
   List<Map<String, String>> get _filtered {
     if (_query.trim().isEmpty) return _all;
@@ -39,15 +45,24 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
     final watched = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => SignVideoPlayer(
-          title: item['label']!,
-          videoPath: item['video']!,
-        ),
+        builder: (_) =>
+            SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
       ),
     );
 
     if (watched == true) {
-      setState(() => _watched.add(item['label']!));
+      setState(() => QuestStatus.watchedAlphabet.add(item['label']!));
+
+      print(
+        'alphabet_learn: Added ${item['label']} to watchedAlphabet. Total watched: ${QuestStatus.watchedAlphabet.length}',
+      );
+
+      // Save progress to database
+      await QuestStatus.autoSaveProgress();
+
+      print(
+        'alphabet_learn: autoSaveProgress() completed for ${item['label']}',
+      );
 
       // one-letter toast
       if (mounted) {
@@ -61,7 +76,8 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
       }
 
       // If all 26 are learned, mark quest flag and auto-claim Quest 2
-      if (_watched.length == 26 && !QuestStatus.learnedAlphabetAll) {
+      if (QuestStatus.watchedAlphabet.length == 26 &&
+          !QuestStatus.learnedAlphabetAll) {
         QuestStatus.markAlphabetLearnAll();
 
         // Auto-claim Quest 2
@@ -73,7 +89,9 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
           _notifiedAllLearned = true;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('All Alphabet learned! Quest 2 completed! +120 keys'),
+              content: Text(
+                'All Alphabet learned! Quest 2 completed! +120 keys',
+              ),
               behavior: SnackBarBehavior.floating,
               duration: Duration(seconds: 3),
             ),
@@ -85,7 +103,7 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final watchedCount = _watched.length;
+    final watchedCount = QuestStatus.watchedAlphabet.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -104,9 +122,12 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
           IconButton(
             tooltip: _columns == 3 ? "Bigger cards" : "More per row",
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
-            icon: Icon(_columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt),
+            icon: Icon(
+              _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
+            ),
             onLongPress: () {
-              setState(() => _watched.clear());
+              setState(() => QuestStatus.watchedAlphabet.clear());
+              QuestStatus.autoSaveProgress();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Progress cleared')),
@@ -131,7 +152,10 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                       isDense: true,
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -141,7 +165,10 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEEF9FF),
                     borderRadius: BorderRadius.circular(10),
@@ -149,9 +176,16 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome, color: Color(0xFF0EA5E9), size: 18),
+                      const Icon(
+                        Icons.auto_awesome,
+                        color: Color(0xFF0EA5E9),
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
-                      Text("$watchedCount / 26", style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(
+                        "$watchedCount / 26",
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ],
                   ),
                 ),
@@ -171,7 +205,7 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
               itemBuilder: (context, index) {
                 final item = _filtered[index];
                 final label = item['label']!;
-                final watched = _watched.contains(label);
+                final watched = QuestStatus.watchedAlphabet.contains(label);
 
                 final gradients = [
                   [const Color(0xFFFF9A9E), const Color(0xFFFAD0C4)],
@@ -217,9 +251,13 @@ class _LetterCard extends StatefulWidget {
 class _LetterCardState extends State<_LetterCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 120));
-  late final Animation<double> _scale =
-  Tween<double>(begin: 1.0, end: 0.97).animate(_ctrl);
+    vsync: this,
+    duration: const Duration(milliseconds: 120),
+  );
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 0.97,
+  ).animate(_ctrl);
 
   @override
   void dispose() {
@@ -272,21 +310,29 @@ class _LetterCardState extends State<_LetterCard>
                 right: 10,
                 bottom: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.play_circle_fill,
-                          size: 18,
-                          color: widget.watched ? Colors.green : Colors.black87),
+                      Icon(
+                        Icons.play_circle_fill,
+                        size: 18,
+                        color: widget.watched ? Colors.green : Colors.black87,
+                      ),
                       const SizedBox(width: 6),
-                      Text(widget.watched ? "Watched" : "Learn",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: widget.watched ? Colors.green : Colors.black87)),
+                      Text(
+                        widget.watched ? "Watched" : "Learn",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: widget.watched ? Colors.green : Colors.black87,
+                        ),
+                      ),
                     ],
                   ),
                 ),

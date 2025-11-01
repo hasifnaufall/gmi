@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sign_video_player.dart';
+import 'quest_status.dart';
 
 class ColourLearnScreen extends StatefulWidget {
   const ColourLearnScreen({super.key});
@@ -11,21 +12,64 @@ class ColourLearnScreen extends StatefulWidget {
 class _ColourLearnScreenState extends State<ColourLearnScreen> {
   // ───────── Data: colour name → video path + swatch ─────────
   final List<_ColourItem> _all = <_ColourItem>[
-    _ColourItem('Red',    'assets/videos/colours/red.mp4',    const Color(0xFFE53935)),
-    _ColourItem('Blue',   'assets/videos/colours/blue.mp4',   const Color(0xFF1E88E5)),
-    _ColourItem('Green',  'assets/videos/colours/green.mp4',  const Color(0xFF43A047)),
-    _ColourItem('Yellow', 'assets/videos/colours/yellow.mp4', const Color(0xFFFDD835)),
-    _ColourItem('Orange', 'assets/videos/colours/orange.mp4', const Color(0xFFFB8C00)),
-    _ColourItem('Purple', 'assets/videos/colours/purple.mp4', const Color(0xFF8E24AA)),
-    _ColourItem('Pink',   'assets/videos/colours/pink.mp4',   const Color(0xFFF06292)),
-    _ColourItem('Brown',  'assets/videos/colours/brown.mp4',  const Color(0xFF8D6E63)),
-    _ColourItem('Gray',  'assets/videos/colours/gray.mp4',  const Color(0xFF808080)),
-    _ColourItem('Black',  'assets/videos/colours/black.mp4',  const Color(0xFF263238)),
-    _ColourItem('White',  'assets/videos/colours/white.mp4',  const Color(0xFFECEFF1)),
+    _ColourItem(
+      'Red',
+      'assets/videos/colours/red.mp4',
+      const Color(0xFFE53935),
+    ),
+    _ColourItem(
+      'Blue',
+      'assets/videos/colours/blue.mp4',
+      const Color(0xFF1E88E5),
+    ),
+    _ColourItem(
+      'Green',
+      'assets/videos/colours/green.mp4',
+      const Color(0xFF43A047),
+    ),
+    _ColourItem(
+      'Yellow',
+      'assets/videos/colours/yellow.mp4',
+      const Color(0xFFFDD835),
+    ),
+    _ColourItem(
+      'Orange',
+      'assets/videos/colours/orange.mp4',
+      const Color(0xFFFB8C00),
+    ),
+    _ColourItem(
+      'Purple',
+      'assets/videos/colours/purple.mp4',
+      const Color(0xFF8E24AA),
+    ),
+    _ColourItem(
+      'Pink',
+      'assets/videos/colours/pink.mp4',
+      const Color(0xFFF06292),
+    ),
+    _ColourItem(
+      'Brown',
+      'assets/videos/colours/brown.mp4',
+      const Color(0xFF8D6E63),
+    ),
+    _ColourItem(
+      'Gray',
+      'assets/videos/colours/gray.mp4',
+      const Color(0xFF808080),
+    ),
+    _ColourItem(
+      'Black',
+      'assets/videos/colours/black.mp4',
+      const Color(0xFF263238),
+    ),
+    _ColourItem(
+      'White',
+      'assets/videos/colours/white.mp4',
+      const Color(0xFFECEFF1),
+    ),
   ];
 
   // UI state (same pattern as AlphabetLearnScreen)
-  final Set<String> _watched = {}; // session-only
   String _query = "";
   int _columns = 3;
 
@@ -39,15 +83,17 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
     final watched = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => SignVideoPlayer(
-          title: item.name,
-          videoPath: item.videoPath,
-        ),
+        builder: (_) =>
+            SignVideoPlayer(title: item.name, videoPath: item.videoPath),
       ),
     );
 
     if (watched == true) {
-      setState(() => _watched.add(item.name));
+      setState(() => QuestStatus.watchedColours.add(item.name));
+
+      // Save progress to database
+      await QuestStatus.autoSaveProgress();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Marked ${item.name} as watched ✅'),
@@ -60,7 +106,7 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final watchedCount = _watched.length;
+    final watchedCount = QuestStatus.watchedColours.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +126,9 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
           IconButton(
             tooltip: _columns == 3 ? "Bigger cards" : "More per row",
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
-            icon: Icon(_columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt),
+            icon: Icon(
+              _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
+            ),
           ),
         ],
       ),
@@ -100,7 +148,10 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
                       isDense: true,
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -110,7 +161,10 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEEF9FF),
                     borderRadius: BorderRadius.circular(10),
@@ -118,10 +172,16 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome, color: Color(0xFF0EA5E9), size: 18),
+                      const Icon(
+                        Icons.auto_awesome,
+                        color: Color(0xFF0EA5E9),
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
-                      Text("$watchedCount / ${_all.length}",
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(
+                        "$watchedCount / ${_all.length}",
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ],
                   ),
                 ),
@@ -142,7 +202,7 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
               itemCount: _filtered.length,
               itemBuilder: (context, index) {
                 final item = _filtered[index];
-                final watched = _watched.contains(item.name);
+                final watched = QuestStatus.watchedColours.contains(item.name);
 
                 // same playful gradients
                 final gradients = [
@@ -187,11 +247,16 @@ class _ColourCard extends StatefulWidget {
   State<_ColourCard> createState() => _ColourCardState();
 }
 
-class _ColourCardState extends State<_ColourCard> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-  AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
-  late final Animation<double> _scale =
-  Tween<double>(begin: 1.0, end: 0.97).animate(_ctrl);
+class _ColourCardState extends State<_ColourCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 120),
+  );
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 0.97,
+  ).animate(_ctrl);
 
   @override
   void dispose() {
@@ -240,8 +305,17 @@ class _ColourCardState extends State<_ColourCard> with SingleTickerProviderState
                       decoration: BoxDecoration(
                         color: widget.item.swatch,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white.withOpacity(.8), width: 2),
-                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
+                        border: Border.all(
+                          color: Colors.white.withOpacity(.8),
+                          width: 2,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -263,7 +337,10 @@ class _ColourCardState extends State<_ColourCard> with SingleTickerProviderState
                 right: 10,
                 bottom: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(999),

@@ -75,15 +75,28 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       List<Map<String, dynamic>> leaderboardData = [];
       int rank = 1;
 
-      // Get current user displayName from Firebase Auth (for fallback)
+      // Get current user info from Firebase Auth
       final currentUser = _auth.currentUser;
       final currentUserDisplayName = currentUser?.displayName;
+      final currentUserEmail = currentUser?.email;
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
         final userId = doc.id;
 
-        // Priority: progress.displayName > FirebaseAuth.displayName (if current user) > UID short
+        // Get email from progress data, or current user if it's their record
+        String? userEmail = data['email'] as String?;
+        if (userId == currentUser?.uid && userEmail == null) {
+          userEmail = currentUserEmail;
+        }
+
+        // Extract username from email (part before @)
+        String emailUsername = '';
+        if (userEmail != null && userEmail.contains('@')) {
+          emailUsername = userEmail.split('@')[0];
+        }
+
+        // Priority: progress.displayName > FirebaseAuth.displayName (if current user) > email username > UID short
         String displayName = '';
         if (data['displayName'] != null &&
             data['displayName'].toString().isNotEmpty) {
@@ -92,6 +105,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             currentUserDisplayName != null &&
             currentUserDisplayName.isNotEmpty) {
           displayName = currentUserDisplayName;
+        } else if (emailUsername.isNotEmpty) {
+          displayName = emailUsername;
         } else {
           displayName = 'Player ${userId.substring(0, 6)}';
         }
@@ -138,10 +153,24 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
           final currentUser = _auth.currentUser;
           final currentUserDisplayName = currentUser?.displayName;
+          final currentUserEmail = currentUser?.email;
 
           for (var doc in snapshot.docs) {
             final data = doc.data();
             final userId = doc.id;
+
+            // Get email from progress data, or current user if it's their record
+            String? userEmail = data['email'] as String?;
+            if (userId == currentUser?.uid && userEmail == null) {
+              userEmail = currentUserEmail;
+            }
+
+            // Extract username from email (part before @)
+            String emailUsername = '';
+            if (userEmail != null && userEmail.contains('@')) {
+              emailUsername = userEmail.split('@')[0];
+            }
+
             String displayName = '';
             if (data['displayName'] != null &&
                 data['displayName'].toString().isNotEmpty) {
@@ -150,6 +179,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 currentUserDisplayName != null &&
                 currentUserDisplayName.isNotEmpty) {
               displayName = currentUserDisplayName;
+            } else if (emailUsername.isNotEmpty) {
+              displayName = emailUsername;
             } else {
               displayName = 'Player ${userId.substring(0, 6)}';
             }
@@ -254,7 +285,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     if (_leaderboard.length < 3) return SizedBox.shrink();
 
     final top3 = _leaderboard.take(3).toList();
-    final first = top3.length > 0 ? top3[0] : null;
+    final first = top3.isNotEmpty ? top3[0] : null;
     final second = top3.length > 1 ? top3[1] : null;
     final third = top3.length > 2 ? top3[2] : null;
 
@@ -306,9 +337,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   Widget _buildPodiumCard(Map<String, dynamic> entry, int rank, double height) {
     Color medalColor;
-    if (rank == 1)
+    if (rank == 1) {
       medalColor = Color(0xFFFFD700);
-    else if (rank == 2)
+    } else if (rank == 2)
       medalColor = Color(0xFFC0C0C0);
     else
       medalColor = Color(0xFFCD7F32);
@@ -837,7 +868,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '�',
+        'emoji': '👤',
       },
     ];
 

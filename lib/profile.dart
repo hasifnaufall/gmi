@@ -436,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '�',
+        'emoji': '👤',
       },
     ];
 
@@ -795,7 +795,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildStatCard(
-                    icon: Icons.stars,
+                    icon: Icons.key_rounded,
                     iconColor: Color(0xFF2C5CB0),
                     label: 'Keys',
                     value: points.toString(),

@@ -29,12 +29,12 @@ class _BigChoiceButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _BigChoiceButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -325,9 +325,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       context: context,
       barrierDismissible: true,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         child: Container(
@@ -336,10 +334,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFFFF4E6),
-                const Color(0xFFFFE8CC),
-              ],
+              colors: [const Color(0xFFFFF4E6), const Color(0xFFFFE8CC)],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -369,10 +364,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   ],
                 ),
                 child: const Center(
-                  child: Text(
-                    '🔒',
-                    style: TextStyle(fontSize: 36),
-                  ),
+                  child: Text('🔒', style: TextStyle(fontSize: 36)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -390,10 +382,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               const SizedBox(height: 8),
               Text(
                 'Complete these to unlock:',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -459,7 +448,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         case UnlockStatus.needKeys:
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('You need $cost keys to unlock $title'),
+                              content: Text(
+                                'You need $cost keys to unlock $title',
+                              ),
                               backgroundColor: const Color(0xFFF87171),
                             ),
                           );
@@ -547,10 +538,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 24),
-              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
             ),
           ),
           const SizedBox(width: 14),
@@ -572,10 +560,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 const SizedBox(height: 2),
                 Text(
                   subtext,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -589,11 +574,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 color: Color(0xFF22C55E),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 18),
             )
           else
             Container(
@@ -603,11 +584,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 color: Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.close,
-                color: Colors.grey.shade500,
-                size: 18,
-              ),
+              child: Icon(Icons.close, color: Colors.grey.shade500, size: 18),
             ),
         ],
       ),
@@ -686,16 +663,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
     final isNumbersUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+        QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
     final isColourUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+        QuestStatus.isContentUnlocked(QuestStatus.levelColour);
     final isFruitsUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+        QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
     final isAnimalsUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+        QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Container(
       color: const Color(0xFFFAFFDC),
@@ -749,7 +726,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   leftIcon: Icons.emoji_events_rounded,
                   leftLabel: 'Level',
                   leftValue: '${QuestStatus.level}',
-                  rightIcon: Icons.attach_money_rounded,
+                  rightIcon: Icons.key_rounded,
                   rightLabel: 'Keys',
                   rightValue: '${QuestStatus.userPoints}',
                 ),
@@ -1036,8 +1013,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required int questions,
     String? imageAsset,
     double imageWidth = 92,
-    double imagePeekUp = 12,
-    double imageRightInset = 8,
     required bool isUnlocked,
     required VoidCallback onTap,
   }) {
@@ -1127,9 +1102,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onTap: isUnlocked
                       ? onTap
                       : () => _showRequirementsDialog(
-                    title: title,
-                    key: _mapTitleToKey(title),
-                  ),
+                          title: title,
+                          key: _mapTitleToKey(title),
+                        ),
                 ),
               ),
             ),
@@ -1253,14 +1228,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     child: Container(
                       decoration: active
                           ? BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.2),
-                            Colors.white.withOpacity(0.1),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      )
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.2),
+                                  Colors.white.withOpacity(0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            )
                           : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
