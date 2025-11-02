@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'quiz_category.dart';
 import 'quest_status.dart';
+import 'services/sfx_service.dart';
 
 class AnimalQuizScreen extends StatefulWidget {
   final int? startIndex;
@@ -24,42 +26,49 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  final List<Map<String, dynamic>> rawQuestions = [
-    {"image": "assets/images/animal/anai.jpg", "options": ["Ant", "Termite", "Wasp", "Bee"], "correctIndex": 1},
-    {"image": "assets/images/animal/angsa.jpg", "options": ["Duck", "Goose", "Swan", "Turkey"], "correctIndex": 1},
-    {"image": "assets/images/animal/anjing.jpg", "options": ["Fox", "Wolf", "Dog", "Coyote"], "correctIndex": 2},
-    {"image": "assets/images/animal/arnab.jpg", "options": ["Hamster", "Rabbit", "Mouse", "Guinea Pig"], "correctIndex": 1},
-    {"image": "assets/images/animal/ayam.jpg", "options": ["Chicken", "Duck", "Goose", "Turkey"], "correctIndex": 0},
-    {"image": "assets/images/animal/babi.jpg", "options": ["Boar", "Pig", "Cow", "Goat"], "correctIndex": 1},
-    {"image": "assets/images/animal/badak sumbu.jpg", "options": ["Hippopotamus", "Rhinoceros", "Buffalo", "Elephant"], "correctIndex": 1},
-    {"image": "assets/images/animal/belalang.jpg", "options": ["Cricket", "Locust", "Grasshopper", "Praying Mantis"], "correctIndex": 2},
-    {"image": "assets/images/animal/beruang.jpg", "options": ["Bear", "Lion", "Tiger", "Wolf"], "correctIndex": 0},
-    {"image": "assets/images/animal/biawak.jpg", "options": ["Iguana", "Monitor Lizard", "Crocodile", "Gecko"], "correctIndex": 1},
-    {"image": "assets/images/animal/biri.jpg", "options": ["Goat", "Sheep", "Cow", "Yak"], "correctIndex": 1},
-    {"image": "assets/images/animal/buaya.jpg", "options": ["Alligator", "Crocodile", "Monitor Lizard", "Snake"], "correctIndex": 1},
-    {"image": "assets/images/animal/burung.jpg", "options": ["Bird", "Eagle", "Duck", "Owl"], "correctIndex": 0},
-    {"image": "assets/images/animal/cicak.jpg", "options": ["Lizard", "Chameleon", "Gecko", "Newt"], "correctIndex": 2},
-    {"image": "assets/images/animal/gajah.jpg", "options": ["Rhino", "Hippo", "Elephant", "Buffalo"], "correctIndex": 2},
-    {"image": "assets/images/animal/gorila.jpg", "options": ["Gorilla", "Chimpanzee", "Orangutan", "Baboon"], "correctIndex": 0},
-    {"image": "assets/images/animal/harimau.jpg", "options": ["Lion", "Leopard", "Cheetah", "Tiger"], "correctIndex": 3},
-    {"image": "assets/images/animal/helang.jpg", "options": ["Falcon", "Eagle", "Hawk", "Owl"], "correctIndex": 1},
-    {"image": "assets/images/animal/ikan.jpg", "options": ["Seal", "Dolphin", "Fish", "Shark"], "correctIndex": 2},
-    {"image": "assets/images/animal/itik.jpg", "options": ["Goose", "Turkey", "Chicken", "Duck"], "correctIndex": 3},
-    {"image": "assets/images/animal/jengking.jpg", "options": ["Scorpion", "Spider", "Centipede", "Beetle"], "correctIndex": 0},
-    {"image": "assets/images/animal/kambing.jpg", "options": ["Sheep", "Goat", "Cow", "Deer"], "correctIndex": 1},
-    {"image": "assets/images/animal/kancil.jpg", "options": ["Mouse-deer", "Deer", "Antelope", "Gazelle"], "correctIndex": 0},
-    {"image": "assets/images/animal/Labah.jpg", "options": ["Cockroach", "Ant", "Spider", "Mantis"], "correctIndex": 2},
-    {"image": "assets/images/animal/merak.jpg", "options": ["Peacock", "Turkey", "Parrot", "Swan"], "correctIndex": 0},
-    {"image": "assets/images/animal/rama-rama.jpg", "options": ["Moth", "Butterfly", "Dragonfly", "Bee"], "correctIndex": 1},
-    {"image": "assets/images/animal/singa.jpg", "options": ["Cheetah", "Leopard", "Tiger", "Lion"], "correctIndex": 3},
-    {"image": "assets/images/animal/zirafah.jpg", "options": ["Giraffe", "Camel", "Alpaca", "Donkey"], "correctIndex": 0},
+  // Sample question bank – update paths to your actual assets
+  final List<Map<String, dynamic>> questions = [
+    {
+      "image": "assets/images/animals/A1.jpg",
+      "options": ["Cat", "Dog", "Fish", "Bird"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/A2.jpg",
+      "options": ["Lion", "Tiger", "Elephant", "Giraffe"],
+      "correctIndex": 2
+    },
+    {
+      "image": "assets/images/animals/A3.jpg",
+      "options": ["Rabbit", "Horse", "Dolphin", "Fox"],
+      "correctIndex": 3
+    },
+    {
+      "image": "assets/images/animals/A4.jpg",
+      "options": ["Eagle", "Penguin", "Shark", "Bear"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/A5.jpg",
+      "options": ["Zebra", "Rhino", "Kangaroo", "Panda"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/A6.jpg",
+      "options": ["Whale", "Crocodile", "Wolf", "Owl"],
+      "correctIndex": 2
+    },
+    {
+      "image": "assets/images/animals/A7.jpg",
+      "options": ["Camel", "Snake", "Deer", "Chimpanzee"],
+      "correctIndex": 3
+    },
+    {
+      "image": "assets/images/animals/A8.jpg",
+      "options": ["Peacock", "Swan", "Duck", "Rooster"],
+      "correctIndex": 0
+    },
   ];
-
-  late final List<Map<String, dynamic>> questions = rawQuestions.map((q) => {
-    "image": q["image"],
-    "options": List<String>.from(q["options"]),
-    "correctIndex": q["correctIndex"],
-  }).toList();
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
 
@@ -87,6 +96,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   @override
   void initState() {
     super.initState();
+    Sfx().init();
+
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
     final take = all.length < sessionSize ? all.length : sessionSize;
     activeIndices = all.take(take).toList();
@@ -95,7 +106,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _controller =
+        AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
     _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
@@ -129,7 +141,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message: "This action can't be undone and your progress this round will be lost.",
+        message:
+        "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -154,39 +167,88 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     if (isCorrect) {
       final oldLvl = QuestStatus.level;
       final levels = QuestStatus.addXp(20);
-      _popup(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}", bg: const Color(0xFF2C5CB0));
+      _showToast(
+        icon: Icons.star,
+        title: "Correct!",
+        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
+        bgColor: const Color(0xFF2C5CB0),
+      );
 
       if (levels > 0) {
-        final newly = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
-        for (final key in newly) {
-          _popup(icon: Icons.lock_open, title: "New Level Unlocked!", subtitle: QuestStatus.titleFor(key), bg: const Color(0xFFFF4B4A));
+        final newlyUnlocked =
+        QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        for (final key in newlyUnlocked) {
+          _showToast(
+            icon: Icons.lock_open,
+            title: "New Level Unlocked!",
+            subtitle: QuestStatus.titleFor(key),
+            bgColor: const Color(0xFFFF4B4A),
+          );
           await Future.delayed(const Duration(milliseconds: 300));
         }
       }
     } else {
-      final correctText = (questions[qIdx]['options'] as List)[correctIndex].toString();
-      _popup(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctText", bg: const Color(0xFFFF4B4A));
+      final correctValue =
+      (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
+      _showToast(
+        icon: Icons.close,
+        title: "Incorrect",
+        subtitle: "Correct: $correctValue",
+        bgColor: const Color(0xFFFF4B4A),
+      );
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
 
     if (_allAnsweredInSession()) {
       if (!mounted) return;
-      final sessionScore = activeIndices.where((i) => _sessionAnswers[i] == true).length;
-      _popup(icon: Icons.emoji_events, title: "Quiz Complete!", subtitle: "Score: $sessionScore/${activeIndices.length}", bg: const Color(0xFF2C5CB0));
+      final sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      _showToast(
+        icon: Icons.emoji_events,
+        title: "Quiz Complete!",
+        subtitle: "Score: $sessionScore/${activeIndices.length}",
+        bgColor: const Color(0xFF2C5CB0),
+      );
 
-      final streakUp = QuestStatus.addStreakForLevel();
-      if (streakUp && mounted) {
-        _popup(icon: Icons.local_fire_department, title: "Streak +1!", subtitle: "Current streak: ${QuestStatus.streakDays}", bg: const Color(0xFFFF4B4A));
+      await Sfx().playLevelComplete();
+
+      final justEarned = QuestStatus.markFirstQuizMedalEarned();
+      if (justEarned && mounted) {
+        _showToast(
+          icon: Icons.military_tech,
+          title: "Medal unlocked!",
+          subtitle: "Finish your first quiz",
+          bgColor: const Color(0xFF2C5CB0),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      final didIncrease = QuestStatus.addStreakForLevel();
+      if (didIncrease && mounted) {
+        _showToast(
+          icon: Icons.local_fire_department,
+          title: "Streak +1!",
+          subtitle: "Current streak: ${QuestStatus.streakDays}",
+          bgColor: const Color(0xFFFF4B4A),
+        );
+        await Sfx().playStreak();
         await Future.delayed(const Duration(seconds: 2));
       }
 
       if (!mounted) return;
-      Navigator.pop(context);
+      await _showGreatWorkDialog(
+        score: sessionScore,
+        total: activeIndices.length,
+        level: QuestStatus.level,
+        streakDays: QuestStatus.streakDays,
+      );
+      return;
     } else {
       final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
-        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        currentSlot =
+            (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
         isOptionSelected = false;
         _pendingIndex = null;
         _controller.reset();
@@ -195,25 +257,69 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     }
   }
 
-  void _popup({required IconData icon, required String title, required String subtitle, required Color bg}) {
+  void _showToast({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color bgColor,
+  }) {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => Positioned(top: 60, right: 16, child: _SlideInBadge(icon: icon, title: title, subtitle: subtitle, color: bg)),
+      builder: (_) => Positioned(
+        top: 60,
+        right: 16,
+        child: _SlideInToast(
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          bgColor: bgColor,
+        ),
+      ),
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
+  }
+
+  Future<void> _showGreatWorkDialog({
+    required int score,
+    required int total,
+    required int level,
+    required int streakDays,
+  }) async {
+    if (_allAnsweredInSession()) {
+      if (!mounted) return;
+
+      final int sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _GreatWorkDialog(
+          score: sessionScore,
+          total: activeIndices.length,
+          onReturn: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        ),
+      );
+
+      return; // optional
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List).map((e) => e.toString()).toList();
+    final options =
+    (question['options'] as List).map((e) => e.toString()).toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFFDC),
+        backgroundColor: const Color(0xFFFFF5ED),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -252,8 +358,12 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           },
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFFEFF3FF), borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF2C5CB0), size: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF3FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF2C5CB0), size: 20),
           ),
         ),
         const SizedBox(width: 12),
@@ -261,20 +371,33 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Animals Level", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2C5CB0), letterSpacing: -0.5)),
+              const Text("Animals Level",
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C5CB0),
+                      letterSpacing: -0.5)),
               const SizedBox(height: 4),
-              Text("Question ${currentSlot + 1} of ${activeIndices.length}", style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text("Question ${currentSlot + 1} of ${activeIndices.length}",
+                  style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(color: const Color(0xFF2C5CB0), borderRadius: BorderRadius.circular(18)),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2C5CB0),
+            borderRadius: BorderRadius.circular(18),
+          ),
           child: Row(
             children: [
               const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
               const SizedBox(width: 4),
-              Text("Lvl ${QuestStatus.level}", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text("Lvl ${QuestStatus.level}",
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
             ],
           ),
         ),
@@ -293,9 +416,20 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
+    Widget segment({
+      required Color color,
+      required int flex,
+      required BorderRadius radius,
+    }) {
       if (flex <= 0) return const SizedBox.shrink();
-      return Expanded(flex: flex, child: AnimatedContainer(duration: const Duration(milliseconds: 220), decoration: BoxDecoration(color: color, borderRadius: radius), height: 10));
+      return Expanded(
+        flex: flex,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          decoration: BoxDecoration(color: color, borderRadius: radius),
+          height: 10,
+        ),
+      );
     }
 
     final hasCorrect = correct > 0;
@@ -303,14 +437,40 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     final hasRemaining = remaining > 0;
 
     final bars = <Widget>[];
-    if (hasCorrect) bars.add(segment(color: const Color(0xFF44b427), flex: correct, radius: hasWrong || hasRemaining ? const BorderRadius.horizontal(left: Radius.circular(8)) : BorderRadius.circular(8)));
+    if (hasCorrect) {
+      bars.add(
+        segment(
+          color: const Color(0xFF44b427),
+          flex: correct,
+          radius: hasWrong || hasRemaining
+              ? const BorderRadius.horizontal(left: Radius.circular(8))
+              : BorderRadius.circular(8),
+        ),
+      );
+    }
     if (hasWrong) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
-      bars.add(segment(color: const Color(0xFFFF4B4A), flex: wrong, radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(8) : BorderRadius.zero));
+      bars.add(
+        segment(
+          color: const Color(0xFFFF4B4A),
+          flex: wrong,
+          radius: (!hasCorrect && !hasRemaining)
+              ? BorderRadius.circular(8)
+              : BorderRadius.zero,
+        ),
+      );
     }
     if (hasRemaining) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
-      bars.add(segment(color: const Color(0xFFE8EEF9), flex: remaining, radius: (hasCorrect || hasWrong) ? const BorderRadius.horizontal(right: Radius.circular(8)) : BorderRadius.circular(8)));
+      bars.add(
+        segment(
+          color: const Color(0xFFE8EEF9),
+          flex: remaining,
+          radius: (hasCorrect || hasWrong)
+              ? const BorderRadius.horizontal(right: Radius.circular(8))
+              : BorderRadius.circular(8),
+        ),
+      );
     }
 
     return Column(
@@ -318,7 +478,11 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          decoration: BoxDecoration(color: const Color(0xFFF2F6FF), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE3E6EE))),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F6FF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE3E6EE)),
+          ),
           child: Row(children: bars),
         ),
         const SizedBox(height: 6),
@@ -344,11 +508,22 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       ),
       child: Column(
         children: [
-          const Text("What animal is shown?", textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF2C5CB0), letterSpacing: -0.3)),
+          const Text(
+            "What animal is shown?",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2C5CB0),
+                letterSpacing: -0.3),
+          ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE3E6EE))),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE3E6EE))),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -358,7 +533,18 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                 errorBuilder: (context, error, stack) {
                   return const SizedBox(
                     height: 140,
-                    child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey), SizedBox(height: 8), Text('Image not found', style: TextStyle(color: Colors.grey))])),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image_rounded,
+                              size: 36, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text('Image not found',
+                              style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
@@ -369,18 +555,32 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     );
   }
 
-  Widget _buildOptionsGrid(List<String> options, int qIdx, Map<String, dynamic> question) {
+  Widget _buildOptionsGrid(
+      List<String> options, int qIdx, Map<String, dynamic> question) {
     return Expanded(
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.6,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
-          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+          final wasSelected =
+              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
-          return OptionCard(option: options[index], number: index + 1, isSelected: wasSelected, isPending: isPending, onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index));
+          return _OptionCard(
+            option: options[index],
+            number: index + 1,
+            isSelected: wasSelected,
+            isPending: isPending,
+            onTap: alreadyAnswered
+                ? null
+                : () => setState(() => _pendingIndex = index),
+          );
         },
       ),
     );
@@ -390,17 +590,29 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFFF6F7FB), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE3E6EE))),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF6F7FB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE3E6EE))),
       child: Row(
         children: [
           const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
           const SizedBox(width: 8),
-          Text('Selected: ${options[idx]}', style: const TextStyle(color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
+          Text('Selected: ${options[idx]}',
+              style: const TextStyle(
+                  color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
           const Spacer(),
-          TextButton(onPressed: () => setState(() => _pendingIndex = null), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => setState(() => _pendingIndex = null),
+              child: const Text('Cancel')),
           const SizedBox(width: 8),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C5CB0), foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C5CB0),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10))),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
@@ -413,14 +625,21 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   }
 }
 
-class OptionCard extends StatelessWidget {
+class _OptionCard extends StatelessWidget {
   final String option;
   final int number;
   final bool isSelected;
   final bool isPending;
   final VoidCallback? onTap;
 
-  const OptionCard({super.key, required this.option, required this.number, this.isSelected = false, this.isPending = false, this.onTap});
+  const _OptionCard({
+    super.key,
+    required this.option,
+    required this.number,
+    this.isSelected = false,
+    this.isPending = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +648,12 @@ class OptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isSelected ? const Color(0xFF2C5CB0) : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)), width: isSelected || isPending ? 2 : 1),
+        border: Border.all(
+          color: isSelected
+              ? const Color(0xFF2C5CB0)
+              : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)),
+          width: isSelected || isPending ? 2 : 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -441,10 +665,26 @@ class OptionCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(radius: 16, backgroundColor: const Color(0xFF2C5CB0), child: Text(number.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  child: Text(number.toString(),
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(option, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: isSelected ? Colors.black : const Color(0xFF2C5CB0)))),
-                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
+                Expanded(
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.black : const Color(0xFF2C5CB0),
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
               ],
             ),
           ),
@@ -463,51 +703,84 @@ class _LegendDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+            width: 10,
+            height: 10,
+            decoration:
+            BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                fontWeight: FontWeight.w600)),
       ],
     );
   }
 }
 
-class _SlideInBadge extends StatefulWidget {
+class _SlideInToast extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
-  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
+  final Color bgColor;
+
+  const _SlideInToast({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.bgColor,
+  });
 
   @override
-  State<_SlideInBadge> createState() => _SlideInBadgeState();
+  State<_SlideInToast> createState() => _SlideInToastState();
 }
 
-class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
-  late final Animation<Offset> _a = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+class _SlideInToastState extends State<_SlideInToast>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(
+      duration: const Duration(milliseconds: 280), vsync: this)
+    ..forward();
+  late final Animation<Offset> offsetAnimation =
+  Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
+      .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
   @override
   void dispose() {
-    _c.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _a,
+      position: offsetAnimation,
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(12),
-        color: widget.color,
+        color: widget.bgColor,
         child: Container(
-          width: 280,
           padding: const EdgeInsets.all(12),
+          width: 280,
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.white),
-              const SizedBox(width: 10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), Text(widget.subtitle, style: const TextStyle(color: Colors.white70))])),
+              Icon(widget.icon, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.title,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
+                    Text(widget.subtitle,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -523,39 +796,79 @@ class _CleanConfirmDialog extends StatelessWidget {
   final String primaryLabel;
   final String secondaryLabel;
 
-  const _CleanConfirmDialog({required this.icon, required this.title, required this.message, required this.primaryLabel, required this.secondaryLabel});
+  const _CleanConfirmDialog({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.primaryLabel,
+    required this.secondaryLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding:
+      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape:
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 64, height: 64, decoration: const BoxDecoration(color: Color(0xFFF4F7FF), shape: BoxShape.circle), child: Icon(icon, size: 34, color: Color(0xFF2C5CB0))),
+            Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                    color: Color(0xFFF4F7FF), shape: BoxShape.circle),
+                child:
+                Icon(icon, size: 34, color: Color(0xFF2C5CB0))),
             const SizedBox(height: 16),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E1E1E), letterSpacing: -0.2)),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E1E1E),
+                    letterSpacing: -0.2)),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35)),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35)),
             const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFFE5E7EB)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(vertical: 12), foregroundColor: const Color(0xFF2C5CB0)),
-                    child: Text(secondaryLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFE5E7EB)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                      foregroundColor: const Color(0xFF2C5CB0),
+                    ),
+                    child: Text(secondaryLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4B4A), foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(vertical: 12)),
-                    child: Text(primaryLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF4B4A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(primaryLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -566,3 +879,123 @@ class _CleanConfirmDialog extends StatelessWidget {
     );
   }
 }
+
+class _GreatWorkDialog extends StatelessWidget {
+  final int score;
+  final int total;
+  final VoidCallback onReturn;
+
+  const _GreatWorkDialog({
+    required this.score,
+    required this.total,
+    required this.onReturn,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPerfect = score == total;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        width: 360,
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2ECFF),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon circle
+            Container(
+              width: 100,
+              height: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8EEFF),
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/gifs/trophy_quiz.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+            Text(
+              isPerfect ? 'Perfection' : 'Great Work!',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E1E1E),
+                letterSpacing: -0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isPerfect ? 'You answered all questions correctly.' : 'You completed this round.',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF5A5F6A)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // Score only
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE3E6EE)),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Score',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2C5CB0),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '$score / $total',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1E1E1E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Return
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: onReturn,
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

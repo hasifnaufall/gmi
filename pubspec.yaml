@@ -43,5 +43,6 @@ flutter:
     - assets/images/mfd.jpg
     - assets/images/logo.png
     - assets/images/google.png
+    - assets/gifs/trophy_quiz.gif
     - assets/audio/streak.wav
     - assets/audio/level_complete.wav

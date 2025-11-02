@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import 'quest_status.dart';
-import 'main.dart';
+import 'services/sfx_service.dart'; // <-- uses your singleton Sfx()
 
 class AlphabetQuizScreen extends StatefulWidget {
   final int? startIndex;
@@ -85,19 +85,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   void initState() {
     super.initState();
 
-    // Mark quest 3 when alphabet quiz opens (no SFX here)
+    // Init SFX once (safe to call multiple times)
+    Sfx().init();
+
+    // Mark quest 3 when alphabet quiz opens (no extra popups here)
     if (!QuestStatus.alphabetQuizStarted) {
       QuestStatus.markAlphabetQuizStarted();
       if (QuestStatus.canClaimQuest3()) {
         QuestStatus.claimQuest3();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _showAchievementToast(
-            icon: Icons.auto_awesome,
-            title: "Quest 3 Completed!",
-            subtitle: "Started Alphabet Quiz! +80 keys",
-          );
-        });
       }
     }
 
@@ -141,25 +136,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     super.dispose();
   }
 
-  // ---- FAST FINISH: play sfx, show popup, quick pop ----
-  void _finishSessionFast({required int sessionScore}) {
-    // 1) SFX immediately
-    Sfx.playQuizComplete();
-
-    // 2) Popup (non-blocking)
-    showAnimatedPopup(
-      icon: Icons.emoji_events,
-      title: "Quiz Complete!",
-      subtitle: "Score: $sessionScore/${activeIndices.length}",
-      bgColor: const Color(0xFF2C5CB0),
-    );
-
-    // 3) Pop soon (don’t block on other work)
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
   Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
 
@@ -177,45 +153,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     _sessionAnswers[qIdx] = isCorrect;
     QuestStatus.level1Answers[currentSlot] = isCorrect;
 
+    // Visual feedback only (Option B = no per-answer sound)
     if (isCorrect) {
-      final oldLvl = QuestStatus.level;
-      final levels = QuestStatus.addXp(20);
-
       showAnimatedPopup(
         icon: Icons.star,
         title: "Correct!",
-        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
+        subtitle: "You earned 20 XP",
         bgColor: const Color(0xFF2C5CB0),
       );
-
-      if (levels > 0) {
-        final newlyUnlocked = QuestStatus.unlockedBetween(
-          oldLvl,
-          QuestStatus.level,
-        );
-        for (final key in newlyUnlocked) {
-          showAnimatedPopup(
-            icon: Icons.lock_open,
-            title: "New Level Unlocked!",
-            subtitle: QuestStatus.titleFor(key),
-            bgColor: const Color(0xFFFF4B4A),
-          );
-          await Future.delayed(const Duration(milliseconds: 300));
-        }
-      }
-
-      if (QuestStatus.level1BestStreak >= 3 && !QuestStatus.quest4Claimed) {
-        if (QuestStatus.canClaimQuest4()) {
-          QuestStatus.claimQuest4();
-          showAnimatedPopup(
-            icon: Icons.whatshot,
-            title: "Quest 4 Complete!",
-            subtitle: "3 correct in a row! +120 keys",
-            bgColor: const Color(0xFFFF4B4A),
-          );
-          await Future.delayed(const Duration(milliseconds: 800));
-        }
-      }
+      QuestStatus.addXp(20);
     } else {
       final correctLetter =
       (questions[qIdx]['options'] as List<String>)[correctIndex];
@@ -229,76 +175,58 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     await Future.delayed(const Duration(milliseconds: 250));
 
-    // ====== FINISH SESSION (non-blocking) ======
+    // ====== FINISH SESSION (Option B sounds here) ======
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
       final sessionScore =
           activeIndices.where((i) => _sessionAnswers[i] == true).length;
 
-      // Play quiz-complete sound and pop soon.
-      _finishSessionFast(sessionScore: sessionScore);
-
-      // Fire-and-forget achievements/quests AFTER we scheduled the pop.
-      // ---------------------------------------------------------------
-      // Round counter
+      // ---- Update counters/quests silently ----
       QuestStatus.alphabetRoundsCompleted += 1;
 
-      // Quest 5 (3 rounds)
       if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
         if (QuestStatus.canClaimQuest5()) {
           QuestStatus.claimQuest5();
-          showAnimatedPopup(
-            icon: Icons.military_tech,
-            title: "Quest 5 Complete!",
-            subtitle: "3 rounds finished! +200 keys",
-            bgColor: const Color(0xFFFF4B4A),
-          );
         }
       }
 
-      // Quest 6 (perfect round)
       if (sessionScore == activeIndices.length && !QuestStatus.quest6Claimed) {
         if (QuestStatus.canClaimQuest6()) {
           QuestStatus.claimQuest6();
-          showAnimatedPopup(
-            icon: Icons.stars,
-            title: "Quest 6 Complete!",
-            subtitle: "Perfect round! +250 keys",
-            bgColor: const Color(0xFF2C5CB0),
-          );
         }
       }
 
-      // Medal (first quiz)
-      final justEarned = QuestStatus.markFirstQuizMedalEarned();
-      if (justEarned && mounted) {
-        showAnimatedPopup(
-          icon: Icons.military_tech,
-          title: "Medal unlocked!",
-          subtitle: "Finish your first quiz",
-          bgColor: const Color(0xFFFF4B4A),
-        );
-      }
+      QuestStatus.markFirstQuizMedalEarned();
 
-      // Streak increase (also plays SFX)
+      // Streak increase check
       final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease && mounted) {
-        Sfx.playStreak();
-        showAnimatedPopup(
-          icon: Icons.local_fire_department,
-          title: "Streak +1!",
-          subtitle:
-          "Current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays == 1 ? '' : 's'}",
-          bgColor: const Color(0xFF2C5CB0),
-        );
+      if (didIncrease) {
+        // Play the streak sound (Option B)
+        await Sfx().playStreak();
       }
 
-      // We already scheduled pop above.
+      // Play end-of-round jingle (Option B)
+      await Sfx().playLevelComplete();
+
+      // Show the big result dialog (Score only, “Perfection” if perfect)
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _GreatWorkDialog(
+          score: sessionScore,
+          total: activeIndices.length,
+          onReturn: () {
+            Navigator.of(context).pop(); // close dialog
+            Navigator.of(context).pop(); // back to QuizCategory
+          },
+        ),
+      );
+
       return;
     }
 
-    // Continue to next question
+    // Move to next question
     final nextSlot = _nextUnansweredSlotAfter(currentSlot);
     setState(() {
       currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
@@ -381,59 +309,8 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       Navigator.pop(context);
     }
   }
-  // -------------------------------------------------------------------
 
-  void _showAchievementToast({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    final overlay = Overlay.of(context);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        top: 60,
-        left: 20,
-        right: 20,
-        child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C5CB0),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Text(subtitle,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(entry);
-    Future.delayed(const Duration(seconds: 3), () => entry.remove());
-  }
-
-  // Simple slide-in popup kept from your original flow
+  // Simple slide-in popup (small badge)
   void showAnimatedPopup({
     required IconData icon,
     required String title,
@@ -461,7 +338,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = question['options'] as List<String>;
+    final options = (question['options'] as List).map((e) => e.toString()).toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
@@ -683,9 +560,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           child: Row(children: bars),
         ),
         const SizedBox(height: 6),
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             _LegendDot(label: 'Correct', color: Color(0xFF44b427)),
             _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
           ],
@@ -960,14 +837,20 @@ class _CleanConfirmDialog extends StatelessWidget {
           children: [
             // Soft circular icon
             Container(
-              width: 64,
-              height: 64,
+              width: 100,
+              height: 100,
               decoration: const BoxDecoration(
-                color: Color(0xFFF4F7FF),
+                color: Color(0xFFE8EEFF),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 34, color: Color(0xFF2C5CB0)),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/trophy_quiz.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
+
             const SizedBox(height: 16),
             Text(
               title,
@@ -1029,6 +912,122 @@ class _CleanConfirmDialog extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GreatWorkDialog extends StatelessWidget {
+  final int score;
+  final int total;
+  final VoidCallback onReturn;
+
+  const _GreatWorkDialog({
+    required this.score,
+    required this.total,
+    required this.onReturn,
+  });
+
+  bool get isPerfect => score == total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: const Color(0xFFF9FBFF),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Trophy Icon
+            Container(
+              width: 100,
+              height: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8EEFF),
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/gifs/trophy_quiz.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Title
+            Text(
+              isPerfect ? "Perfection!" : "Great Work!",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF2C5CB0),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Subtitle
+            Text(
+              isPerfect
+                  ? "You answered every question flawlessly."
+                  : "You completed this quiz successfully!",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF4B5563),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Score Display
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Center(
+                child: Text(
+                  "$score / $total",
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Return button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onReturn,
+                icon: const Icon(Icons.arrow_back_rounded, size: 22),
+                label: const Text(
+                  'Return',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
