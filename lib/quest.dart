@@ -126,6 +126,10 @@ class _QuestScreenState extends State<QuestScreen> {
     if (QuestStatus.quest22Claimed) count++;
     if (QuestStatus.quest23Claimed) count++;
     if (QuestStatus.quest24Claimed) count++;
+    if (QuestStatus.quest25Claimed) count++;
+    if (QuestStatus.quest26Claimed) count++;
+    if (QuestStatus.quest27Claimed) count++;
+    if (QuestStatus.quest28Claimed) count++;
     return count;
   }
 
@@ -303,7 +307,7 @@ class _QuestScreenState extends State<QuestScreen> {
                           child: _buildStatCard(
                             icon: Icons.check_circle,
                             label: 'Completed',
-                            value: '${_getCompletedQuestCount()}/24',
+                            value: '${_getCompletedQuestCount()}/28',
                             color: Color(0xFF4ECDC4),
                           ),
                         ),
@@ -387,8 +391,8 @@ class _QuestScreenState extends State<QuestScreen> {
                                     fontSize: 13,
                                     color: chestEnabled
                                         ? const Color(
-                                            0xFF8B4513,
-                                          ).withOpacity(0.8)
+                                      0xFF8B4513,
+                                    ).withOpacity(0.8)
                                         : Colors.black54,
                                   ),
                                 ),
@@ -413,9 +417,9 @@ class _QuestScreenState extends State<QuestScreen> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: chestEnabled
-                                      // Unlocked: warm gold
+                                  // Unlocked: warm gold
                                       ? [Color(0xFFFFC107), Color(0xFFFFA000)]
-                                      // Locked: vibrant purple for visibility
+                                  // Locked: vibrant purple for visibility
                                       : [Color(0xFF7C3AED), Color(0xFF9333EA)],
                                 ),
                                 borderRadius: BorderRadius.circular(4),
@@ -487,7 +491,7 @@ class _QuestScreenState extends State<QuestScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${_getCompletedQuestCount()}/24',
+                        '${_getCompletedQuestCount()}/28',
                         style: const TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.w700,
@@ -619,7 +623,7 @@ class _QuestScreenState extends State<QuestScreen> {
                         _FunQuestItem(
                           title: 'Quest 7',
                           subtitle:
-                              'Complete ONE Numbers round without mistakes',
+                          'Complete ONE Numbers round without mistakes',
                           points: 200,
                           isClaimed: QuestStatus.quest7Claimed,
                           isCompleted: QuestStatus.numbersPerfectRounds >= 1,
@@ -827,7 +831,7 @@ class _QuestScreenState extends State<QuestScreen> {
                         _FunQuestItem(
                           title: 'Quest 20',
                           subtitle:
-                              'Complete ONE Animals round without mistakes',
+                          'Complete ONE Animals round without mistakes',
                           points: 200,
                           isClaimed: QuestStatus.quest20Claimed,
                           isCompleted: QuestStatus.animalsPerfectRounds >= 1,
@@ -878,9 +882,9 @@ class _QuestScreenState extends State<QuestScreen> {
                           points: 200,
                           isClaimed: QuestStatus.quest23Claimed,
                           isCompleted:
-                              QuestStatus.isContentUnlocked(
-                                QuestStatus.levelNumbers,
-                              ) &&
+                          QuestStatus.isContentUnlocked(
+                            QuestStatus.levelNumbers,
+                          ) &&
                               QuestStatus.isContentUnlocked(
                                 QuestStatus.levelColour,
                               ) &&
@@ -889,6 +893,9 @@ class _QuestScreenState extends State<QuestScreen> {
                               ) &&
                               QuestStatus.isContentUnlocked(
                                 QuestStatus.levelCommonVerb,
+                              ) &&
+                              QuestStatus.isContentUnlocked(
+                                QuestStatus.levelVerbs,
                               ),
                           onClaim: () {
                             setState(() {
@@ -913,6 +920,71 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🏅',
+                        ),
+
+                        // ================= Q25 – Q28 : Verbs (Unlock at Level 30) =================
+                        _FunQuestItem(
+                          title: 'Quest 25',
+                          subtitle: 'Start "Verbs" level',
+                          points: 100,
+                          isClaimed: QuestStatus.quest25Claimed,
+                          isCompleted: QuestStatus.isContentUnlocked(
+                            QuestStatus.levelVerbs,
+                          ),
+                          onClaim: () {
+                            setState(() {
+                              if (QuestStatus.canClaimQuest25()) {
+                                QuestStatus.claimQuest25();
+                              }
+                            });
+                          },
+                          icon: '🏃',
+                        ),
+                        _FunQuestItem(
+                          title: 'Quest 26',
+                          subtitle: 'Learn ALL Verbs in Learning Mode',
+                          points: 120,
+                          isClaimed: QuestStatus.quest26Claimed,
+                          isCompleted: QuestStatus.learnedVerbsAll,
+                          onClaim: () {
+                            setState(() {
+                              if (QuestStatus.canClaimQuest26()) {
+                                QuestStatus.claimQuest26();
+                              }
+                            });
+                          },
+                          icon: '💪',
+                        ),
+                        _FunQuestItem(
+                          title: 'Quest 27',
+                          subtitle: 'Finish 2 Verbs rounds',
+                          points: 150,
+                          isClaimed: QuestStatus.quest27Claimed,
+                          isCompleted: QuestStatus.verbsRoundsCompleted >= 2,
+                          onClaim: () {
+                            setState(() {
+                              if (QuestStatus.canClaimQuest27()) {
+                                QuestStatus.claimQuest27();
+                              }
+                            });
+                          },
+                          icon: '🎬',
+                        ),
+                        _FunQuestItem(
+                          title: 'Quest 28',
+                          subtitle:
+                          'Complete ONE Verbs round without mistakes',
+                          points: 200,
+                          isClaimed: QuestStatus.quest28Claimed,
+                          isCompleted: QuestStatus.verbsPerfectRounds >= 1,
+                          onClaim: () {
+                            setState(() {
+                              if (QuestStatus.canClaimQuest28()) {
+                                QuestStatus.claimQuest28();
+                              }
+                            });
+                          },
+                          icon: '🌟',
                         ),
                       ],
                     ),
@@ -956,7 +1028,7 @@ class _QuestScreenState extends State<QuestScreen> {
         'icon': Icons.person_outline_rounded,
         'activeIcon': Icons.person_rounded,
         'color': const Color(0xFFF59E0B),
-        'emoji': '�',
+        'emoji': '👤',
       },
     ];
 
@@ -994,14 +1066,14 @@ class _QuestScreenState extends State<QuestScreen> {
                     child: Container(
                       decoration: active
                           ? BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            )
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.2),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      )
                           : null,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
