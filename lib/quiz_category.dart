@@ -18,6 +18,8 @@ import 'fruits_learn.dart';
 import 'fruits_q.dart';
 import 'animals_learn.dart';
 import 'animals_q.dart';
+import 'verb_learn.dart';
+import 'verb_q.dart';
 
 /// ===================
 /// Top-level helper used in popup
@@ -76,7 +78,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = false;
+  static const bool kUnlocksDisabled = true;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -929,6 +931,44 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         );
                       },
                     ),
+                    _categoryTile(
+                      title: 'Verbs',
+                      questions: 15,
+                      imageAsset: 'assets/images/verb/VERBS.jpg',
+                      imageWidth: 92,
+                      isUnlocked: kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelVerbs),
+                      onTap: () {
+                        _handleOpenOrUnlock(
+                          key: QuestStatus.levelVerbs,
+                          title: "Verbs",
+                          onOpen: () async {
+                            _openLevelChoice(
+                              title: "Verbs",
+                              onLearn: () async {
+                                await Navigator.push(
+                                  context,
+                                  _buildImmersiveRoute(
+                                    const VerbLearnScreen(),
+                                  ),
+                                );
+                                await QuestStatus.autoSaveProgress();
+                              },
+                              onQuiz: () async {
+                                await Navigator.push(
+                                  context,
+                                  _buildImmersiveRoute(
+                                    const VerbQuizScreen(),
+                                  ),
+                                );
+                                await QuestStatus.autoSaveProgress();
+                                if (!mounted) return;
+                                setState(() {});
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -1129,6 +1169,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         return QuestStatus.levelGreetings;
       case 'animals':
         return QuestStatus.levelCommonVerb;
+      case 'verbs':
+        return QuestStatus.levelVerbs;
       default:
         return title;
     }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'quiz_category.dart';
 import 'quest_status.dart';
+import 'services/sfx_service.dart';
 
 class ColourQuizScreen extends StatefulWidget {
-  const ColourQuizScreen({super.key});
+  final int? startIndex;
+  const ColourQuizScreen({super.key, this.startIndex});
 
   @override
   State<ColourQuizScreen> createState() => _ColourQuizScreenState();
@@ -12,108 +15,279 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     with SingleTickerProviderStateMixin {
   static const int sessionSize = 5;
 
-  late List<_Q> questions;
-  int index = 0;
-  bool locked = false;
+  late List<int> activeIndices;
+  late int currentSlot;
+  bool isOptionSelected = false;
   int? _pendingIndex;
-  int _correctCount = 0;
-  int _wrongCount = 0;
 
-  late AnimationController _ctrl;
-  late Animation<Offset> _slide;
+  final Map<int, bool> _sessionAnswers = {};
+
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+  late Animation<double> _fadeAnimation;
+
+  // Sample question bank – update paths to your actual assets
+  final List<Map<String, dynamic>> questions = [
+    {
+      "image": "assets/images/colour/C1.jpg",
+      "options": ["Red", "Blue", "Green", "Yellow"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/colour/C2.jpg",
+      "options": ["Purple", "Green", "Pink", "Brown"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/colour/C3.jpg",
+      "options": ["Purple", "Brown", "White", "Black"],
+      "correctIndex": 3
+    },
+    {
+      "image": "assets/images/colour/C4.jpg",
+      "options": ["Green", "Yellow", "Orange", "White"],
+      "correctIndex": 2
+    },
+    {
+      "image": "assets/images/colour/C5.jpg",
+      "options": ["Grey", "Red", "Blue", "Black"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/colour/C6.jpg",
+      "options": ["Yellow", "Grey", "White", "Brown"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/colour/C7.jpg",
+      "options": ["Pink", "Yellow", "Red", "Blue"],
+      "correctIndex": 2
+    },
+    {
+      "image": "assets/images/colour/C8.jpg",
+      "options": ["Red", "Grey", "Orange", "Pink"],
+      "correctIndex": 3
+    },
+    {
+      "image": "assets/images/colour/C9.jpg",
+      "options": ["Black", "Brown", "Blue", "Pink"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/colour/C10.jpg",
+      "options": ["White", "Yellow", "Red", "Pink"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/colour/C11.jpg",
+      "options": ["White", "Green", "Black", "Purple"],
+      "correctIndex": 3
+    },
+  ];
+
+  bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
+
+  int _firstUnansweredSlot() {
+    for (int s = 0; s < activeIndices.length; s++) {
+      if (!_isAnsweredInSession(activeIndices[s])) return s;
+    }
+    return 0;
+  }
+
+  bool _allAnsweredInSession() {
+    for (final i in activeIndices) {
+      if (!_sessionAnswers.containsKey(i)) return false;
+    }
+    return true;
+  }
+
+  int? _nextUnansweredSlotAfter(int fromSlot) {
+    for (int s = fromSlot + 1; s < activeIndices.length; s++) {
+      if (!_isAnsweredInSession(activeIndices[s])) return s;
+    }
+    return null;
+  }
 
   @override
   void initState() {
     super.initState();
-    // build 5 random questions
-    final all = List<_Q>.from(_allQuestions)..shuffle();
-    questions = all.take(sessionSize).toList();
+    Sfx().init();
 
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    )..forward();
-    _slide = Tween<Offset>(
-      begin: const Offset(0.8, 0),
-      end: Offset.zero,
-    ).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
+    final all = List<int>.generate(questions.length, (i) => i)..shuffle();
+    final take = all.length < sessionSize ? all.length : sessionSize;
+    activeIndices = all.take(take).toList();
+
+    int startSlot = widget.startIndex ?? _firstUnansweredSlot();
+    startSlot = startSlot.clamp(0, activeIndices.length - 1);
+    currentSlot = startSlot;
+
+    _controller =
+        AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller.forward();
   }
 
-  void _answer(int optionIndex) async {
-    if (locked) return;
-    final q = questions[index];
-    final isCorrect = optionIndex == q.correctIndex;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<bool> _confirmExitQuiz() async {
+    final first = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _CleanConfirmDialog(
+        icon: Icons.logout_rounded,
+        title: 'Leave quiz?',
+        message: "Your current progress will be lost.",
+        primaryLabel: 'Continue',
+        secondaryLabel: 'Cancel',
+      ),
+    );
+    if (first != true) return false;
+
+    final second = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _CleanConfirmDialog(
+        icon: Icons.warning_amber_rounded,
+        title: 'Are you sure?',
+        message:
+        "This action can't be undone and your progress this round will be lost.",
+        primaryLabel: 'Leave',
+        secondaryLabel: 'Stay',
+      ),
+    );
+    return second == true;
+  }
+
+  Future<void> handleAnswer(int selectedIndex) async {
+    if (isOptionSelected) return;
+    final qIdx = activeIndices[currentSlot];
+    if (_sessionAnswers.containsKey(qIdx)) return;
+
     setState(() {
-      locked = true;
-      if (isCorrect) {
-        _correctCount += 1;
-      } else {
-        _wrongCount += 1;
-      }
+      isOptionSelected = true;
+      _pendingIndex = null;
     });
 
+    final correctIndex = questions[qIdx]['correctIndex'] as int;
+    final isCorrect = selectedIndex == correctIndex;
+    _sessionAnswers[qIdx] = isCorrect;
+
     if (isCorrect) {
+      final oldLvl = QuestStatus.level;
       final levels = QuestStatus.addXp(20);
-      _toast(
-        icon: Icons.check_circle,
-        title: 'Correct!',
-        subtitle: '20 XP${levels > 0 ? " • Level up!" : ""}',
-        color: Colors.green.shade600,
+      _showToast(
+        icon: Icons.star,
+        title: "Correct!",
+        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
+        bgColor: const Color(0xFF2C5CB0),
       );
+
+      if (levels > 0) {
+        final newlyUnlocked =
+        QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        for (final key in newlyUnlocked) {
+          _showToast(
+            icon: Icons.lock_open,
+            title: "New Level Unlocked!",
+            subtitle: QuestStatus.titleFor(key),
+            bgColor: const Color(0xFFFF4B4A),
+          );
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
     } else {
-      _toast(
-        icon: Icons.cancel,
-        title: 'Oops!',
-        subtitle: 'Answer: ${q.options[q.correctIndex].name}',
-        color: Colors.red.shade600,
+      final correctValue =
+      (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
+      _showToast(
+        icon: Icons.close,
+        title: "Incorrect",
+        subtitle: "Correct: $correctValue",
+        bgColor: const Color(0xFFFF4B4A),
       );
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
 
-    if (index == questions.length - 1) {
-      QuestStatus.colourRoundsCompleted += 1;
-      final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease) {
-        _toast(
-          icon: Icons.local_fire_department,
-          title: 'Streak +1!',
-          subtitle: 'Current: ${QuestStatus.streakDays}',
-          color: Colors.deepOrange.shade600,
-        );
-      }
+    if (_allAnsweredInSession()) {
       if (!mounted) return;
-      Navigator.pop(context);
-      return;
-    }
+      final sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      _showToast(
+        icon: Icons.emoji_events,
+        title: "Quiz Complete!",
+        subtitle: "Score: $sessionScore/${activeIndices.length}",
+        bgColor: const Color(0xFF2C5CB0),
+      );
 
-    if (!mounted) return;
-    setState(() {
-      index += 1;
-      locked = false;
-      _pendingIndex = null;
-      _ctrl
-        ..reset()
-        ..forward();
-    });
+      await Sfx().playLevelComplete();
+
+      final justEarned = QuestStatus.markFirstQuizMedalEarned();
+      if (justEarned && mounted) {
+        _showToast(
+          icon: Icons.military_tech,
+          title: "Medal unlocked!",
+          subtitle: "Finish your first quiz",
+          bgColor: const Color(0xFF2C5CB0),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      final didIncrease = QuestStatus.addStreakForLevel();
+      if (didIncrease && mounted) {
+        _showToast(
+          icon: Icons.local_fire_department,
+          title: "Streak +1!",
+          subtitle: "Current streak: ${QuestStatus.streakDays}",
+          bgColor: const Color(0xFFFF4B4A),
+        );
+        await Sfx().playStreak();
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      if (!mounted) return;
+      await _showGreatWorkDialog(
+        score: sessionScore,
+        total: activeIndices.length,
+        level: QuestStatus.level,
+        streakDays: QuestStatus.streakDays,
+      );
+      return;
+    } else {
+      final nextSlot = _nextUnansweredSlotAfter(currentSlot);
+      setState(() {
+        currentSlot =
+            (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        isOptionSelected = false;
+        _pendingIndex = null;
+        _controller.reset();
+        _controller.forward();
+      });
+    }
   }
 
-  void _toast({
+  void _showToast({
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
+    required Color bgColor,
   }) {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
       builder: (_) => Positioned(
-        top: 64,
+        top: 60,
         right: 16,
-        child: _Toast(
+        child: _SlideInToast(
           icon: icon,
           title: title,
           subtitle: subtitle,
-          color: color,
+          bgColor: bgColor,
         ),
       ),
     );
@@ -121,209 +295,411 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
   }
 
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  Future<void> _showGreatWorkDialog({
+    required int score,
+    required int total,
+    required int level,
+    required int streakDays,
+  }) async {
+    if (_allAnsweredInSession()) {
+      if (!mounted) return;
 
-  Future<bool> _confirmExitQuiz() async {
-    final first =
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            title: const Text('Leave quiz?'),
-            content: const Text("You'll lose your current round progress."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continue'),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+      final int sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
 
-    if (!first) return false;
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _GreatWorkDialog(
+          score: sessionScore,
+          total: activeIndices.length,
+          onReturn: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        ),
+      );
 
-    final second =
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            title: const Text('Are you sure?'),
-            content: const Text(
-              "This action can't be undone and your progress this round will be lost.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Stay'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Leave'),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-
-    return second;
+      return; // optional
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final q = questions[index];
+    final qIdx = activeIndices[currentSlot];
+    final question = questions[qIdx];
+    final options =
+    (question['options'] as List).map((e) => e.toString()).toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Colour Quiz'),
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF2C5CB0),
-          elevation: 0,
+        backgroundColor: const Color(0xFFF0F8FF),
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _offsetAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 12),
+                    _buildProgressBar(),
+                    const SizedBox(height: 16),
+                    _buildQuestionCard(question),
+                    const SizedBox(height: 32),
+                    _buildOptionsGrid(options, qIdx, question),
+                    const SizedBox(height: 12),
+                    if (_pendingIndex != null) _buildConfirmBar(options),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SlideTransition(
-            position: _slide,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Question ${index + 1} of ${questions.length}',
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () async {
+            final shouldExit = await _confirmExitQuiz();
+            if (shouldExit && mounted) Navigator.pop(context);
+          },
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF3FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF2C5CB0), size: 20),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Colour Level",
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C5CB0),
+                      letterSpacing: -0.5)),
+              const SizedBox(height: 4),
+              Text("Question ${currentSlot + 1} of ${activeIndices.length}",
+                  style: const TextStyle(fontSize: 14, color: Colors.black54)),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2C5CB0),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
+              const SizedBox(width: 4),
+              Text("Lvl ${QuestStatus.level}",
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _buildProgressBar(),
-                const SizedBox(height: 14),
-                // Prompt image (sign for the colour)
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.white, Colors.grey.shade100],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar() {
+    final total = activeIndices.length;
+    int correct = 0, wrong = 0;
+    for (final i in activeIndices) {
+      if (_sessionAnswers.containsKey(i)) {
+        if (_sessionAnswers[i] == true) correct++;
+        if (_sessionAnswers[i] == false) wrong++;
+      }
+    }
+    final remaining = (total - correct - wrong).clamp(0, total);
+
+    Widget segment({
+      required Color color,
+      required int flex,
+      required BorderRadius radius,
+    }) {
+      if (flex <= 0) return const SizedBox.shrink();
+      return Expanded(
+        flex: flex,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          decoration: BoxDecoration(color: color, borderRadius: radius),
+          height: 10,
+        ),
+      );
+    }
+
+    final hasCorrect = correct > 0;
+    final hasWrong = wrong > 0;
+    final hasRemaining = remaining > 0;
+
+    final bars = <Widget>[];
+    if (hasCorrect) {
+      bars.add(
+        segment(
+          color: const Color(0xFF44b427),
+          flex: correct,
+          radius: hasWrong || hasRemaining
+              ? const BorderRadius.horizontal(left: Radius.circular(8))
+              : BorderRadius.circular(8),
+        ),
+      );
+    }
+    if (hasWrong) {
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      bars.add(
+        segment(
+          color: const Color(0xFFFF4B4A),
+          flex: wrong,
+          radius: (!hasCorrect && !hasRemaining)
+              ? BorderRadius.circular(8)
+              : BorderRadius.zero,
+        ),
+      );
+    }
+    if (hasRemaining) {
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      bars.add(
+        segment(
+          color: const Color(0xFFE8EEF9),
+          flex: remaining,
+          radius: (hasCorrect || hasWrong)
+              ? const BorderRadius.horizontal(right: Radius.circular(8))
+              : BorderRadius.circular(8),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F6FF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE3E6EE)),
+          ),
+          child: Row(children: bars),
+        ),
+        const SizedBox(height: 6),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _LegendDot(label: 'Correct', color: Color(0xFF44b427)),
+            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionCard(Map<String, dynamic> question) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FBFF),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE3E6EE)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "What colour is shown?",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2C5CB0),
+                letterSpacing: -0.3),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE3E6EE))),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                question['image'],
+                fit: BoxFit.contain,
+                height: 140,
+                errorBuilder: (context, error, stack) {
+                  return const SizedBox(
+                    height: 140,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image_rounded,
+                              size: 36, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text('Image not found',
+                              style: TextStyle(color: Colors.grey)),
+                        ],
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      q.promptImage,
-                      fit: BoxFit.contain,
-                      height: 220,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 220,
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 48,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionsGrid(
+      List<String> options, int qIdx, Map<String, dynamic> question) {
+    return Expanded(
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.6,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16),
+        itemCount: options.length,
+        itemBuilder: (context, index) {
+          final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
+          final isCorrect = index == question['correctIndex'];
+          final wasSelected =
+              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+          final isPending = !alreadyAnswered && _pendingIndex == index;
+
+          return _OptionCard(
+            option: options[index],
+            number: index + 1,
+            isSelected: wasSelected,
+            isPending: isPending,
+            onTap: alreadyAnswered
+                ? null
+                : () => setState(() => _pendingIndex = index),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildConfirmBar(List<String> options) {
+    final idx = _pendingIndex!;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF6F7FB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE3E6EE))),
+      child: Row(
+        children: [
+          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
+          const SizedBox(width: 8),
+          Text('Selected: ${options[idx]}',
+              style: const TextStyle(
+                  color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
+          const Spacer(),
+          TextButton(
+              onPressed: () => setState(() => _pendingIndex = null),
+              child: const Text('Cancel')),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C5CB0),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10))),
+            onPressed: () {
+              final i = _pendingIndex;
+              if (i != null) handleAnswer(i);
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OptionCard extends StatelessWidget {
+  final String option;
+  final int number;
+  final bool isSelected;
+  final bool isPending;
+  final VoidCallback? onTap;
+
+  const _OptionCard({
+    super.key,
+    required this.option,
+    required this.number,
+    this.isSelected = false,
+    this.isPending = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected
+              ? const Color(0xFF2C5CB0)
+              : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)),
+          width: isSelected || isPending ? 2 : 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  child: Text(number.toString(),
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: GridView.builder(
-                    itemCount: q.options.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 1.2,
-                        ),
-                    itemBuilder: (_, i) {
-                      final opt = q.options[i];
-                      final isPending = _pendingIndex == i;
-                      return GestureDetector(
-                        onTap: locked
-                            ? null
-                            : () => setState(() => _pendingIndex = i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          margin: const EdgeInsets.all(4),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFC6DDFF),
-                            borderRadius: BorderRadius.circular(16),
-                            border: isPending
-                                ? Border.all(color: Colors.teal, width: 2)
-                                : null,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 6,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Text(
-                                  opt.name,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1E4A8F),
-                                  ),
-                                ),
-                              ),
-                              if (isPending)
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.teal,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      'Selected',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.black : const Color(0xFF2C5CB0),
+                    ),
                   ),
                 ),
-                _buildConfirmBar(q),
+                if (isSelected)
+                  const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
               ],
             ),
           ),
@@ -331,191 +707,92 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
       ),
     );
   }
+}
 
-  Widget _buildProgressBar() {
-    final total = questions.length;
-    final correct = _correctCount;
-    final wrong = _wrongCount;
-    final remaining = total - correct - wrong;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+class _LegendDot extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _LegendDot({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
       children: [
         Container(
-          height: 10,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Row(
-            children: [
-              if (correct > 0)
-                Expanded(
-                  flex: correct,
-                  child: Container(color: Colors.green),
-                ),
-              if (wrong > 0)
-                Expanded(
-                  flex: wrong,
-                  child: Container(color: Colors.red),
-                ),
-              if (remaining > 0)
-                Expanded(
-                  flex: remaining,
-                  child: Container(color: Colors.grey.shade400),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Correct: $correct',
-              style: const TextStyle(fontSize: 12, color: Colors.green),
-            ),
-            Text(
-              'Wrong: $wrong',
-              style: const TextStyle(fontSize: 12, color: Colors.red),
-            ),
-            Text(
-              'Left: $remaining',
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-          ],
-        ),
+            width: 10,
+            height: 10,
+            decoration:
+            BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 6),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                fontWeight: FontWeight.w600)),
       ],
     );
   }
-
-  Widget _buildConfirmBar(_Q q) {
-    if (_pendingIndex == null) return const SizedBox.shrink();
-    final label = q.options[_pendingIndex!].name;
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Confirm "$label"?',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
-            ),
-            onPressed: locked
-                ? null
-                : () {
-                    final idx = _pendingIndex;
-                    if (idx != null) _answer(idx);
-                  },
-            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _Toast extends StatefulWidget {
+class _SlideInToast extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
-  const _Toast({
+  final Color bgColor;
+
+  const _SlideInToast({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.color,
+    required this.bgColor,
   });
 
   @override
-  State<_Toast> createState() => _ToastState();
+  State<_SlideInToast> createState() => _SlideInToastState();
 }
 
-class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 240),
-  )..forward();
-  late final Animation<Offset> _slide = Tween<Offset>(
-    begin: const Offset(1.0, 0),
-    end: Offset.zero,
-  ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+class _SlideInToastState extends State<_SlideInToast>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(
+      duration: const Duration(milliseconds: 280), vsync: this)
+    ..forward();
+  late final Animation<Offset> offsetAnimation =
+  Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
+      .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
   @override
   void dispose() {
-    _c.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _slide,
+      position: offsetAnimation,
       child: Material(
-        color: Colors.transparent,
+        elevation: 6,
+        borderRadius: BorderRadius.circular(12),
+        color: widget.bgColor,
         child: Container(
-          width: 260,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 16,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.all(12),
+          width: 280,
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.white, size: 22),
-              const SizedBox(width: 10),
+              Icon(widget.icon, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
+                    Text(widget.title,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
+                    Text(widget.subtitle,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14)),
                   ],
                 ),
               ),
@@ -527,136 +804,213 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
   }
 }
 
-class _ColourOption {
-  final String name;
-  const _ColourOption(this.name);
-}
+class _CleanConfirmDialog extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String primaryLabel;
+  final String secondaryLabel;
 
-class _Q {
-  final String promptImage;
-  final List<_ColourOption> options;
-  final int correctIndex;
-  _Q({
-    required this.promptImage,
-    required this.options,
-    required this.correctIndex,
+  const _CleanConfirmDialog({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.primaryLabel,
+    required this.secondaryLabel,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding:
+      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape:
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                    color: Color(0xFFF4F7FF), shape: BoxShape.circle),
+                child:
+                Icon(icon, size: 34, color: Color(0xFF2C5CB0))),
+            const SizedBox(height: 16),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E1E1E),
+                    letterSpacing: -0.2)),
+            const SizedBox(height: 8),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35)),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFE5E7EB)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                      foregroundColor: const Color(0xFF2C5CB0),
+                    ),
+                    child: Text(secondaryLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF4B4A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(primaryLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// ----------------------------------------------------
-// Replace image paths with your real asset locations.
-// Make sure to add them under flutter: assets: in pubspec.yaml
-// e.g. assets/images/colour/red.jpg etc.
-// ----------------------------------------------------
-final List<_Q> _allQuestions = [
-  _Q(
-    promptImage: 'assets/images/colour/C1.jpg',
-    options: [
-      _ColourOption('Red'),
-      _ColourOption('Blue'),
-      _ColourOption('Green'),
-      _ColourOption('Yellow'),
-    ],
-    correctIndex: 1,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C2.jpg',
-    options: [
-      _ColourOption('Blue'),
-      _ColourOption('Red'),
-      _ColourOption('Orange'),
-      _ColourOption('Green'),
-    ],
-    correctIndex: 3,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C3.jpg',
-    options: [
-      _ColourOption('Yellow'),
-      _ColourOption('Blue'),
-      _ColourOption('Black'),
-      _ColourOption('Red'),
-    ],
-    correctIndex: 2,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C4.jpg',
-    options: [
-      _ColourOption('Grey'),
-      _ColourOption('Orange'),
-      _ColourOption('Green'),
-      _ColourOption('Black'),
-    ],
-    correctIndex: 1,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C5.jpg',
-    options: [
-      _ColourOption('Pink'),
-      _ColourOption('Grey'),
-      _ColourOption('Purple'),
-      _ColourOption('Brown'),
-    ],
-    correctIndex: 1,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C6.jpg',
-    options: [
-      _ColourOption('Yellow'),
-      _ColourOption('White'),
-      _ColourOption('Green'),
-      _ColourOption('Blue'),
-    ],
-    correctIndex: 0,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C7.jpg',
-    options: [
-      _ColourOption('Purple'),
-      _ColourOption('Pink'),
-      _ColourOption('Black'),
-      _ColourOption('Red'),
-    ],
-    correctIndex: 3,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C8.jpg',
-    options: [
-      _ColourOption('Red'),
-      _ColourOption('Pink'),
-      _ColourOption('Green'),
-      _ColourOption('White'),
-    ],
-    correctIndex: 1,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C9.jpg',
-    options: [
-      _ColourOption('Purple'),
-      _ColourOption('Orange'),
-      _ColourOption('Brown'),
-      _ColourOption('Blue'),
-    ],
-    correctIndex: 2,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C10.jpg',
-    options: [
-      _ColourOption('White'),
-      _ColourOption('Grey'),
-      _ColourOption('Black'),
-      _ColourOption('Brown'),
-    ],
-    correctIndex: 0,
-  ),
-  _Q(
-    promptImage: 'assets/images/colour/C11.jpg',
-    options: [
-      _ColourOption('Grey'),
-      _ColourOption('Orange'),
-      _ColourOption('Pink'),
-      _ColourOption('Purple'),
-    ],
-    correctIndex: 3,
-  ),
-];
+class _GreatWorkDialog extends StatelessWidget {
+  final int score;
+  final int total;
+  final VoidCallback onReturn;
+
+  const _GreatWorkDialog({
+    required this.score,
+    required this.total,
+    required this.onReturn,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPerfect = score == total;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        width: 360,
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2ECFF),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon circle
+            Container(
+              width: 100,
+              height: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8EEFF),
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/gifs/trophy_quiz.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+            Text(
+              isPerfect ? 'Perfection' : 'Great Work!',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E1E1E),
+                letterSpacing: -0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isPerfect ? 'You answered all questions correctly.' : 'You completed this round.',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF5A5F6A)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // Score only
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE3E6EE)),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Score',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2C5CB0),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '$score / $total',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1E1E1E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Return
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: onReturn,
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2C5CB0),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

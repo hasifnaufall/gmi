@@ -1,20 +1,18 @@
-// lib/alphabet_q.dart
+// lib/verb_q.dart
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
 import 'quest_status.dart';
-import 'services/sfx_service.dart'; // <-- uses your singleton Sfx()
+import 'quiz_category.dart';
+import 'services/sfx_service.dart';
 
-class AlphabetQuizScreen extends StatefulWidget {
+class VerbQuizScreen extends StatefulWidget {
   final int? startIndex;
-
-  const AlphabetQuizScreen({super.key, this.startIndex});
+  const VerbQuizScreen({super.key, this.startIndex});
 
   @override
-  State<AlphabetQuizScreen> createState() => _AlphabetQuizScreenState();
+  State<VerbQuizScreen> createState() => _VerbQuizScreenState();
 }
 
-class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
+class _VerbQuizScreenState extends State<VerbQuizScreen>
     with SingleTickerProviderStateMixin {
   static const int sessionSize = 5;
 
@@ -30,32 +28,21 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   late Animation<double> _fadeAnimation;
 
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/alphabet/Q1.jpg", "options": ["P", "A", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q2.jpg", "options": ["W", "U", "F", "B"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q3.jpg", "options": ["C", "Z", "R", "H"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q4.jpg", "options": ["U", "Y", "D", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q5.jpg", "options": ["J", "E", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q6.jpg", "options": ["M", "F", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q7.jpg", "options": ["X", "N", "G", "D"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q8.jpg", "options": ["H", "O", "R", "Q"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q9.jpg", "options": ["U", "Y", "N", "I"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q14.jpg", "options": ["Z", "Y", "N", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3},
+    {"image": "assets/images/verb/V1.jpg", "options": ["Lift", "Follow", "Discuss", "Wash"], "correctIndex": 0},
+    {"image": "assets/images/verb/V2.jpg", "options": ["Wait", "Read", "Chat", "Lift"], "correctIndex": 1},
+    {"image": "assets/images/verb/V3.jpg", "options": ["Select", "Rest", "Wash", "Borrow"], "correctIndex": 2},
+    {"image": "assets/images/verb/V4.jpg", "options": ["Sleep", "Follow", "Drink", "Bring"], "correctIndex": 3},
+    {"image": "assets/images/verb/V5.jpg", "options": ["Eat", "Select", "Read", "Chat"], "correctIndex": 0},
+    {"image": "assets/images/verb/V6.jpg", "options": ["Read", "Drink", "Discuss", "Rest"], "correctIndex": 1},
+    {"image": "assets/images/verb/V7.jpg", "options": ["Wash", "Borrow", "Select", "Lift"], "correctIndex": 2},
+    {"image": "assets/images/verb/V8.jpg", "options": ["Chat", "Sleep", "Bring", "Borrow"], "correctIndex": 3},
+    {"image": "assets/images/verb/V9.jpg", "options": ["Rest", "Lift", "Wash", "Wait"], "correctIndex": 0},
+    {"image": "assets/images/verb/V10.jpg", "options": ["Select", "Sleep", "Read", "Ride"], "correctIndex": 1},
+    {"image": "assets/images/verb/V11.jpg", "options": ["Eat", "Lift", "Wait", "Borrow"], "correctIndex": 2},
+    {"image": "assets/images/verb/V12.jpg", "options": ["Eat", "Bring", "Lift", "Ride"], "correctIndex": 3},
+    {"image": "assets/images/verb/V13.jpg", "options": ["Discuss", "Drink", "Eat", "Rest"], "correctIndex": 0},
+    {"image": "assets/images/verb/V14.jpg", "options": ["Lift", "Chat", "Bring", "Select"], "correctIndex": 1},
+    {"image": "assets/images/verb/V15.jpg", "options": ["Eat", "Read", "Follow", "Bring"], "correctIndex": 2},
   ];
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
@@ -84,50 +71,22 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
-
-    // Init SFX once (safe to call multiple times)
     Sfx().init();
 
-    // Mark quest 3 when alphabet quiz opens (no extra popups here)
-    if (!QuestStatus.alphabetQuizStarted) {
-      QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) {
-        QuestStatus.claimQuest3();
-      }
-    }
-
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    final takeCount = math.min(sessionSize, all.length);
-    activeIndices = all.take(takeCount).toList();
-
-    QuestStatus.ensureLevel1Length(activeIndices.length);
-    QuestStatus.resetLevel1Answers();
+    final take = all.length < sessionSize ? all.length : sessionSize;
+    activeIndices = all.take(take).toList();
 
     int startSlot = widget.startIndex ?? _firstUnansweredSlot();
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _offsetAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
+    _controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentSlot > 0 && mounted) {
-        _showFloatingMessage('Resumed where you left off');
-      }
-    });
   }
 
   @override
@@ -136,143 +95,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     super.dispose();
   }
 
-  Future<void> handleAnswer(int selectedIndex) async {
-    if (isOptionSelected) return;
-
-    final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return;
-
-    setState(() {
-      isOptionSelected = true;
-      _pendingIndex = null;
-    });
-
-    final correctIndex = questions[qIdx]['correctIndex'] as int;
-    final isCorrect = selectedIndex == correctIndex;
-
-    _sessionAnswers[qIdx] = isCorrect;
-    QuestStatus.level1Answers[currentSlot] = isCorrect;
-
-    // Visual feedback only (Option B = no per-answer sound)
-    if (isCorrect) {
-      showAnimatedPopup(
-        icon: Icons.star,
-        title: "Correct!",
-        subtitle: "You earned 20 XP",
-        bgColor: const Color(0xFF2C5CB0),
-      );
-      QuestStatus.addXp(20);
-    } else {
-      final correctLetter =
-      (questions[qIdx]['options'] as List<String>)[correctIndex];
-      showAnimatedPopup(
-        icon: Icons.close,
-        title: "Incorrect",
-        subtitle: "Correct: $correctLetter",
-        bgColor: const Color(0xFFFF4B4A),
-      );
-    }
-
-    await Future.delayed(const Duration(milliseconds: 250));
-
-    // ====== FINISH SESSION (Option B sounds here) ======
-    if (_allAnsweredInSession()) {
-      if (!mounted) return;
-
-      final sessionScore =
-          activeIndices.where((i) => _sessionAnswers[i] == true).length;
-
-      // ---- Update counters/quests silently ----
-      QuestStatus.alphabetRoundsCompleted += 1;
-
-      if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
-        if (QuestStatus.canClaimQuest5()) {
-          QuestStatus.claimQuest5();
-        }
-      }
-
-      if (sessionScore == activeIndices.length && !QuestStatus.quest6Claimed) {
-        if (QuestStatus.canClaimQuest6()) {
-          QuestStatus.claimQuest6();
-        }
-      }
-
-      QuestStatus.markFirstQuizMedalEarned();
-
-      // Streak increase check
-      final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease) {
-        // Play the streak sound (Option B)
-        await Sfx().playStreak();
-      }
-
-      // Play end-of-round jingle (Option B)
-      await Sfx().playLevelComplete();
-
-      // Show the big result dialog (Score only, “Perfection” if perfect)
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _GreatWorkDialog(
-          score: sessionScore,
-          total: activeIndices.length,
-          onReturn: () {
-            Navigator.of(context).pop(); // close dialog
-            Navigator.of(context).pop(); // back to QuizCategory
-          },
-        ),
-      );
-
-      return;
-    }
-
-    // Move to next question
-    final nextSlot = _nextUnansweredSlotAfter(currentSlot);
-    setState(() {
-      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
-        0,
-        activeIndices.length - 1,
-      );
-      isOptionSelected = false;
-      _pendingIndex = null;
-      _controller.reset();
-      _controller.forward();
-    });
-  }
-
-  void _showFloatingMessage(String message) {
-    final overlay = Overlay.of(context);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        top: 100,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C5CB0),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(entry);
-    Future.delayed(const Duration(seconds: 2), () => entry.remove());
-  }
-
-  // -------------------- TWO-STEP SIMPLE CONFIRM UI --------------------
   Future<bool> _confirmExitQuiz() async {
-    // Step 1 — soft warning
     final first = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -286,15 +109,13 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
     if (first != true) return false;
 
-    // Step 2 — final confirmation
     final second = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message:
-        "This action can’t be undone and your progress this round will be lost.",
+        message: "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -302,16 +123,82 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return second == true;
   }
 
-  // Back handler used by the header back icon
-  Future<void> _handleBackPressed() async {
-    final shouldExit = await _confirmExitQuiz();
-    if (shouldExit && mounted) {
-      Navigator.pop(context);
+  Future<void> handleAnswer(int selectedIndex) async {
+    if (isOptionSelected) return;
+    final qIdx = activeIndices[currentSlot];
+    if (_sessionAnswers.containsKey(qIdx)) return;
+
+    setState(() {
+      isOptionSelected = true;
+      _pendingIndex = null;
+    });
+
+    final correctIndex = questions[qIdx]['correctIndex'] as int;
+    final isCorrect = selectedIndex == correctIndex;
+    _sessionAnswers[qIdx] = isCorrect;
+
+    if (isCorrect) {
+      final oldLvl = QuestStatus.level;
+      final levels = QuestStatus.addXp(20);
+      _showToast(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}", bgColor: const Color(0xFF2C5CB0));
+
+      if (levels > 0) {
+        final newlyUnlocked = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        for (final key in newlyUnlocked) {
+          _showToast(icon: Icons.lock_open, title: "New Level Unlocked!", subtitle: QuestStatus.titleFor(key), bgColor: const Color(0xFFFF4B4A));
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
+    } else {
+      final correctValue = (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
+      _showToast(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctValue", bgColor: const Color(0xFFFF4B4A));
+    }
+
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    if (_allAnsweredInSession()) {
+      if (!mounted) return;
+
+      final sessionScore = activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      _showToast(icon: Icons.emoji_events, title: "Quiz Complete!", subtitle: "Score: $sessionScore/${activeIndices.length}", bgColor: const Color(0xFF2C5CB0));
+
+      await Sfx().playLevelComplete();
+
+      final justEarned = QuestStatus.markFirstQuizMedalEarned();
+      if (justEarned && mounted) {
+        _showToast(icon: Icons.military_tech, title: "Medal unlocked!", subtitle: "Finish your first quiz", bgColor: const Color(0xFF2C5CB0));
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      final didIncrease = QuestStatus.addStreakForLevel();
+      if (didIncrease && mounted) {
+        _showToast(icon: Icons.local_fire_department, title: "Streak +1!", subtitle: "Current streak: ${QuestStatus.streakDays}", bgColor: const Color(0xFFFF4B4A));
+        await Sfx().playStreak();
+        await Future.delayed(const Duration(seconds: 2));
+      }
+
+      if (!mounted) return;
+      await _showGreatWorkDialog(
+        score: sessionScore,
+        total: activeIndices.length,
+        level: QuestStatus.level,
+        streakDays: QuestStatus.streakDays,
+      );
+
+      return;
+    } else {
+      final nextSlot = _nextUnansweredSlotAfter(currentSlot);
+      setState(() {
+        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        isOptionSelected = false;
+        _pendingIndex = null;
+        _controller.reset();
+        _controller.forward();
+      });
     }
   }
 
-  // Simple slide-in popup (small badge)
-  void showAnimatedPopup({
+  void _showToast({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -322,16 +209,40 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _SlideInBadge(
-          icon: icon,
-          title: title,
-          subtitle: subtitle,
-          color: bgColor,
-        ),
+        child: _VerbSlideInPopup(icon: icon, title: title, subtitle: subtitle, bgColor: bgColor),
       ),
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
+  }
+
+  Future<void> _showGreatWorkDialog({
+    required int score,
+    required int total,
+    required int level,
+    required int streakDays,
+  }) async {
+    if (_allAnsweredInSession()) {
+      if (!mounted) return;
+
+      final int sessionScore =
+          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _GreatWorkDialog(
+          score: sessionScore,
+          total: activeIndices.length,
+          onReturn: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        ),
+      );
+
+      return;
+    }
   }
 
   @override
@@ -372,64 +283,18 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
   }
 
-  Widget _buildConfirmBar(List<String> options) {
-    final idx = _pendingIndex!;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
-          const SizedBox(width: 8),
-          Text('Selected: ${options[idx]}',
-              style: const TextStyle(
-                  color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
-          const Spacer(),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
-              final i = _pendingIndex;
-              if (i != null) handleAnswer(i);
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHeader() {
     return Row(
       children: [
         IconButton(
-          onPressed: _handleBackPressed,
+          onPressed: () async {
+            final shouldExit = await _confirmExitQuiz();
+            if (shouldExit && mounted) Navigator.pop(context);
+          },
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF3FF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF2C5CB0),
-              size: 20,
-            ),
+            decoration: BoxDecoration(color: const Color(0xFFEFF3FF), borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF2C5CB0), size: 20),
           ),
         ),
         const SizedBox(width: 12),
@@ -437,40 +302,20 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Alphabet Quiz",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C5CB0),
-                  letterSpacing: -0.5,
-                ),
-              ),
+              const Text("Verb Level", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2C5CB0), letterSpacing: -0.5)),
               const SizedBox(height: 4),
-              Text(
-                "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
-              ),
+              Text("Question ${currentSlot + 1} of ${activeIndices.length}", style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF2C5CB0),
-            borderRadius: BorderRadius.circular(18),
-          ),
+          decoration: BoxDecoration(color: const Color(0xFF2C5CB0), borderRadius: BorderRadius.circular(18)),
           child: Row(
             children: [
               const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
               const SizedBox(width: 4),
-              Text(
-                "Lvl ${QuestStatus.level}",
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white),
-              ),
+              Text("Lvl ${QuestStatus.level}", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
             ],
           ),
         ),
@@ -480,8 +325,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   Widget _buildProgressBar() {
     final total = activeIndices.length;
-    int correct = 0;
-    int wrong = 0;
+    int correct = 0, wrong = 0;
     for (final i in activeIndices) {
       if (_sessionAnswers.containsKey(i)) {
         if (_sessionAnswers[i] == true) correct++;
@@ -490,11 +334,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({
-      required Color color,
-      required int flex,
-      required BorderRadius radius,
-    }) {
+    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
       if (flex <= 0) return const SizedBox.shrink();
       return Expanded(
         flex: flex,
@@ -516,9 +356,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         segment(
           color: const Color(0xFF44b427),
           flex: correct,
-          radius: hasWrong || hasRemaining
-              ? const BorderRadius.horizontal(left: Radius.circular(8))
-              : BorderRadius.circular(8),
+          radius: hasWrong || hasRemaining ? const BorderRadius.horizontal(left: Radius.circular(8)) : BorderRadius.circular(8),
         ),
       );
     }
@@ -528,9 +366,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         segment(
           color: const Color(0xFFFF4B4A),
           flex: wrong,
-          radius: (!hasCorrect && !hasRemaining)
-              ? BorderRadius.circular(8)
-              : BorderRadius.zero,
+          radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(8) : BorderRadius.zero,
         ),
       );
     }
@@ -540,9 +376,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         segment(
           color: const Color(0xFFE8EEF9),
           flex: remaining,
-          radius: (hasCorrect || hasWrong)
-              ? const BorderRadius.horizontal(right: Radius.circular(8))
-              : BorderRadius.circular(8),
+          radius: (hasCorrect || hasWrong) ? const BorderRadius.horizontal(right: Radius.circular(8)) : BorderRadius.circular(8),
         ),
       );
     }
@@ -552,11 +386,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF2F6FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE3E6EE)),
-          ),
+          decoration: BoxDecoration(color: const Color(0xFFF2F6FF), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE3E6EE))),
           child: Row(children: bars),
         ),
         const SizedBox(height: 6),
@@ -583,23 +413,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       child: Column(
         children: [
           const Text(
-            "What sign is shown?",
+            "What verb is shown?",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF2C5CB0),
-              letterSpacing: -0.3,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF2C5CB0), letterSpacing: -0.3),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE3E6EE)),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE3E6EE))),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -613,11 +434,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.broken_image_rounded,
-                              size: 36, color: Colors.grey),
+                          Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey),
                           SizedBox(height: 8),
-                          Text('Image not found',
-                              style: TextStyle(color: Colors.grey)),
+                          Text('Image not found', style: TextStyle(color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -631,25 +450,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
   }
 
-  Widget _buildOptionsGrid(
-      List<String> options,
-      int qIdx,
-      Map<String, dynamic> question,
-      ) {
+  Widget _buildOptionsGrid(List<String> options, int qIdx, Map<String, dynamic> question) {
     return Expanded(
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 1.6,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-        ),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
-          final wasSelected =
-              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -657,17 +466,39 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
-            onTap: alreadyAnswered
-                ? null
-                : () => setState(() => _pendingIndex = index),
+            onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index),
           );
         },
       ),
     );
   }
-}
 
-// ---------- Minimal widgets ----------
+  Widget _buildConfirmBar(List<String> options) {
+    final idx = _pendingIndex!;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: const Color(0xFFF6F7FB), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE3E6EE))),
+      child: Row(
+        children: [
+          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
+          const SizedBox(width: 8),
+          Text('Selected: ${options[idx]}', style: const TextStyle(color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
+          const Spacer(),
+          TextButton(onPressed: () => setState(() => _pendingIndex = null), child: const Text('Cancel')),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C5CB0), foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () {
+              final i = _pendingIndex;
+              if (i != null) handleAnswer(i);
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class OptionCard extends StatelessWidget {
   final String option;
@@ -741,7 +572,6 @@ class OptionCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
-
   const _LegendDot({required this.label, required this.color});
 
   @override
@@ -756,48 +586,60 @@ class _LegendDot extends StatelessWidget {
   }
 }
 
-class _SlideInBadge extends StatefulWidget {
+class _VerbSlideInPopup extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
-  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
+  final Color bgColor;
+
+  const _VerbSlideInPopup({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.bgColor,
+  });
 
   @override
-  State<_SlideInBadge> createState() => _SlideInBadgeState();
+  State<_VerbSlideInPopup> createState() => _VerbSlideInPopupState();
 }
 
-class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
-  late final Animation<Offset> _a = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+class _VerbSlideInPopupState extends State<_VerbSlideInPopup>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller =
+  AnimationController(duration: const Duration(milliseconds: 280), vsync: this)..forward();
+  late final Animation<Offset> offsetAnimation =
+  Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
+      .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
   @override
   void dispose() {
-    _c.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _a,
+      position: offsetAnimation,
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(12),
-        color: widget.color,
+        color: widget.bgColor,
         child: Container(
-          width: 280,
           padding: const EdgeInsets.all(12),
+          width: 280,
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.white),
-              const SizedBox(width: 10),
+              Icon(widget.icon, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text(widget.subtitle, style: const TextStyle(color: Colors.white70)),
+                    Text(widget.title,
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(widget.subtitle,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14)),
                   ],
                 ),
               ),
@@ -809,13 +651,12 @@ class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderS
   }
 }
 
-// ---------- Clean, Simple Confirm Dialog ----------
 class _CleanConfirmDialog extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
-  final String primaryLabel;   // right button
-  final String secondaryLabel; // left button
+  final String primaryLabel;
+  final String secondaryLabel;
 
   const _CleanConfirmDialog({
     required this.icon,
@@ -835,42 +676,23 @@ class _CleanConfirmDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Soft circular icon
             Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8EEFF),
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/trophy_quiz.gif',
-                  fit: BoxFit.cover,
-                ),
-              ),
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(color: Color(0xFFF4F7FF), shape: BoxShape.circle),
+              child: Icon(icon, size: 34, color: Color(0xFF2C5CB0)),
             ),
-
             const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E1E1E),
-                letterSpacing: -0.2,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E1E1E), letterSpacing: -0.2),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14.5,
-                color: Color(0xFF6B7280),
-                height: 1.35,
-              ),
+              style: const TextStyle(fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35),
             ),
             const SizedBox(height: 18),
             Row(
@@ -880,16 +702,11 @@ class _CleanConfirmDialog extends StatelessWidget {
                     onPressed: () => Navigator.pop(context, false),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE5E7EB)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       foregroundColor: const Color(0xFF2C5CB0),
                     ),
-                    child: Text(
-                      secondaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
+                    child: Text(secondaryLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -900,15 +717,10 @@ class _CleanConfirmDialog extends StatelessWidget {
                       backgroundColor: const Color(0xFFFF4B4A),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(
-                      primaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
+                    child: Text(primaryLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -944,7 +756,6 @@ class _GreatWorkDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Trophy Icon
             Container(
               width: 100,
               height: 100,
@@ -959,10 +770,7 @@ class _GreatWorkDialog extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Title
             Text(
               isPerfect ? "Perfection!" : "Great Work!",
               textAlign: TextAlign.center,
@@ -973,8 +781,6 @@ class _GreatWorkDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-
-            // Subtitle
             Text(
               isPerfect
                   ? "You answered every question flawlessly."
@@ -987,8 +793,6 @@ class _GreatWorkDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Score Display
             Container(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
               decoration: BoxDecoration(
@@ -1008,8 +812,6 @@ class _GreatWorkDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
-
-            // Return button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

@@ -8,19 +8,21 @@ class QuestStatus {
   static bool _saveQueued = false;
 
   // ================= Content Keys & Level Thresholds =================
-  static const String levelAlphabet = 'alphabet';
-  static const String levelNumbers = 'numbers';
-  static const String levelGreetings = 'greetings'; // Fruits (UI)
-  static const String levelColour = 'colour';
-  static const String levelCommonVerb = 'commonVerb'; // Animals (UI)
+  static const String levelAlphabet   = 'alphabet';
+  static const String levelNumbers    = 'numbers';
+  static const String levelGreetings  = 'greetings';   // Fruits (UI)
+  static const String levelColour     = 'colour';
+  static const String levelCommonVerb = 'commonVerb';  // Animals (UI)
+  static const String levelVerbs      = 'verbs';       // Verbs (UI)
 
-  // Unlock requirements (Alphabet free, Numbers 5, Colour 10, Fruits 15, Animals 25)
+  // Unlock requirements (Alphabet free, Numbers 5, Colour 10, Fruits 15, Animals 25, Verbs 30)
   static const Map<String, int> _unlockAtLevel = {
     levelAlphabet: 1,
     levelNumbers: 5,
     levelColour: 10,
     levelGreetings: 15,
     levelCommonVerb: 25,
+    levelVerbs:      30,
   };
 
   static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
@@ -96,6 +98,11 @@ class QuestStatus {
   static bool learnedAnimalsAll = false; // Q18
   static int animalsRoundsCompleted = 0; // Q19
   static int animalsPerfectRounds = 0; // Q20
+
+  // Verbs
+  static bool learnedVerbsAll         = false; // Q26
+  static int  verbsRoundsCompleted    = 0;     // Q27
+  static int  verbsPerfectRounds      = 0;     // Q28
 
   // Misc tracker
   static bool firstQuizMedalEarned =
@@ -199,6 +206,23 @@ class QuestStatus {
     Future.microtask(() => autoSaveProgress());
   }
 
+  // Verbs helpers
+  static void markVerbsLearnAll() {
+    learnedVerbsAll = true;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incVerbsRoundsCompleted() {
+    verbsRoundsCompleted++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+  static void incVerbsPerfectRounds() {
+    verbsPerfectRounds++;
+    _autoClaimAll();
+    Future.microtask(() => autoSaveProgress());
+  }
+
   /// Call this from any quiz when the user answers a question.
   /// Applies +25 XP for correct and then (no auto-claim; manual-claim only).
   static void onAnswer({required bool correct}) {
@@ -296,7 +320,7 @@ class QuestStatus {
     return UnlockStatus.success;
   }
 
-  // ================= Quests (Q1 – Q24) with MANUAL claim =================
+  // ================= Quests (Q1 – Q28) with MANUAL claim =================
 
   // ---- Claimed flags
   static bool quest1Claimed = false; // Start Alphabet
@@ -323,6 +347,10 @@ class QuestStatus {
   static bool quest22Claimed = false; // Reach Level 10
   static bool quest23Claimed = false; // Unlock all categories
   static bool quest24Claimed = false; // Reach Level 25
+  static bool quest25Claimed = false; // Start Verbs
+  static bool quest26Claimed = false; // Learn ALL Verbs
+  static bool quest27Claimed = false; // Finish 2 rounds Verbs
+  static bool quest28Claimed = false; // 1 perfect round Verbs
 
   // ---- Conditions & Claims (Rewards tuned to help reach L25)
   static bool canClaimQuest1() => completedQuestions >= 1 && !quest1Claimed;
@@ -554,11 +582,12 @@ class QuestStatus {
 
   static bool canClaimQuest23() =>
       isContentUnlocked(levelNumbers) &&
-      isContentUnlocked(levelColour) &&
-      isContentUnlocked(levelGreetings) &&
-      isContentUnlocked(levelCommonVerb) &&
-      !quest23Claimed;
-  static int claimQuest23({int reward = 200, int progress = 20}) {
+          isContentUnlocked(levelColour)  &&
+          isContentUnlocked(levelGreetings) &&
+          isContentUnlocked(levelCommonVerb) &&
+          isContentUnlocked(levelVerbs) &&
+          !quest23Claimed;
+  static int  claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
     quest23Claimed = true;
     userPoints += reward;
@@ -575,6 +604,30 @@ class QuestStatus {
     _applyChestProgress(progress);
     addXp(200);
     return reward;
+  }
+
+  static bool canClaimQuest25() => isContentUnlocked(levelVerbs) && !quest25Claimed;
+  static int  claimQuest25({int reward = 100, int progress = 15}) {
+    if (!canClaimQuest25()) return 0;
+    quest25Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+  }
+
+  static bool canClaimQuest26() => learnedVerbsAll && !quest26Claimed;
+  static int  claimQuest26({int reward = 120, int progress = 15}) {
+    if (!canClaimQuest26()) return 0;
+    quest26Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+  }
+
+  static bool canClaimQuest27() => verbsRoundsCompleted >= 2 && !quest27Claimed;
+  static int  claimQuest27({int reward = 150, int progress = 20}) {
+    if (!canClaimQuest27()) return 0;
+    quest27Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+  }
+
+  static bool canClaimQuest28() => verbsPerfectRounds >= 1 && !quest28Claimed;
+  static int  claimQuest28({int reward = 200, int progress = 20}) {
+    if (!canClaimQuest28()) return 0;
+    quest28Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(180); return reward;
   }
 
   // ================== AUTO-CLAIM DISABLED ==================
@@ -603,16 +656,12 @@ class QuestStatus {
 
   static String titleFor(String key) {
     switch (key) {
-      case levelAlphabet:
-        return 'Alphabet Quest';
-      case levelNumbers:
-        return 'Numbers Quest';
-      case levelGreetings:
-        return 'Fruits Quest';
-      case levelColour:
-        return 'Colors Quest';
-      case levelCommonVerb:
-        return 'Animals Quest';
+      case levelAlphabet:   return 'Alphabet Quest';
+      case levelNumbers:    return 'Numbers Quest';
+      case levelGreetings:  return 'Fruits Quest';
+      case levelColour:     return 'Colors Quest';
+      case levelCommonVerb: return 'Animals Quest';
+      case levelVerbs:      return 'Verbs Quest';
       default:
         return key.replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
     }
@@ -667,6 +716,7 @@ class QuestStatus {
     quest15Claimed = quest16Claimed = quest17Claimed = quest18Claimed = false;
     quest19Claimed = quest20Claimed = quest21Claimed = quest22Claimed = false;
     quest23Claimed = quest24Claimed = false;
+    quest25Claimed = quest26Claimed = quest27Claimed = quest28Claimed = false;
 
     // reset learning/quiz flags & counters
     learnedAlphabetAll = false;
@@ -695,6 +745,10 @@ class QuestStatus {
     watchedColours.clear();
     watchedFruits.clear();
     watchedAnimals.clear();
+
+    learnedVerbsAll = false;
+    verbsRoundsCompleted = 0;
+    verbsPerfectRounds = 0;
 
     userPoints = 0;
     achievements.clear();
@@ -799,6 +853,7 @@ class QuestStatus {
     quest15Claimed = quest16Claimed = quest17Claimed = quest18Claimed = false;
     quest19Claimed = quest20Claimed = quest21Claimed = quest22Claimed = false;
     quest23Claimed = quest24Claimed = false;
+    quest25Claimed = quest26Claimed = quest27Claimed = quest28Claimed = false;
 
     // reset learning/quiz flags & counters
     learnedAlphabetAll = false;
@@ -820,6 +875,10 @@ class QuestStatus {
     learnedAnimalsAll = false;
     animalsRoundsCompleted = 0;
     animalsPerfectRounds = 0;
+
+    learnedVerbsAll = false;
+    verbsRoundsCompleted = 0;
+    verbsPerfectRounds = 0;
 
     userPoints = 0;
     achievements.clear();
@@ -906,6 +965,10 @@ class QuestStatus {
           'quest22Claimed': quest22Claimed,
           'quest23Claimed': quest23Claimed,
           'quest24Claimed': quest24Claimed,
+          'quest25Claimed': quest25Claimed,
+          'quest26Claimed': quest26Claimed,
+          'quest27Claimed': quest27Claimed,
+          'quest28Claimed': quest28Claimed,
         },
         // Learning progress
         learningStates: {
@@ -924,6 +987,9 @@ class QuestStatus {
           'learnedAnimalsAll': learnedAnimalsAll,
           'animalsRoundsCompleted': animalsRoundsCompleted,
           'animalsPerfectRounds': animalsPerfectRounds,
+          'learnedVerbsAll': learnedVerbsAll,
+          'verbsRoundsCompleted': verbsRoundsCompleted,
+          'verbsPerfectRounds': verbsPerfectRounds,
           'firstQuizMedalEarned': firstQuizMedalEarned,
           // Watched items in learn mode
           'watchedAlphabet': watchedAlphabet.toList(),
@@ -996,6 +1062,10 @@ class QuestStatus {
     quest22Claimed = questStates['quest22Claimed'] ?? false;
     quest23Claimed = questStates['quest23Claimed'] ?? false;
     quest24Claimed = questStates['quest24Claimed'] ?? false;
+    quest25Claimed = questStates['quest25Claimed'] ?? false;
+    quest26Claimed = questStates['quest26Claimed'] ?? false;
+    quest27Claimed = questStates['quest27Claimed'] ?? false;
+    quest28Claimed = questStates['quest28Claimed'] ?? false;
 
     // Learning states
     final learningStates =
@@ -1015,6 +1085,9 @@ class QuestStatus {
     learnedAnimalsAll = learningStates['learnedAnimalsAll'] ?? false;
     animalsRoundsCompleted = learningStates['animalsRoundsCompleted'] ?? 0;
     animalsPerfectRounds = learningStates['animalsPerfectRounds'] ?? 0;
+    learnedVerbsAll = learningStates['learnedVerbsAll'] ?? false;
+    verbsRoundsCompleted = learningStates['verbsRoundsCompleted'] ?? 0;
+    verbsPerfectRounds = learningStates['verbsPerfectRounds'] ?? 0;
     firstQuizMedalEarned = learningStates['firstQuizMedalEarned'] ?? false;
 
     // Watched items in learn mode
