@@ -26,120 +26,120 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Complete question bank with all 27 fruits
+  // Complete question bank with all 23 fruits - paths match actual JPG files
   final List<Map<String, dynamic>> questions = [
     {
-      "image": "assets/images/fruits/apple.jpg",
+      "image": "assets/images/fruit/apple.jpg",
       "options": ["Apple", "Pear", "Peach", "Plum"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/banana.jpg",
+      "image": "assets/images/fruit/banana.jpg",
       "options": ["Plantain", "Banana", "Papaya", "Mango"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/ciku.jpg",
+      "image": "assets/images/fruit/ciku.jpg",
       "options": ["Sapodilla", "Kiwi", "Persimmon", "Date"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/coconut.jpg",
+      "image": "assets/images/fruit/coconut.jpg",
       "options": ["Coconut", "Palm Fruit", "Betel Nut", "Areca"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/corn.jpg",
+      "image": "assets/images/fruit/corn.jpg",
       "options": ["Wheat", "Barley", "Corn", "Rice"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/fruits/duku.jpg",
+      "image": "assets/images/fruit/duku.jpg",
       "options": ["Longans", "Duku", "Lychee", "Rambutan"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/durian.jpg",
+      "image": "assets/images/fruit/durian.jpg",
       "options": ["Jackfruit", "Breadfruit", "Durian", "Soursop"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/fruits/grape.jpg",
+      "image": "assets/images/fruit/grape.jpg",
       "options": ["Blueberry", "Grape", "Cherry", "Olive"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/langsat.jpg",
+      "image": "assets/images/fruit/langsat.jpg",
       "options": ["Langsat", "Longan", "Lychee", "Duku"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/lemon.jpg",
+      "image": "assets/images/fruit/lemon.jpg",
       "options": ["Lime", "Lemon", "Citron", "Grapefruit"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/mango.jpg",
+      "image": "assets/images/fruit/mango.jpg",
       "options": ["Papaya", "Mango", "Peach", "Apricot"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/mangosteen.jpg",
+      "image": "assets/images/fruit/mangosteen.jpg",
       "options": ["Mangosteen", "Plum", "Fig", "Persimmon"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/orange.jpg",
+      "image": "assets/images/fruit/orange.jpg",
       "options": ["Tangerine", "Mandarin", "Orange", "Clementine"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/fruits/papaya.jpg",
+      "image": "assets/images/fruit/papaya.jpg",
       "options": ["Papaya", "Mango", "Melon", "Cantaloupe"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/peanut.jpg",
+      "image": "assets/images/fruit/peanut.jpg",
       "options": ["Almond", "Cashew", "Peanut", "Walnut"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/fruits/pear.jpg",
+      "image": "assets/images/fruit/pear.jpg",
       "options": ["Apple", "Pear", "Quince", "Guava"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/pineapple.jpg",
+      "image": "assets/images/fruit/pineapple.jpg",
       "options": ["Pineapple", "Dragonfruit", "Custard Apple", "Breadfruit"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/pomelo.jpg",
+      "image": "assets/images/fruit/pomelo.jpg",
       "options": ["Grapefruit", "Pomelo", "Orange", "Lemon"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/rambutan.jpg",
+      "image": "assets/images/fruit/rambutan.jpg",
       "options": ["Lychee", "Rambutan", "Longan", "Pulasan"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/sour-sop.jpg",
+      "image": "assets/images/fruit/sour-sop.jpg",
       "options": ["Custard Apple", "Soursop", "Cherimoya", "Sugar Apple"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/starfruit.jpg",
+      "image": "assets/images/fruit/starfruit.jpg",
       "options": ["Starfruit", "Dragonfruit", "Kiwi", "Passion Fruit"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/fruits/sugar cane.jpg",
+      "image": "assets/images/fruit/sugar cane.jpg",
       "options": ["Bamboo", "Sugar Cane", "Reed", "Corn Stalk"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/fruits/watermelon.jpg",
+      "image": "assets/images/fruit/watermelon.jpg",
       "options": ["Cantaloupe", "Honeydew", "Watermelon", "Rockmelon"],
       "correctIndex": 2
     },

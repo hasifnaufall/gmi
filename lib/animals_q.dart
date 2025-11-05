@@ -29,142 +29,142 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   // Complete question bank with all 26 animals
   final List<Map<String, dynamic>> questions = [
     {
-      "image": "assets/images/animals/anai.jpg",
+      "image": "assets/images/animal/anai.jpg",
       "options": ["Spider", "Cat", "Thermite", "Beetle"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/angsa.jpg",
+      "image": "assets/images/animal/angsa.jpg",
       "options": ["Chicken", "Dog", "Bear", "Goose"],
       "correctIndex": 3
     },
     {
-      "image": "assets/images/animals/anjing.jpg",
+      "image": "assets/images/animal/anjing.jpg",
       "options": ["Cat", "Dog", "Wolf", "Fox"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/arnab.jpg",
+      "image": "assets/images/animal/arnab.jpg",
       "options": ["Rabbit", "Squirrel", "Mouse", "Guinea Pig"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/ayam.jpg",
+      "image": "assets/images/animal/ayam.jpg",
       "options": ["Duck", "Chicken", "Turkey", "Peacock"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/babi.jpg",
+      "image": "assets/images/animal/babi.jpg",
       "options": ["Pig", "Boar", "Hippo", "Cow"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/badak sumbu.jpg",
+      "image": "assets/images/animal/badak sumbu.jpg",
       "options": ["Rhino", "Elephant", "Hippo", "Buffalo"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/belalang.jpg",
+      "image": "assets/images/animal/belalang.jpg",
       "options": ["Grasshopper", "Cricket", "Mantis", "Beetle"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/beruang.jpg",
+      "image": "assets/images/animal/beruang.jpg",
       "options": ["Wolf", "Bear", "Lion", "Tiger"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/biawak.jpg",
+      "image": "assets/images/animal/biawak.jpg",
       "options": ["Monitor Lizard", "Iguana", "Crocodile", "Komodo"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/biri.jpg",
+      "image": "assets/images/animal/biri.jpg",
       "options": ["Goat", "Sheep", "Deer", "Antelope"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/buaya.jpg",
+      "image": "assets/images/animal/buaya.jpg",
       "options": ["Alligator", "Crocodile", "Lizard", "Komodo"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/burung.jpg",
+      "image": "assets/images/animal/burung.jpg",
       "options": ["Bird", "Bat", "Butterfly", "Eagle"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/cicak.jpg",
+      "image": "assets/images/animal/cicak.jpg",
       "options": ["Gecko", "Lizard", "Salamander", "Frog"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/gajah.jpg",
+      "image": "assets/images/animal/gajah.jpg",
       "options": ["Rhino", "Hippo", "Elephant", "Buffalo"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/gorila.jpg",
+      "image": "assets/images/animal/gorila.jpg",
       "options": ["Chimpanzee", "Orangutan", "Gorilla", "Baboon"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/harimau.jpg",
+      "image": "assets/images/animal/harimau.jpg",
       "options": ["Lion", "Leopard", "Tiger", "Cheetah"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/helang.jpg",
+      "image": "assets/images/animal/helang.jpg",
       "options": ["Hawk", "Eagle", "Falcon", "Vulture"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/ikan.jpg",
+      "image": "assets/images/animal/ikan.jpg",
       "options": ["Fish", "Dolphin", "Whale", "Shark"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/itik.jpg",
+      "image": "assets/images/animal/itik.jpg",
       "options": ["Duck", "Goose", "Swan", "Penguin"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/jengking.jpg",
+      "image": "assets/images/animal/jengking.jpg",
       "options": ["Spider", "Scorpion", "Crab", "Lobster"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/kambing.jpg",
+      "image": "assets/images/animal/kambing.jpg",
       "options": ["Sheep", "Goat", "Deer", "Antelope"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/kancil.jpg",
+      "image": "assets/images/animal/kancil.jpg",
       "options": ["Mouse Deer", "Deer", "Rabbit", "Squirrel"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/Labah.jpg",
+      "image": "assets/images/animal/Labah.jpg",
       "options": ["Spider", "Scorpion", "Beetle", "Ant"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/merak.jpg",
+      "image": "assets/images/animal/merak.jpg",
       "options": ["Peacock", "Pheasant", "Turkey", "Rooster"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/rama-rama.jpg",
+      "image": "assets/images/animal/rama-rama.jpg",
       "options": ["Moth", "Butterfly", "Dragonfly", "Bee"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/singa.jpg",
+      "image": "assets/images/animal/singa.jpg",
       "options": ["Tiger", "Lion", "Leopard", "Cheetah"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/zirafah.jpg",
+      "image": "assets/images/animal/zirafah.jpg",
       "options": ["Deer", "Camel", "Giraffe", "Llama"],
       "correctIndex": 2
     },
