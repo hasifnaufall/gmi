@@ -26,47 +26,147 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Sample question bank – update paths to your actual assets
+  // Complete question bank with all 26 animals
   final List<Map<String, dynamic>> questions = [
     {
-      "image": "assets/images/animals/A1.jpg",
-      "options": ["Cat", "Dog", "Fish", "Bird"],
-      "correctIndex": 1
-    },
-    {
-      "image": "assets/images/animals/A2.jpg",
-      "options": ["Lion", "Tiger", "Elephant", "Giraffe"],
+      "image": "assets/images/animals/anai.jpg",
+      "options": ["Spider", "Cat", "Thermite", "Beetle"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/A3.jpg",
-      "options": ["Rabbit", "Horse", "Dolphin", "Fox"],
+      "image": "assets/images/animals/angsa.jpg",
+      "options": ["Chicken", "Dog", "Bear", "Goose"],
       "correctIndex": 3
     },
     {
-      "image": "assets/images/animals/A4.jpg",
-      "options": ["Eagle", "Penguin", "Shark", "Bear"],
+      "image": "assets/images/animals/anjing.jpg",
+      "options": ["Cat", "Dog", "Wolf", "Fox"],
       "correctIndex": 1
     },
     {
-      "image": "assets/images/animals/A5.jpg",
-      "options": ["Zebra", "Rhino", "Kangaroo", "Panda"],
+      "image": "assets/images/animals/arnab.jpg",
+      "options": ["Rabbit", "Squirrel", "Mouse", "Guinea Pig"],
       "correctIndex": 0
     },
     {
-      "image": "assets/images/animals/A6.jpg",
-      "options": ["Whale", "Crocodile", "Wolf", "Owl"],
+      "image": "assets/images/animals/ayam.jpg",
+      "options": ["Duck", "Chicken", "Turkey", "Peacock"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/babi.jpg",
+      "options": ["Pig", "Boar", "Hippo", "Cow"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/badak sumbu.jpg",
+      "options": ["Rhino", "Elephant", "Hippo", "Buffalo"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/belalang.jpg",
+      "options": ["Grasshopper", "Cricket", "Mantis", "Beetle"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/beruang.jpg",
+      "options": ["Wolf", "Bear", "Lion", "Tiger"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/biawak.jpg",
+      "options": ["Monitor Lizard", "Iguana", "Crocodile", "Komodo"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/biri.jpg",
+      "options": ["Goat", "Sheep", "Deer", "Antelope"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/buaya.jpg",
+      "options": ["Alligator", "Crocodile", "Lizard", "Komodo"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/burung.jpg",
+      "options": ["Bird", "Bat", "Butterfly", "Eagle"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/cicak.jpg",
+      "options": ["Gecko", "Lizard", "Salamander", "Frog"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/gajah.jpg",
+      "options": ["Rhino", "Hippo", "Elephant", "Buffalo"],
       "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/A7.jpg",
-      "options": ["Camel", "Snake", "Deer", "Chimpanzee"],
-      "correctIndex": 3
+      "image": "assets/images/animals/gorila.jpg",
+      "options": ["Chimpanzee", "Orangutan", "Gorilla", "Baboon"],
+      "correctIndex": 2
     },
     {
-      "image": "assets/images/animals/A8.jpg",
-      "options": ["Peacock", "Swan", "Duck", "Rooster"],
+      "image": "assets/images/animals/harimau.jpg",
+      "options": ["Lion", "Leopard", "Tiger", "Cheetah"],
+      "correctIndex": 2
+    },
+    {
+      "image": "assets/images/animals/helang.jpg",
+      "options": ["Hawk", "Eagle", "Falcon", "Vulture"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/ikan.jpg",
+      "options": ["Fish", "Dolphin", "Whale", "Shark"],
       "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/itik.jpg",
+      "options": ["Duck", "Goose", "Swan", "Penguin"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/jengking.jpg",
+      "options": ["Spider", "Scorpion", "Crab", "Lobster"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/kambing.jpg",
+      "options": ["Sheep", "Goat", "Deer", "Antelope"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/kancil.jpg",
+      "options": ["Mouse Deer", "Deer", "Rabbit", "Squirrel"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/Labah.jpg",
+      "options": ["Spider", "Scorpion", "Beetle", "Ant"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/merak.jpg",
+      "options": ["Peacock", "Pheasant", "Turkey", "Rooster"],
+      "correctIndex": 0
+    },
+    {
+      "image": "assets/images/animals/rama-rama.jpg",
+      "options": ["Moth", "Butterfly", "Dragonfly", "Bee"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/singa.jpg",
+      "options": ["Tiger", "Lion", "Leopard", "Cheetah"],
+      "correctIndex": 1
+    },
+    {
+      "image": "assets/images/animals/zirafah.jpg",
+      "options": ["Deer", "Camel", "Giraffe", "Llama"],
+      "correctIndex": 2
     },
   ];
 
@@ -998,4 +1098,3 @@ class _GreatWorkDialog extends StatelessWidget {
     );
   }
 }
-

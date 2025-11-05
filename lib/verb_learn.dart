@@ -12,21 +12,21 @@ class VerbLearnScreen extends StatefulWidget {
 
 class _VerbLearnScreenState extends State<VerbLearnScreen> {
   final List<Map<String, String>> _all = [
-    {"label": "Lift", "video": "assets/videos/verbs/V1.mp4"},
-    {"label": "Read", "video": "assets/videos/verbs/V2.mp4"},
-    {"label": "Wash", "video": "assets/videos/verbs/V3.mp4"},
-    {"label": "Bring", "video": "assets/videos/verbs/V4.mp4"},
-    {"label": "Eat", "video": "assets/videos/verbs/V5.mp4"},
-    {"label": "Drink", "video": "assets/videos/verbs/V6.mp4"},
-    {"label": "Select", "video": "assets/videos/verbs/V7.mp4"},
-    {"label": "Borrow", "video": "assets/videos/verbs/V8.mp4"},
-    {"label": "Rest", "video": "assets/videos/verbs/V9.mp4"},
-    {"label": "Sleep", "video": "assets/videos/verbs/V10.mp4"},
-    {"label": "Wait", "video": "assets/videos/verbs/V11.mp4"},
-    {"label": "Ride", "video": "assets/videos/verbs/V12.mp4"},
-    {"label": "Discuss", "video": "assets/videos/verbs/V13.mp4"},
-    {"label": "Chat", "video": "assets/videos/verbs/V14.mp4"},
-    {"label": "Follow", "video": "assets/videos/verbs/V15.mp4"},
+    {"label": "Lift", "video": "assets/videos/verbs/lift.mp4"},
+    {"label": "Read", "video": "assets/videos/verbs/read.mp4"},
+    {"label": "Wash", "video": "assets/videos/verbs/wash.mp4"},
+    {"label": "Bring", "video": "assets/videos/verbs/bring.mp4"},
+    {"label": "Eat", "video": "assets/videos/verbs/eat.mp4"},
+    {"label": "Drink", "video": "assets/videos/verbs/drink.mp4"},
+    {"label": "Select", "video": "assets/videos/verbs/select.mp4"},
+    {"label": "Borrow", "video": "assets/videos/verbs/borrow.mp4"},
+    {"label": "Rest", "video": "assets/videos/verbs/rest.mp4"},
+    {"label": "Sleep", "video": "assets/videos/verbs/sleep.mp4"},
+    {"label": "Wait", "video": "assets/videos/verbs/wait.mp4"},
+    {"label": "Ride", "video": "assets/videos/verbs/ride.mp4"},
+    {"label": "Discuss", "video": "assets/videos/verbs/discuss.mp4"},
+    {"label": "Chat", "video": "assets/videos/verbs/chat.mp4"},
+    {"label": "Follow", "video": "assets/videos/verbs/follow.mp4"},
   ];
 
   final Set<String> _watched = {};

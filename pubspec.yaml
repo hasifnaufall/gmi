@@ -41,6 +41,7 @@ flutter:
     - assets/videos/colours/
     - assets/videos/fruits/
     - assets/videos/animals/
+    - assets/videos/verbs/
     - assets/images/mfd.jpg
     - assets/images/logo.png
     - assets/images/google.png
