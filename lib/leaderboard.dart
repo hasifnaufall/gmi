@@ -60,25 +60,20 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     });
 
     try {
-      // Fetch top 50 users by level, then by score
-      final snapshot = await _firestore
-          .collection('progress')
-          .orderBy('level', descending: true)
-          .orderBy('score', descending: true)
-          .limit(50)
-          .get();
+      // Fetch all users and sort locally (avoids composite index requirement)
+      final snapshot = await _firestore.collection('progress').get();
 
       print(
-        'Leaderboard: Found [32m${snapshot.docs.length}[0m users in progress collection',
+        'Leaderboard: Found ${snapshot.docs.length} users in progress collection',
       );
-
-      List<Map<String, dynamic>> leaderboardData = [];
-      int rank = 1;
 
       // Get current user info from Firebase Auth
       final currentUser = _auth.currentUser;
       final currentUserDisplayName = currentUser?.displayName;
       final currentUserEmail = currentUser?.email;
+
+      // Collect all users with their data
+      List<Map<String, dynamic>> allUsers = [];
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
@@ -111,16 +106,44 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           displayName = 'Player ${userId.substring(0, 6)}';
         }
 
-        leaderboardData.add({
-          'rank': rank,
+        allUsers.add({
           'userId': userId,
           'displayName': displayName,
           'level': data['level'] ?? 0,
           'score': data['score'] ?? 0,
           'isCurrentUser': userId == _currentUserId,
         });
+      }
 
-        if (userId == _currentUserId) {
+      // Sort by level (descending), then by score (descending)
+      allUsers.sort((a, b) {
+        int levelCompare = (b['level'] as int).compareTo(a['level'] as int);
+        if (levelCompare != 0) return levelCompare;
+        return (b['score'] as int).compareTo(a['score'] as int);
+      });
+
+      print('Leaderboard: Top 5 after sorting:');
+      for (var i = 0; i < allUsers.length && i < 5; i++) {
+        print(
+          '  ${i + 1}. ${allUsers[i]['displayName']} - Level ${allUsers[i]['level']}, Score ${allUsers[i]['score']}',
+        );
+      }
+
+      // Assign ranks and take top 50
+      List<Map<String, dynamic>> leaderboardData = [];
+      int rank = 1;
+
+      for (var user in allUsers.take(50)) {
+        leaderboardData.add({
+          'rank': rank,
+          'userId': user['userId'],
+          'displayName': user['displayName'],
+          'level': user['level'],
+          'score': user['score'],
+          'isCurrentUser': user['isCurrentUser'],
+        });
+
+        if (user['isCurrentUser'] == true) {
           _currentUserRank = rank;
         }
 
@@ -218,69 +241,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     }
   }
 
-  Widget _buildRankBadge(int rank, bool isCurrentUser) {
-    String emoji = '';
-    Color badgeColor = Color(0xFF2c5cb0);
-
-    if (rank == 1) {
-      emoji = '👑';
-      badgeColor = Color(0xFFFFD700);
-    } else if (rank == 2) {
-      emoji = '🥈';
-      badgeColor = Color(0xFFC0C0C0);
-    } else if (rank == 3) {
-      emoji = '🥉';
-      badgeColor = Color(0xFFCD7F32);
-    }
-
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: rank <= 3
-            ? LinearGradient(
-                colors: [badgeColor, badgeColor.withOpacity(0.7)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: rank > 3
-            ? (isCurrentUser ? Color(0xFF2c5cb0) : Colors.white)
-            : null,
-        border: Border.all(
-          color: rank <= 3
-              ? Colors.white
-              : (isCurrentUser ? Color(0xFF2c5cb0) : Colors.grey.shade300),
-          width: rank <= 3 ? 3 : 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color:
-                (rank <= 3
-                        ? badgeColor
-                        : (isCurrentUser ? Color(0xFF2c5cb0) : Colors.black))
-                    .withOpacity(0.3),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: emoji.isNotEmpty
-            ? Text(emoji, style: TextStyle(fontSize: 28))
-            : Text(
-                '$rank',
-                style: TextStyle(
-                  color: isCurrentUser ? Colors.white : Colors.black87,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-      ),
-    );
-  }
-
   Widget _buildTopThreePodium() {
     if (_leaderboard.length < 3) return SizedBox.shrink();
 
@@ -290,258 +250,194 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final third = top3.length > 2 ? top3[2] : null;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF6ac5e6), Color(0xFF4aa8d8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF6ac5e6).withOpacity(0.4),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
+      margin: EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            'Champions',
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Second place
-              if (second != null) _buildPodiumCard(second, 2, 120),
-              // First place
-              if (first != null) _buildPodiumCard(first, 1, 150),
-              // Third place
-              if (third != null) _buildPodiumCard(third, 3, 100),
-            ],
-          ),
+          // Second place
+          if (second != null) _buildDiamondPodium(second, 2, 0),
+          // First place (higher)
+          if (first != null) _buildDiamondPodium(first, 1, 40),
+          // Third place
+          if (third != null) _buildDiamondPodium(third, 3, 0),
         ],
       ),
     );
   }
 
-  Widget _buildPodiumCard(Map<String, dynamic> entry, int rank, double height) {
-    Color medalColor;
-    if (rank == 1) {
-      medalColor = Color(0xFFFFD700);
-    } else if (rank == 2)
-      medalColor = Color(0xFFC0C0C0);
-    else
-      medalColor = Color(0xFFCD7F32);
+  Widget _buildDiamondPodium(
+    Map<String, dynamic> entry,
+    int rank,
+    double extraHeight,
+  ) {
+    Color bgColor;
+    Color badgeColor;
+    Color avatarBgColor;
+    String emoji;
 
-    return Flexible(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: 110),
-        child: Column(
+    if (rank == 1) {
+      bgColor = Color(0xFF69D3E4); // Bright cyan from palette
+      badgeColor = Color(0xFFFFD700); // Gold
+      avatarBgColor = Color(0xFFFFF7D1); // Cream
+      emoji = '🥇';
+    } else if (rank == 2) {
+      bgColor = Color(0xFFA4A9FC); // Periwinkle from palette
+      badgeColor = Color(0xFFC0C0C0); // Silver
+      avatarBgColor = Color(0xFFCFFFF7); // Light mint
+      emoji = '🥈';
+    } else {
+      bgColor = Color(0xFF69D3E4).withOpacity(0.6); // Lighter cyan
+      badgeColor = Color(0xFFCD7F32); // Bronze
+      avatarBgColor = Color(0xFFFFFFD0); // Light yellow
+      emoji = '🥉';
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Avatar with circular background
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: avatarBgColor,
+            border: Border.all(color: Colors.white, width: 3),
+          ),
+          child: Center(child: Text(emoji, style: TextStyle(fontSize: 32))),
+        ),
+        SizedBox(height: extraHeight > 0 ? 8 : 0),
+        // Diamond shape
+        Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
           children: [
-            // Avatar with rank badge
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [medalColor, medalColor.withOpacity(0.7)],
-                    ),
-                    border: Border.all(color: Colors.white, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: medalColor.withOpacity(0.5),
-                        blurRadius: 12,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      rank == 1
-                          ? '👑'
-                          : rank == 2
-                          ? '🥈'
-                          : '🥉',
-                      style: TextStyle(fontSize: 28),
-                    ),
-                  ),
+            // Diamond container
+            Transform.rotate(
+              angle: 0.785398, // 45 degrees in radians
+              child: Container(
+                width: 95,
+                height: 95,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Positioned(
-                  bottom: -4,
-                  right: -4,
-                  child: Container(
-                    padding: EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      '#$rank',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: medalColor,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            SizedBox(height: 10),
-            // Name
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
+            // Name on diamond
+            Container(
+              width: 90,
+              alignment: Alignment.center,
               child: Text(
                 entry['displayName'],
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 12,
+                  color: Colors.white,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(height: 4),
-            // Level
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star, size: 10, color: Color(0xFFFFD700)),
-                  SizedBox(width: 3),
-                  Text(
-                    'Lv ${entry['level']}',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 8),
-            // Podium
-            Container(
-              width: double.infinity,
-              height: height,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    medalColor.withOpacity(0.8),
-                    medalColor.withOpacity(0.5),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            // Badge at bottom
+            Positioned(
+              bottom: -18,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${entry['score']}',
+                child: Center(
+                  child: Text(
+                    '$rank',
                     style: TextStyle(
-                      color: Colors.black87,
+                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    'XP',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
         ),
-      ),
+        SizedBox(height: 22),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFFDC),
+      backgroundColor: const Color(0xFFCFFFF7), // Light cyan/mint
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAFFDC),
+        backgroundColor: const Color(0xFFCFFFF7),
         elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Global Leaderboard',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Container(
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Color(0xFF69D3E4).withOpacity(0.3),
+                width: 1,
               ),
             ),
-          ],
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(100),
+                onTap: () => Navigator.pop(context),
+                child: Icon(
+                  Icons.arrow_back,
+                  color: Color(0xFF69D3E4),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          'Leaderboard',
+          style: TextStyle(
+            color: Color(0xFF69D3E4),
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Container(
+              margin: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Color(0xFF69D3E4).withOpacity(0.3),
                   width: 1,
                 ),
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                   onTap: _loadLeaderboard,
                   child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: Icon(
-                      Icons.refresh_rounded,
-                      color: Colors.black87,
-                      size: 22,
+                      Icons.share_outlined,
+                      color: Color(0xFF69D3E4),
+                      size: 20,
                     ),
                   ),
                 ),
@@ -553,7 +449,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2c5cb0)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF69D3E4)),
               ),
             )
           : _leaderboard.isEmpty
@@ -572,6 +468,61 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             )
           : Column(
               children: [
+                // Weekly/All Time Toggle
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF69D3E4).withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF69D3E4),
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: Text(
+                              'Weekly',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              'All Time',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF69D3E4),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 // Top 3 Podium
                 _buildTopThreePodium(),
 
@@ -582,14 +533,17 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Color(0xFF2c5cb0), Color(0xFF1e4a8a)],
+                        colors: [
+                          Color(0xFF69D3E4),
+                          Color(0xFFA4A9FC),
+                        ], // Palette colors
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0xFF2c5cb0).withOpacity(0.4),
+                          color: Color(0xFF69D3E4).withOpacity(0.4),
                           blurRadius: 16,
                           offset: Offset(0, 8),
                         ),
@@ -641,197 +595,180 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     ),
                   ),
 
-                // Section Header
-                Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF2c5cb0).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '📊 All Rankings',
-                          style: TextStyle(
-                            color: Color(0xFF2c5cb0),
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
+                // Table Container
                 Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: _leaderboard.length,
-                    itemBuilder: (context, index) {
-                      final entry = _leaderboard[index];
-                      final isCurrentUser = entry['isCurrentUser'] as bool;
-                      final rank = entry['rank'] as int;
-                      final isTopThree = rank <= 3;
-
-                      // Don't show top 3 in the list since they're in the podium
-                      if (isTopThree) return SizedBox.shrink();
-
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          gradient: isCurrentUser
-                              ? LinearGradient(
-                                  colors: [
-                                    Color(0xFFFFFF00).withOpacity(0.15),
-                                    Color(0xFFFFFF00).withOpacity(0.05),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                )
-                              : null,
-                          color: isCurrentUser ? null : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isCurrentUser
-                                ? Color(0xFFFFFF00)
-                                : Colors.transparent,
-                            width: isCurrentUser ? 2.5 : 0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isCurrentUser
-                                  ? Color(0xFFFFFF00).withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.06),
-                              blurRadius: isCurrentUser ? 12 : 6,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 15,
+                          offset: Offset(0, 5),
                         ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Table Header
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
                           ),
-                          leading: _buildRankBadge(rank, isCurrentUser),
-                          title: Row(
+                          decoration: BoxDecoration(
+                            color: Color(0xFF69D3E4), // Bright cyan
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          child: Row(
                             children: [
-                              Expanded(
+                              SizedBox(
+                                width: 60,
                                 child: Text(
-                                  entry['displayName'],
+                                  'Rank',
                                   style: TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 16,
-                                    fontWeight: isCurrentUser
-                                        ? FontWeight.bold
-                                        : FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (isCurrentUser)
-                                Container(
-                                  margin: EdgeInsets.only(left: 8),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color(0xFF2c5cb0),
-                                        Color(0xFF1e4a8a),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Color(
-                                          0xFF2c5cb0,
-                                        ).withOpacity(0.4),
-                                        blurRadius: 4,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    'YOU',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Name',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                              ),
+                              SizedBox(
+                                width: 80,
+                                child: Text(
+                                  'Points',
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                          subtitle: Padding(
-                            padding: EdgeInsets.only(top: 4),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFFFD700).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.star_rounded,
-                                        size: 14,
-                                        color: Color(0xFFFFD700),
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Level ${entry['level']}',
+                        ),
+
+                        // Table Content
+                        Expanded(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: _leaderboard
+                                .where((e) => e['rank'] > 3)
+                                .length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Colors.grey.shade200,
+                            ),
+                            itemBuilder: (context, index) {
+                              final allEntries = _leaderboard
+                                  .where((e) => e['rank'] > 3)
+                                  .toList();
+                              final entry = allEntries[index];
+                              final isCurrentUser =
+                                  entry['isCurrentUser'] as bool;
+                              final rank = entry['rank'] as int;
+
+                              return Container(
+                                color: isCurrentUser
+                                    ? Color(0xFFFFFFD0).withOpacity(
+                                        0.5,
+                                      ) // Light yellow from palette
+                                    : Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 60,
+                                      child: Text(
+                                        '${rank.toString().padLeft(2, '0')}',
                                         style: TextStyle(
                                           color: Colors.black87,
-                                          fontSize: 12,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              entry['displayName'],
+                                              style: TextStyle(
+                                                color: Colors.black87,
+                                                fontSize: 16,
+                                                fontWeight: isCurrentUser
+                                                    ? FontWeight.bold
+                                                    : FontWeight.w500,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (isCurrentUser)
+                                            Container(
+                                              margin: EdgeInsets.only(left: 8),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF69D3E4),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                'YOU',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 80,
+                                      child: Text(
+                                        '${entry['score']}',
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                          trailing: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color(0xFF2c5cb0).withOpacity(0.1),
-                                  Color(0xFF2c5cb0).withOpacity(0.05),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${entry['score']} XP',
-                              style: TextStyle(
-                                color: Color(0xFF2c5cb0),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                 ),
               ],
