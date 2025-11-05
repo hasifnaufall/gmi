@@ -227,6 +227,13 @@ app.get('/users/combined', verifyAuth, requireAdmin, async (req, res) => {
       progress: progressData[user.uid] || null
     }));
 
+    // Sort by last sign-in time (most recent first)
+    combinedUsers.sort((a, b) => {
+      const timeA = a.lastSignInTime ? new Date(a.lastSignInTime).getTime() : 0;
+      const timeB = b.lastSignInTime ? new Date(b.lastSignInTime).getTime() : 0;
+      return timeB - timeA; // Descending order (most recent first)
+    });
+
     res.send(combinedUsers);
   } catch (error) {
     console.error('Error fetching combined user data:', error);
@@ -282,10 +289,29 @@ app.get('/leaderboard', verifyAuth, requireAdmin, async (req, res) => {
       .orderBy('level', 'desc')
       .limit(20)
       .get();
-    const leaderboard = snapshot.docs.map(doc => ({
-      userId: doc.id,
-      ...doc.data()
+    
+    // Fetch usernames for each user
+    const leaderboard = await Promise.all(snapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      let displayName = doc.id; // Default to userId
+      
+      // Priority: changeName > displayName > email (before @)
+      if (data.changeName) {
+        displayName = data.changeName;
+      } else if (data.displayName) {
+        displayName = data.displayName;
+      } else if (data.email) {
+        // Extract part before @ from email
+        displayName = data.email.split('@')[0];
+      }
+      
+      return {
+        userId: doc.id,
+        displayName,
+        ...data
+      };
     }));
+    
     res.send(leaderboard);
   } catch (error) {
     res.status(500).send({ error: error.message });

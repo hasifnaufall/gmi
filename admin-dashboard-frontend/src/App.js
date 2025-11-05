@@ -58,21 +58,22 @@ function App() {
     try {
       // Fetch all data in parallel
       const [usersRes, analyticsRes, activitiesRes] = await Promise.all([
-        fetch(`${API_BASE}/users/combined`, authHeaders()),
-        fetch(`${API_BASE}/analytics/summary`, authHeaders()),
-        fetch(`${API_BASE}/activities/recent`, authHeaders())
+        fetch(`${API_BASE}/users/combined`, authHeaders()).catch(e => null),
+        fetch(`${API_BASE}/analytics/summary`, authHeaders()).catch(e => null),
+        fetch(`${API_BASE}/activities/recent`, authHeaders()).catch(e => null)
       ]);
 
-      const usersData = await usersRes.json();
-      const analyticsData = await analyticsRes.json();
-      const activitiesData = await activitiesRes.json();
+      const usersData = usersRes ? await usersRes.json().catch(() => []) : [];
+      const analyticsData = analyticsRes ? await analyticsRes.json().catch(() => ({})) : {};
+      const activitiesData = activitiesRes ? await activitiesRes.json().catch(() => []) : [];
 
       setUsers(usersData);
       setAnalytics(analyticsData);
       setActivities(activitiesData);
+      setError((!usersRes && !analyticsRes && !activitiesRes) ? 'Backend server not running. Please start the backend with the Firebase service account key.' : '');
       setLoading(false);
     } catch (err) {
-      setError('Failed to fetch data');
+      setError('Backend server not running. Please start the backend with the Firebase service account key.');
       setLoading(false);
     }
   };
@@ -80,6 +81,10 @@ function App() {
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch(`${API_BASE}/leaderboard`, authHeaders());
+      if (!res) {
+        setLeaderboard([]);
+        return;
+      }
       const data = await res.json();
       setLeaderboard(data);
     } catch (err) {
@@ -90,6 +95,10 @@ function App() {
   const fetchDisplayNameChanges = async () => {
     try {
       const res = await fetch(`${API_BASE}/display-name-changes`, authHeaders());
+      if (!res) {
+        setDisplayNameChanges([]);
+        return;
+      }
       const data = await res.json();
       console.log('Fetched display name changes:', data); // Debug log
       setDisplayNameChanges(data);
@@ -102,6 +111,10 @@ function App() {
   const fetchFeedback = async () => {
     try {
       const res = await fetch(`${API_BASE}/feedback`, authHeaders());
+      if (!res) {
+        setFeedback([]);
+        return;
+      }
       const data = await res.json();
       console.log('Fetched feedback:', data);
       setFeedback(data);
@@ -303,7 +316,7 @@ function App() {
             {leaderboard.map((user, idx) => (
               <tr key={user.userId}>
                 <td>{idx + 1}</td>
-                <td>{user.userId}</td>
+                <td>{user.displayName || user.userId}</td>
                 <td>{user.level}</td>
                 <td>{user.score}</td>
               </tr>
