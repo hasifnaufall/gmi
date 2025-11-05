@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sign_video_player.dart';
+import 'quest_status.dart';
 
 class AnimalsLearnScreen extends StatefulWidget {
   const AnimalsLearnScreen({super.key});
@@ -11,37 +12,35 @@ class AnimalsLearnScreen extends StatefulWidget {
 class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
   // Edit/expand this list as you add assets
   final List<Map<String, String>> _all = [
-    {"label": "Termite",      "video": "assets/videos/animals/anai.mp4"},
-    {"label": "Goose",        "video": "assets/videos/animals/angsa.mp4"},
-    {"label": "Dog",          "video": "assets/videos/animals/anjing.mp4"},
-    {"label": "Rabbit",       "video": "assets/videos/animals/arnab.mp4"},
-    {"label": "Chicken",      "video": "assets/videos/animals/ayam.mp4"},
-    {"label": "Pig",          "video": "assets/videos/animals/babi.mp4"},
-    {"label": "Rhinoceros",   "video": "assets/videos/animals/badak_sumbu.mp4"},
-    {"label": "Grasshopper",  "video": "assets/videos/animals/belalang.mp4"},
-    {"label": "Bear",         "video": "assets/videos/animals/beruang.mp4"},
-    {"label": "Monitor Lizard","video": "assets/videos/animals/biawak.mp4"},
-    {"label": "Sheep",        "video": "assets/videos/animals/biri.mp4"},
-    {"label": "Crocodile",    "video": "assets/videos/animals/buaya.mp4"},
-    {"label": "Bird",         "video": "assets/videos/animals/burung.mp4"},
-    {"label": "Lizard",       "video": "assets/videos/animals/cicak.mp4"},
-    {"label": "Elephant",     "video": "assets/videos/animals/gajah.mp4"},
-    {"label": "Gorilla",      "video": "assets/videos/animals/gorila.mp4"},
-    {"label": "Tiger",        "video": "assets/videos/animals/harimau.mp4"},
-    {"label": "Eagle",        "video": "assets/videos/animals/helang.mp4"},
-    {"label": "Fish",         "video": "assets/videos/animals/ikan.mp4"},
-    {"label": "Duck",         "video": "assets/videos/animals/itik.mp4"},
-    {"label": "Scorpion",     "video": "assets/videos/animals/jengking.mp4"},
-    {"label": "Goat",         "video": "assets/videos/animals/kambing.mp4"},
-    {"label": "Mouse Deer",   "video": "assets/videos/animals/kancil.mp4"},
-    {"label": "Spider",       "video": "assets/videos/animals/labah.mp4"},
-    {"label": "Butterfly",    "video": "assets/videos/animals/rama_rama.mp4"},
-    {"label": "Lion",         "video": "assets/videos/animals/singa.mp4"},
-    {"label": "Giraffe",      "video": "assets/videos/animals/zirafah.mp4"},
+    {"label": "Termite", "video": "assets/videos/animals/anai.mp4"},
+    {"label": "Goose", "video": "assets/videos/animals/angsa.mp4"},
+    {"label": "Dog", "video": "assets/videos/animals/anjing.mp4"},
+    {"label": "Rabbit", "video": "assets/videos/animals/arnab.mp4"},
+    {"label": "Chicken", "video": "assets/videos/animals/ayam.mp4"},
+    {"label": "Pig", "video": "assets/videos/animals/babi.mp4"},
+    {"label": "Rhinoceros", "video": "assets/videos/animals/badak_sumbu.mp4"},
+    {"label": "Grasshopper", "video": "assets/videos/animals/belalang.mp4"},
+    {"label": "Bear", "video": "assets/videos/animals/beruang.mp4"},
+    {"label": "Monitor Lizard", "video": "assets/videos/animals/biawak.mp4"},
+    {"label": "Sheep", "video": "assets/videos/animals/biri.mp4"},
+    {"label": "Crocodile", "video": "assets/videos/animals/buaya.mp4"},
+    {"label": "Bird", "video": "assets/videos/animals/burung.mp4"},
+    {"label": "Lizard", "video": "assets/videos/animals/cicak.mp4"},
+    {"label": "Elephant", "video": "assets/videos/animals/gajah.mp4"},
+    {"label": "Gorilla", "video": "assets/videos/animals/gorila.mp4"},
+    {"label": "Tiger", "video": "assets/videos/animals/harimau.mp4"},
+    {"label": "Eagle", "video": "assets/videos/animals/helang.mp4"},
+    {"label": "Fish", "video": "assets/videos/animals/ikan.mp4"},
+    {"label": "Duck", "video": "assets/videos/animals/itik.mp4"},
+    {"label": "Scorpion", "video": "assets/videos/animals/jengking.mp4"},
+    {"label": "Goat", "video": "assets/videos/animals/kambing.mp4"},
+    {"label": "Mouse Deer", "video": "assets/videos/animals/kancil.mp4"},
+    {"label": "Spider", "video": "assets/videos/animals/labah.mp4"},
+    {"label": "Butterfly", "video": "assets/videos/animals/rama_rama.mp4"},
+    {"label": "Lion", "video": "assets/videos/animals/singa.mp4"},
+    {"label": "Giraffe", "video": "assets/videos/animals/zirafah.mp4"},
   ];
 
-
-  final Set<String> _watched = {};
   String _query = "";
   int _columns = 3;
 
@@ -55,16 +54,18 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
     final watched = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => SignVideoPlayer(
-          title: item['label']!,
-          videoPath: item['video']!,
-        ),
+        builder: (_) =>
+            SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
       ),
     );
     if (!mounted) return;
 
     if (watched == true) {
-      setState(() => _watched.add(item['label']!));
+      setState(() => QuestStatus.watchedAnimals.add(item['label']!));
+
+      // Save progress to database
+      await QuestStatus.autoSaveProgress();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Marked ${item['label']} as watched ✅'),
@@ -77,7 +78,7 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final watchedCount = _watched.length;
+    final watchedCount = QuestStatus.watchedAnimals.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -96,7 +97,9 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
           IconButton(
             tooltip: _columns == 3 ? "Bigger cards" : "More per row",
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
-            icon: Icon(_columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt),
+            icon: Icon(
+              _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
+            ),
           ),
         ],
       ),
@@ -116,7 +119,10 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
                       isDense: true,
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -126,7 +132,10 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEEF9FF),
                     borderRadius: BorderRadius.circular(10),
@@ -134,10 +143,16 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome, color: Color(0xFF0EA5E9), size: 18),
+                      const Icon(
+                        Icons.auto_awesome,
+                        color: Color(0xFF0EA5E9),
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
-                      Text("$watchedCount / ${_all.length}",
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(
+                        "$watchedCount / ${_all.length}",
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ],
                   ),
                 ),
@@ -159,7 +174,7 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
               itemBuilder: (context, index) {
                 final item = _filtered[index];
                 final label = item['label']!;
-                final watched = _watched.contains(label);
+                final watched = QuestStatus.watchedAnimals.contains(label);
 
                 final gradients = [
                   [const Color(0xFFFF9A9E), const Color(0xFFFAD0C4)],
@@ -202,11 +217,16 @@ class _AnimalCard extends StatefulWidget {
   State<_AnimalCard> createState() => _AnimalCardState();
 }
 
-class _AnimalCardState extends State<_AnimalCard> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-  AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
-  late final Animation<double> _scale =
-  Tween<double>(begin: 1.0, end: 0.97).animate(_ctrl);
+class _AnimalCardState extends State<_AnimalCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 120),
+  );
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 0.97,
+  ).animate(_ctrl);
 
   @override
   void dispose() {
@@ -260,21 +280,29 @@ class _AnimalCardState extends State<_AnimalCard> with SingleTickerProviderState
                 right: 10,
                 bottom: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.play_circle_fill, size: 18,
-                          color: widget.watched ? Colors.green : Colors.black87),
+                      Icon(
+                        Icons.play_circle_fill,
+                        size: 18,
+                        color: widget.watched ? Colors.green : Colors.black87,
+                      ),
                       const SizedBox(width: 6),
-                      Text(widget.watched ? "Watched" : "Learn",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: widget.watched ? Colors.green : Colors.black87,
-                          )),
+                      Text(
+                        widget.watched ? "Watched" : "Learn",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: widget.watched ? Colors.green : Colors.black87,
+                        ),
+                      ),
                     ],
                   ),
                 ),

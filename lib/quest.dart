@@ -275,7 +275,11 @@ class _QuestScreenState extends State<QuestScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.stars, color: Colors.white, size: 20),
+                              Icon(
+                                Icons.key_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 '${QuestStatus.userPoints}',
@@ -406,7 +410,7 @@ class _QuestScreenState extends State<QuestScreen> {
                       Container(
                         height: 8,
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.grey.shade300, // Grey background
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: LayoutBuilder(
@@ -1239,9 +1243,13 @@ class _FunQuestItem extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(56, 22),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  backgroundColor: canClaim
-                      ? const Color(0xFF4CAF50)
-                      : Colors.grey.shade400,
+                  backgroundColor: isClaimed
+                      ? const Color(
+                          0xFF8E24AA,
+                        ) // Darker purple for DONE (already claimed)
+                      : canClaim
+                      ? const Color(0xFF4CAF50) // Green for CLAIM (can claim)
+                      : Colors.grey.shade300, // Light grey for locked
                   foregroundColor: Colors.white,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
