@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Audio
 import 'package:audioplayers/audioplayers.dart';
@@ -90,7 +91,10 @@ class WaveActApp extends StatelessWidget {
       title: 'WaveAct',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'Arial',
+        textTheme: GoogleFonts.montserratTextTheme(
+          Theme.of(context).textTheme,
+        ),
+        fontFamily: GoogleFonts.montserrat().fontFamily,
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: <TargetPlatform, PageTransitionsBuilder>{
             TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),

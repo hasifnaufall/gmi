@@ -1,5 +1,8 @@
 // lib/quiz_category.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'leaderboard.dart';
 import 'profile.dart';
@@ -20,6 +23,107 @@ import 'animals_learn.dart';
 import 'animals_q.dart';
 import 'verb_learn.dart';
 import 'verb_q.dart';
+
+/// ===================
+/// Candy Crush Path Painter
+/// ===================
+class _LevelPathPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.7)
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final dottedPaint = Paint()
+      ..color = Color(0xFF69D3E4)
+          .withOpacity(0.5) // Bright cyan theme
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // Define path points (matching the positioned widgets) - Creating a smooth S-curve
+    final path = Path();
+
+    // Start from bottom left (Alphabet - 40, 30)
+    path.moveTo(82, size.height - 72);
+
+    // Smooth curve to Numbers (middle center - 140, 130)
+    path.cubicTo(
+      100,
+      size.height - 100, // control point 1
+      120,
+      size.height - 150, // control point 2
+      182,
+      size.height - 172, // end point (Numbers)
+    );
+
+    // Smooth curve to Colour (right side - right:30, 220)
+    path.cubicTo(
+      220,
+      size.height - 190, // control point 1
+      size.width - 80,
+      size.height - 210, // control point 2
+      size.width - 72,
+      size.height - 262, // end point (Colour)
+    );
+
+    // Smooth curve back to Fruits (middle left - 100, 320)
+    path.cubicTo(
+      size.width - 100,
+      size.height - 290, // control point 1
+      180,
+      size.height - 310, // control point 2
+      142,
+      size.height - 362, // end point (Fruits)
+    );
+
+    // Smooth curve to Animals (right side upper - right:45, 420)
+    path.cubicTo(
+      170,
+      size.height - 390, // control point 1
+      size.width - 100,
+      size.height - 410, // control point 2
+      size.width - 87,
+      size.height - 462, // end point (Animals)
+    );
+
+    // Smooth curve to Verbs (top center - 130, 510)
+    path.cubicTo(
+      size.width - 120,
+      size.height - 490, // control point 1
+      200,
+      size.height - 510, // control point 2
+      172,
+      size.height - 552, // end point (Verbs)
+    );
+
+    // Draw white base path
+    canvas.drawPath(path, paint);
+
+    // Draw pink dotted overlay
+    final metrics = path.computeMetrics().toList();
+    for (var metric in metrics) {
+      double distance = 0.0;
+      final dashWidth = 15.0;
+      final dashSpace = 10.0;
+
+      while (distance < metric.length) {
+        final start = distance;
+        final end = (distance + dashWidth).clamp(0.0, metric.length);
+
+        final extractPath = metric.extractPath(start, end);
+        canvas.drawPath(extractPath, dottedPaint);
+
+        distance += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 /// ===================
 /// Top-level helper used in popup
@@ -83,7 +187,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
   bool _loadingProgress = true;
-  String _userName = 'User';
+  String _userName = '';
+  int? _userRank;
+  bool _loadingRank = true;
 
   @override
   void initState() {
@@ -96,11 +202,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       await _loadUserProgress();
       await _loadUserName();
       await _loadUnlocks();
+      await _loadUserRank();
     } catch (_) {
       if (mounted) {
         setState(() {
           _loadingProgress = false;
           _loadingUnlocks = false;
+          _loadingRank = false;
         });
       }
     }
@@ -108,11 +216,19 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   Future<void> _loadUserName() async {
     try {
-      final displayName = await UserProgressService().getDisplayName();
-      if (mounted && displayName != null && displayName.isNotEmpty) {
-        setState(() => _userName = displayName);
+      final name = await UserProgressService().getDisplayName();
+      if (name != null && name.isNotEmpty) {
+        setState(() => _userName = name);
+      } else {
+        // Fallback to email username
+        final user = FirebaseAuth.instance.currentUser;
+        if (user?.email != null) {
+          setState(() => _userName = user!.email!.split('@').first);
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      print('Error loading username: $e');
+    }
   }
 
   Future<void> _loadUserProgress() async {
@@ -142,6 +258,58 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     setState(() => _loadingUnlocks = false);
   }
 
+  Future<void> _loadUserRank() async {
+    try {
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserId == null) {
+        if (mounted) setState(() => _loadingRank = false);
+        return;
+      }
+
+      // Fetch all users and calculate rank locally
+      final allUsersSnapshot = await FirebaseFirestore.instance
+          .collection('progress')
+          .get();
+
+      // Create a list of users with their level and score
+      List<Map<String, dynamic>> allUsers = [];
+      for (var doc in allUsersSnapshot.docs) {
+        final data = doc.data();
+        allUsers.add({
+          'userId': doc.id,
+          'level': data['level'] ?? 0,
+          'score': data['score'] ?? 0,
+        });
+      }
+
+      // Sort users by level (descending), then by score (descending)
+      allUsers.sort((a, b) {
+        int levelCompare = (b['level'] as int).compareTo(a['level'] as int);
+        if (levelCompare != 0) return levelCompare;
+        return (b['score'] as int).compareTo(a['score'] as int);
+      });
+
+      // Find current user's rank
+      int rank = 1;
+      for (var user in allUsers) {
+        if (user['userId'] == currentUserId) {
+          break;
+        }
+        rank++;
+      }
+
+      if (mounted) {
+        setState(() {
+          _userRank = rank;
+          _loadingRank = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading user rank: $e');
+      if (mounted) setState(() => _loadingRank = false);
+    }
+  }
+
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
     setState(() => _selectedIndex = index);
@@ -168,6 +336,135 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         );
         break;
     }
+  }
+
+  void _showNavigationMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFCFFFF7), // Light mint from palette
+                Color(0xFFFFFFD0), // Light yellow from palette
+              ],
+            ),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25),
+              topRight: Radius.circular(25),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Color(0xFF9B8563).withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              SizedBox(height: 20),
+              _buildMenuTile(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                emoji: '🏠',
+                isSelected: _selectedIndex == 0,
+                onTap: () {
+                  Navigator.pop(context);
+                  _onItemTapped(0);
+                },
+              ),
+              _buildMenuTile(
+                icon: Icons.menu_book_rounded,
+                label: 'Quest',
+                emoji: '📚',
+                isSelected: _selectedIndex == 1,
+                onTap: () {
+                  Navigator.pop(context);
+                  _onItemTapped(1);
+                },
+              ),
+              _buildMenuTile(
+                icon: Icons.leaderboard,
+                label: 'Ranking',
+                emoji: '🏆',
+                isSelected: _selectedIndex == 2,
+                onTap: () {
+                  Navigator.pop(context);
+                  _onItemTapped(2);
+                },
+              ),
+              _buildMenuTile(
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                emoji: '👤',
+                isSelected: _selectedIndex == 3,
+                onTap: () {
+                  Navigator.pop(context);
+                  _onItemTapped(3);
+                },
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuTile({
+    required IconData icon,
+    required String label,
+    required String emoji,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Color(0xFF9B8563).withOpacity(0.3)
+                      : Color(0xFF9B8563).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(emoji, style: TextStyle(fontSize: 24)),
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color: Color(0xFF9B8563),
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Icon(Icons.check_circle, color: Color(0xFF9B8563), size: 24),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _triggerQuest1() {
@@ -677,7 +974,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return Container(
-      color: const Color(0xFFFAFFDC),
+      decoration: BoxDecoration(
+        color: Color(0xFFCFFFF7), // Light mint background
+      ),
       child: SafeArea(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -686,58 +985,161 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Greeting + avatar
+                // Top bar with menu and points
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    IconButton(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Color(0xFF69D3E4),
+                        size: 28,
+                      ),
+                      onPressed: () => _showNavigationMenu(),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFF5E6C8),
+                            Color(0xFFF0DDB8),
+                          ], // Cream/beige from screenshot
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            'Hi, $_userName',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
+                          Icon(
+                            Icons.vpn_key,
+                            color: Color(0xFFC4A574), // Warm brown from screenshot
+                            size: 20,
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            "Let's make this day productive",
+                          SizedBox(width: 8),
+                          Text(
+                            '${QuestStatus.userPoints}',
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
+                              color: Color(0xFFC4A574),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.person, color: Colors.blueAccent),
-                    ),
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // Compact stats card
-                _buildCompactStatsCard(
-                  leftIcon: Icons.emoji_events_rounded,
-                  leftLabel: 'Level',
-                  leftValue: '${QuestStatus.level}',
-                  rightIcon: Icons.key_rounded,
-                  rightLabel: 'Keys',
-                  rightValue: '${QuestStatus.userPoints}',
+                // Premium banner
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFFCFFFF7),
+                        Color(0xFFA4A9FC).withOpacity(0.3),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF69D3E4).withOpacity(0.15),
+                        blurRadius: 15,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Welcome message
+                            Text(
+                              'Welcome to WaveAct',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF69D3E4),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            // User greeting
+                            Text(
+                              'Hi, ${_userName.isNotEmpty ? _userName : 'User'}',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1A202C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      // WaveAct logo
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF69D3E4).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: 24),
 
-                const Text(
-                  "Let's play",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                // Three icon buttons row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildIconButton(
+                      icon: Icons.emoji_events,
+                      label: 'Ranked',
+                      color: Color(0xFF9DB4C0), // Muted blue-gray
+                      displayText: '${QuestStatus.level}',
+                      onTap: () {},
+                    ),
+                    _buildIconButton(
+                      icon: Icons.star,
+                      label: 'Livequiz',
+                      color: Color(0xFFFFFFD0), // Light yellow
+                      iconColor: Color(0xFFD4A574),
+                      displayText: '${QuestStatus.streakDays}',
+                      textColor: Color(0xFFD4A574),
+                      onTap: () {},
+                    ),
+                    _buildRankButton(),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                Text(
+                  "Today's Quiz",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF8FA9B5), // Muted blue-gray
+                  ),
                 ),
                 const SizedBox(height: 14),
 
@@ -936,7 +1338,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                       questions: 15,
                       imageAsset: 'assets/images/verb/VERBS.jpg',
                       imageWidth: 92,
-                      isUnlocked: kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelVerbs),
+                      isUnlocked:
+                          kUnlocksDisabled ||
+                          QuestStatus.isContentUnlocked(QuestStatus.levelVerbs),
                       onTap: () {
                         _handleOpenOrUnlock(
                           key: QuestStatus.levelVerbs,
@@ -947,18 +1351,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               onLearn: () async {
                                 await Navigator.push(
                                   context,
-                                  _buildImmersiveRoute(
-                                    const VerbLearnScreen(),
-                                  ),
+                                  _buildImmersiveRoute(const VerbLearnScreen()),
                                 );
                                 await QuestStatus.autoSaveProgress();
                               },
                               onQuiz: () async {
                                 await Navigator.push(
                                   context,
-                                  _buildImmersiveRoute(
-                                    const VerbQuizScreen(),
-                                  ),
+                                  _buildImmersiveRoute(const VerbQuizScreen()),
                                 );
                                 await QuestStatus.autoSaveProgress();
                                 if (!mounted) return;
@@ -974,7 +1374,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               ],
             ),
           ),
-          bottomNavigationBar: _buildModernNavBar(),
         ),
       ),
     );
@@ -982,69 +1381,237 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   // ===== UI BUILDERS =====
 
-  Widget _buildCompactStatsCard({
-    required IconData leftIcon,
-    required String leftLabel,
-    required String leftValue,
-    required IconData rightIcon,
-    required String rightLabel,
-    required String rightValue,
+  Widget _buildCandyCrushLevel({
+    required int level,
+    required String title,
+    required String imageAsset,
+    required bool isUnlocked,
+    required bool isCompleted,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
         children: [
-          _statItem(leftIcon, leftLabel, leftValue),
-          const VerticalDivider(thickness: 0.8, color: Color(0xFFECECEC)),
-          _statItem(rightIcon, rightLabel, rightValue),
+          Container(
+            width: 85,
+            height: 85,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isUnlocked
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isCompleted
+                          ? [
+                              Color(0xFFFFFFD0),
+                              Color(0xFFFFF7D1),
+                            ] // Yellow theme for completed
+                          : [
+                              Color(0xFF69D3E4),
+                              Color(0xFFA4A9FC),
+                            ], // Cyan to periwinkle theme
+                    )
+                  : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFD0D0D0),
+                        Color(0xFFB0B0B0),
+                      ], // Gray for locked
+                    ),
+              border: Border.all(color: Colors.white, width: 4),
+              boxShadow: [
+                BoxShadow(
+                  color: isUnlocked
+                      ? Color(0xFF69D3E4).withOpacity(0.4)
+                      : Colors.grey.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Lock overlay for locked levels
+                if (!isUnlocked)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                Center(
+                  child: isUnlocked
+                      ? Image.asset(
+                          imageAsset,
+                          width: 55,
+                          height: 55,
+                          fit: BoxFit.contain,
+                        )
+                      : Icon(Icons.lock, color: Colors.white, size: 40),
+                ),
+                if (isCompleted)
+                  Positioned(
+                    top: 5,
+                    right: 5,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF4CAF50),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Icon(Icons.check, color: Colors.white, size: 14),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!isUnlocked)
+                  Padding(
+                    padding: EdgeInsets.only(right: 4),
+                    child: Icon(Icons.lock, size: 12, color: Color(0xFF9B8563)),
+                  ),
+                Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isUnlocked ? Color(0xFF69D3E4) : Color(0xFF9B8563),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _statItem(IconData icon, String label, String value) {
-    return Expanded(
-      child: Row(
+  Widget _buildIconButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    Color? iconColor,
+    String? displayText,
+    Color? textColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F7FF),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Colors.amber[700], size: 22),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Center(
+              child: displayText != null
+                  ? Text(
+                      displayText,
+                      style: GoogleFonts.montserrat(
+                        color: textColor ?? Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : Icon(icon, color: iconColor ?? Colors.white, size: 32),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF8FA9B5), // Muted blue-gray
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRankButton() {
+    return Column(
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFF2C5263), // Very dark teal for maximum contrast
+            boxShadow: [
+              BoxShadow(
+                color: Color(0xFF2C5263).withOpacity(0.4),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: _loadingRank
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : _userRank != null
+                ? Text(
+                    '#$_userRank',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                : Icon(Icons.leaderboard, color: Colors.white, size: 32),
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Rank',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF69D3E4),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1058,13 +1625,17 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFCFCFC), Color(0xFFF7F5F0)],
+        ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Color(0xFF69D3E4).withOpacity(0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -1087,7 +1658,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF3F7FF),
+                              color: Color(0xFFEAF5F9),
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
@@ -1109,15 +1680,20 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   const Spacer(),
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
+                      color: Color(0xFF69D3E4),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$questions questions',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF69D3E4).withOpacity(0.7),
+                    ),
                   ),
                 ],
               ),
@@ -1126,11 +1702,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.65),
+                    color: Color(0xFFFCFCFC).withOpacity(0.92),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Center(
-                    child: Icon(Icons.lock, color: Colors.grey.shade600),
+                    child: Icon(Icons.lock, color: Color(0xFFAADCEC), size: 32),
                   ),
                 ),
               ),
@@ -1201,109 +1777,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       },
       transitionDuration: const Duration(milliseconds: 260),
       reverseTransitionDuration: const Duration(milliseconds: 220),
-    );
-  }
-
-  Widget _buildModernNavBar() {
-    final navItems = [
-      {
-        'label': 'Home',
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home_rounded,
-        'color': const Color(0xFF2563EB),
-        'emoji': '🏠',
-      },
-      {
-        'label': 'Quest',
-        'icon': Icons.menu_book_outlined,
-        'activeIcon': Icons.menu_book_rounded,
-        'color': const Color(0xFF22C55E),
-        'emoji': '📚',
-      },
-      {
-        'label': 'Ranking',
-        'icon': Icons.leaderboard_outlined,
-        'activeIcon': Icons.leaderboard,
-        'color': const Color(0xFF63539C),
-        'emoji': '🏆',
-      },
-      {
-        'label': 'Profile',
-        'icon': Icons.person_outline_rounded,
-        'activeIcon': Icons.person_rounded,
-        'color': const Color(0xFFF59E0B),
-        'emoji': '👤',
-      },
-    ];
-
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          height: 67,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            color: const Color(0xFF6ac5e6),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF6ac5e6).withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: List.generate(navItems.length, (i) {
-              final active = i == _selectedIndex;
-              final color = active
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.7);
-              final emoji = navItems[i]['emoji'] as String;
-
-              return Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () => _onItemTapped(i),
-                    child: Container(
-                      decoration: active
-                          ? BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            )
-                          : null,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(emoji, style: const TextStyle(fontSize: 20)),
-                          const SizedBox(height: 4),
-                          Text(
-                            navItems[i]['label'] as String,
-                            style: TextStyle(
-                              color: color,
-                              fontWeight: active
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
     );
   }
 }
