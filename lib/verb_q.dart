@@ -28,21 +28,81 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
   late Animation<double> _fadeAnimation;
 
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/verb/V1.jpg", "options": ["Lift", "Follow", "Discuss", "Wash"], "correctIndex": 0},
-    {"image": "assets/images/verb/V2.jpg", "options": ["Wait", "Read", "Chat", "Lift"], "correctIndex": 1},
-    {"image": "assets/images/verb/V3.jpg", "options": ["Select", "Rest", "Wash", "Borrow"], "correctIndex": 2},
-    {"image": "assets/images/verb/V4.jpg", "options": ["Sleep", "Follow", "Drink", "Bring"], "correctIndex": 3},
-    {"image": "assets/images/verb/V5.jpg", "options": ["Eat", "Select", "Read", "Chat"], "correctIndex": 0},
-    {"image": "assets/images/verb/V6.jpg", "options": ["Read", "Drink", "Discuss", "Rest"], "correctIndex": 1},
-    {"image": "assets/images/verb/V7.jpg", "options": ["Wash", "Borrow", "Select", "Lift"], "correctIndex": 2},
-    {"image": "assets/images/verb/V8.jpg", "options": ["Chat", "Sleep", "Bring", "Borrow"], "correctIndex": 3},
-    {"image": "assets/images/verb/V9.jpg", "options": ["Rest", "Lift", "Wash", "Wait"], "correctIndex": 0},
-    {"image": "assets/images/verb/V10.jpg", "options": ["Select", "Sleep", "Read", "Ride"], "correctIndex": 1},
-    {"image": "assets/images/verb/V11.jpg", "options": ["Eat", "Lift", "Wait", "Borrow"], "correctIndex": 2},
-    {"image": "assets/images/verb/V12.jpg", "options": ["Eat", "Bring", "Lift", "Ride"], "correctIndex": 3},
-    {"image": "assets/images/verb/V13.jpg", "options": ["Discuss", "Drink", "Eat", "Rest"], "correctIndex": 0},
-    {"image": "assets/images/verb/V14.jpg", "options": ["Lift", "Chat", "Bring", "Select"], "correctIndex": 1},
-    {"image": "assets/images/verb/V15.jpg", "options": ["Eat", "Read", "Follow", "Bring"], "correctIndex": 2},
+    {
+      "image": "assets/images/verb/V1.jpg",
+      "options": ["Lift", "Follow", "Discuss", "Wash"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/verb/V2.jpg",
+      "options": ["Wait", "Read", "Chat", "Lift"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/verb/V3.jpg",
+      "options": ["Select", "Rest", "Wash", "Borrow"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/verb/V4.jpg",
+      "options": ["Sleep", "Follow", "Drink", "Bring"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/verb/V5.jpg",
+      "options": ["Eat", "Select", "Read", "Chat"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/verb/V6.jpg",
+      "options": ["Read", "Drink", "Discuss", "Rest"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/verb/V7.jpg",
+      "options": ["Wash", "Borrow", "Select", "Lift"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/verb/V8.jpg",
+      "options": ["Chat", "Sleep", "Bring", "Borrow"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/verb/V9.jpg",
+      "options": ["Rest", "Lift", "Wash", "Wait"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/verb/V10.jpg",
+      "options": ["Select", "Sleep", "Read", "Ride"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/verb/V11.jpg",
+      "options": ["Eat", "Lift", "Wait", "Borrow"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/verb/V12.jpg",
+      "options": ["Eat", "Bring", "Lift", "Ride"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/verb/V13.jpg",
+      "options": ["Discuss", "Drink", "Eat", "Rest"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/verb/V14.jpg",
+      "options": ["Lift", "Chat", "Bring", "Select"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/verb/V15.jpg",
+      "options": ["Eat", "Read", "Follow", "Bring"],
+      "correctIndex": 2,
+    },
   ];
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
@@ -81,11 +141,18 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -115,7 +182,8 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message: "This action can't be undone and your progress this round will be lost.",
+        message:
+            "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -140,18 +208,38 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     if (isCorrect) {
       final oldLvl = QuestStatus.level;
       final levels = QuestStatus.addXp(20);
-      _showToast(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}", bgColor: const Color(0xFF2C5CB0));
+      _showToast(
+        icon: Icons.star,
+        title: "Correct!",
+        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
+        bgColor: const Color(0xFF2C5CB0),
+      );
 
       if (levels > 0) {
-        final newlyUnlocked = QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        final newlyUnlocked = QuestStatus.unlockedBetween(
+          oldLvl,
+          QuestStatus.level,
+        );
         for (final key in newlyUnlocked) {
-          _showToast(icon: Icons.lock_open, title: "New Level Unlocked!", subtitle: QuestStatus.titleFor(key), bgColor: const Color(0xFFFF4B4A));
+          _showToast(
+            icon: Icons.lock_open,
+            title: "New Level Unlocked!",
+            subtitle: QuestStatus.titleFor(key),
+            bgColor: const Color(0xFFFF4B4A),
+          );
           await Future.delayed(const Duration(milliseconds: 300));
         }
       }
     } else {
-      final correctValue = (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
-      _showToast(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctValue", bgColor: const Color(0xFFFF4B4A));
+      final correctValue =
+          (questions[qIdx]['options'] as List<dynamic>)[correctIndex]
+              .toString();
+      _showToast(
+        icon: Icons.close,
+        title: "Incorrect",
+        subtitle: "Correct: $correctValue",
+        bgColor: const Color(0xFFFF4B4A),
+      );
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
@@ -159,20 +247,37 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
-      final sessionScore = activeIndices.where((i) => _sessionAnswers[i] == true).length;
-      _showToast(icon: Icons.emoji_events, title: "Quiz Complete!", subtitle: "Score: $sessionScore/${activeIndices.length}", bgColor: const Color(0xFF2C5CB0));
+      final sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
+      _showToast(
+        icon: Icons.emoji_events,
+        title: "Quiz Complete!",
+        subtitle: "Score: $sessionScore/${activeIndices.length}",
+        bgColor: const Color(0xFF2C5CB0),
+      );
 
       await Sfx().playLevelComplete();
 
       final justEarned = QuestStatus.markFirstQuizMedalEarned();
       if (justEarned && mounted) {
-        _showToast(icon: Icons.military_tech, title: "Medal unlocked!", subtitle: "Finish your first quiz", bgColor: const Color(0xFF2C5CB0));
+        _showToast(
+          icon: Icons.military_tech,
+          title: "Medal unlocked!",
+          subtitle: "Finish your first quiz",
+          bgColor: const Color(0xFF2C5CB0),
+        );
         await Future.delayed(const Duration(seconds: 2));
       }
 
       final didIncrease = QuestStatus.addStreakForLevel();
       if (didIncrease && mounted) {
-        _showToast(icon: Icons.local_fire_department, title: "Streak +1!", subtitle: "Current streak: ${QuestStatus.streakDays}", bgColor: const Color(0xFFFF4B4A));
+        _showToast(
+          icon: Icons.local_fire_department,
+          title: "Streak +1!",
+          subtitle: "Current streak: ${QuestStatus.streakDays}",
+          bgColor: const Color(0xFFFF4B4A),
+        );
         await Sfx().playStreak();
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -189,7 +294,10 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     } else {
       final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
-        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+          0,
+          activeIndices.length - 1,
+        );
         isOptionSelected = false;
         _pendingIndex = null;
         _controller.reset();
@@ -209,7 +317,12 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _VerbSlideInPopup(icon: icon, title: title, subtitle: subtitle, bgColor: bgColor),
+        child: _VerbSlideInPopup(
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          bgColor: bgColor,
+        ),
       ),
     );
     overlay.insert(entry);
@@ -225,8 +338,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
-      final int sessionScore =
-          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      final int sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
 
       await showDialog(
         context: context,
@@ -249,7 +363,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List).map((e) => e.toString()).toList();
+    final options = (question['options'] as List)
+        .map((e) => e.toString())
+        .toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
@@ -293,8 +409,15 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           },
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: const Color(0xFFEFF3FF), borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF2C5CB0), size: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF3FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Color(0xFF2C5CB0),
+              size: 20,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -302,20 +425,41 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Verb Level", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2C5CB0), letterSpacing: -0.5)),
+              const Text(
+                "Verb Level",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C5CB0),
+                  letterSpacing: -0.5,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text("Question ${currentSlot + 1} of ${activeIndices.length}", style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(
+                "Question ${currentSlot + 1} of ${activeIndices.length}",
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(color: const Color(0xFF2C5CB0), borderRadius: BorderRadius.circular(18)),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2C5CB0),
+            borderRadius: BorderRadius.circular(18),
+          ),
           child: Row(
             children: [
               const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
               const SizedBox(width: 4),
-              Text("Lvl ${QuestStatus.level}", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text(
+                "Lvl ${QuestStatus.level}",
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
@@ -334,7 +478,11 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
+    Widget segment({
+      required Color color,
+      required int flex,
+      required BorderRadius radius,
+    }) {
       if (flex <= 0) return const SizedBox.shrink();
       return Expanded(
         flex: flex,
@@ -356,7 +504,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         segment(
           color: const Color(0xFF44b427),
           flex: correct,
-          radius: hasWrong || hasRemaining ? const BorderRadius.horizontal(left: Radius.circular(8)) : BorderRadius.circular(8),
+          radius: hasWrong || hasRemaining
+              ? const BorderRadius.horizontal(left: Radius.circular(8))
+              : BorderRadius.circular(8),
         ),
       );
     }
@@ -366,7 +516,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         segment(
           color: const Color(0xFFFF4B4A),
           flex: wrong,
-          radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(8) : BorderRadius.zero,
+          radius: (!hasCorrect && !hasRemaining)
+              ? BorderRadius.circular(8)
+              : BorderRadius.zero,
         ),
       );
     }
@@ -376,7 +528,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         segment(
           color: const Color(0xFFE8EEF9),
           flex: remaining,
-          radius: (hasCorrect || hasWrong) ? const BorderRadius.horizontal(right: Radius.circular(8)) : BorderRadius.circular(8),
+          radius: (hasCorrect || hasWrong)
+              ? const BorderRadius.horizontal(right: Radius.circular(8))
+              : BorderRadius.circular(8),
         ),
       );
     }
@@ -386,7 +540,11 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          decoration: BoxDecoration(color: const Color(0xFFF2F6FF), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE3E6EE))),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F6FF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE3E6EE)),
+          ),
           child: Row(children: bars),
         ),
         const SizedBox(height: 6),
@@ -415,12 +573,21 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           const Text(
             "What verb is shown?",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF2C5CB0), letterSpacing: -0.3),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2C5CB0),
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE3E6EE))),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE3E6EE)),
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -434,9 +601,16 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey),
+                          Icon(
+                            Icons.broken_image_rounded,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 8),
-                          Text('Image not found', style: TextStyle(color: Colors.grey)),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         ],
                       ),
                     ),
@@ -450,15 +624,27 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     );
   }
 
-  Widget _buildOptionsGrid(List<String> options, int qIdx, Map<String, dynamic> question) {
+  Widget _buildOptionsGrid(
+    List<String> options,
+    int qIdx,
+    Map<String, dynamic> question,
+  ) {
     return Expanded(
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 1.6,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
-          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+          final wasSelected =
+              alreadyAnswered &&
+              _sessionAnswers[qIdx] == isCorrect &&
+              isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -466,7 +652,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
-            onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index),
+            onTap: alreadyAnswered
+                ? null
+                : () => setState(() => _pendingIndex = index),
           );
         },
       ),
@@ -477,17 +665,40 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFFF6F7FB), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE3E6EE))),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F7FB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE3E6EE)),
+      ),
       child: Row(
         children: [
           const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
           const SizedBox(width: 8),
-          Text('Selected: ${options[idx]}', style: const TextStyle(color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
-          const Spacer(),
-          TextButton(onPressed: () => setState(() => _pendingIndex = null), child: const Text('Cancel')),
+          Expanded(
+            child: Text(
+              'Selected: ${options[idx]}',
+              style: const TextStyle(
+                color: Color(0xFF2C5CB0),
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => setState(() => _pendingIndex = null),
+            child: const Text('Cancel'),
+          ),
           const SizedBox(width: 8),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C5CB0), foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2C5CB0),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
@@ -545,7 +756,10 @@ class OptionCard extends StatelessWidget {
                   backgroundColor: const Color(0xFF2C5CB0),
                   child: Text(
                     number.toString(),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -555,11 +769,14 @@ class OptionCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.black : const Color(0xFF2C5CB0),
+                      color: isSelected
+                          ? Colors.black
+                          : const Color(0xFF2C5CB0),
                     ),
                   ),
                 ),
-                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
+                if (isSelected)
+                  const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
               ],
             ),
           ),
@@ -578,9 +795,20 @@ class _LegendDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -605,11 +833,14 @@ class _VerbSlideInPopup extends StatefulWidget {
 
 class _VerbSlideInPopupState extends State<_VerbSlideInPopup>
     with SingleTickerProviderStateMixin {
-  late final AnimationController controller =
-  AnimationController(duration: const Duration(milliseconds: 280), vsync: this)..forward();
-  late final Animation<Offset> offsetAnimation =
-  Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
-      .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+  late final AnimationController controller = AnimationController(
+    duration: const Duration(milliseconds: 280),
+    vsync: this,
+  )..forward();
+  late final Animation<Offset> offsetAnimation = Tween<Offset>(
+    begin: const Offset(1.1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
   @override
   void dispose() {
@@ -636,10 +867,21 @@ class _VerbSlideInPopupState extends State<_VerbSlideInPopup>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title,
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(widget.subtitle,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -679,20 +921,32 @@ class _CleanConfirmDialog extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(color: Color(0xFFF4F7FF), shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF4F7FF),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, size: 34, color: Color(0xFF2C5CB0)),
             ),
             const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E1E1E), letterSpacing: -0.2),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E1E1E),
+                letterSpacing: -0.2,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35),
+              style: const TextStyle(
+                fontSize: 14.5,
+                color: Color(0xFF6B7280),
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: 18),
             Row(
@@ -702,11 +956,16 @@ class _CleanConfirmDialog extends StatelessWidget {
                     onPressed: () => Navigator.pop(context, false),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE5E7EB)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       foregroundColor: const Color(0xFF2C5CB0),
                     ),
-                    child: Text(secondaryLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(
+                      secondaryLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -717,10 +976,15 @@ class _CleanConfirmDialog extends StatelessWidget {
                       backgroundColor: const Color(0xFFFF4B4A),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(primaryLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    child: Text(
+                      primaryLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 ),
               ],

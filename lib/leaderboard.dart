@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'quiz_category.dart';
 
 class LeaderboardPage extends StatefulWidget {
@@ -258,8 +259,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         children: [
           // Second place
           if (second != null) _buildDiamondPodium(second, 2, 0),
-          // First place (higher)
-          if (first != null) _buildDiamondPodium(first, 1, 40),
+          // First place
+          if (first != null) _buildDiamondPodium(first, 1, 0),
           // Third place
           if (third != null) _buildDiamondPodium(third, 3, 0),
         ],
@@ -278,19 +279,19 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     String emoji;
 
     if (rank == 1) {
-      bgColor = Color(0xFF69D3E4); // Bright cyan from palette
+      bgColor = Color(0xFF0891B2); // Darker cyan for better visibility
       badgeColor = Color(0xFFFFD700); // Gold
       avatarBgColor = Color(0xFFFFF7D1); // Cream
       emoji = '🥇';
     } else if (rank == 2) {
-      bgColor = Color(0xFFA4A9FC); // Periwinkle from palette
+      bgColor = Color(0xFF7C7FCC); // Darker periwinkle for better visibility
       badgeColor = Color(0xFFC0C0C0); // Silver
       avatarBgColor = Color(0xFFCFFFF7); // Light mint
       emoji = '🥈';
     } else {
-      bgColor = Color(0xFF69D3E4).withOpacity(0.6); // Lighter cyan
+      bgColor = Color(0xFF0891B2).withOpacity(0.6); // Darker cyan with opacity
       badgeColor = Color(0xFFCD7F32); // Bronze
-      avatarBgColor = Color(0xFFFFFFD0); // Light yellow
+      avatarBgColor = Color(0xFFFFEB99); // Slightly darker yellow
       emoji = '🥉';
     }
 
@@ -308,7 +309,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
           child: Center(child: Text(emoji, style: TextStyle(fontSize: 32))),
         ),
-        SizedBox(height: extraHeight > 0 ? 8 : 0),
+        SizedBox(height: 8),
         // Diamond shape
         Stack(
           alignment: Alignment.center,
@@ -367,7 +368,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             ),
           ],
         ),
-        SizedBox(height: 22),
+        SizedBox(
+          height: 22 + extraHeight,
+        ), // Add extra height as bottom spacing
       ],
     );
   }
@@ -387,7 +390,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               color: Colors.white,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Color(0xFF69D3E4).withOpacity(0.3),
+                color: Color(0xFF0891B2).withOpacity(0.3), // Darker cyan
                 width: 1,
               ),
             ),
@@ -398,7 +401,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 onTap: () => Navigator.pop(context),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF69D3E4),
+                  color: Color(0xFF0891B2), // Darker cyan
                   size: 20,
                 ),
               ),
@@ -408,7 +411,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         title: Text(
           'Leaderboard',
           style: TextStyle(
-            color: Color(0xFF69D3E4),
+            color: Color(0xFF0891B2), // Darker cyan
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -423,7 +426,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Color(0xFF69D3E4).withOpacity(0.3),
+                  color: Color(0xFF0891B2).withOpacity(0.3), // Darker cyan
                   width: 1,
                 ),
               ),
@@ -436,7 +439,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     padding: const EdgeInsets.all(10),
                     child: Icon(
                       Icons.share_outlined,
-                      color: Color(0xFF69D3E4),
+                      color: Color(0xFF0891B2), // Darker cyan
                       size: 20,
                     ),
                   ),
@@ -449,7 +452,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF69D3E4)),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Color(0xFF0891B2),
+                ), // Darker cyan
               ),
             )
           : _leaderboard.isEmpty
@@ -478,7 +483,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0xFF69D3E4).withOpacity(0.2),
+                          color: Color(
+                            0xFF0891B2,
+                          ).withOpacity(0.2), // Darker cyan
                           blurRadius: 8,
                           offset: Offset(0, 2),
                         ),
@@ -490,7 +497,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: Color(0xFF69D3E4),
+                              color: Color(0xFF0891B2), // Darker cyan
                               borderRadius: BorderRadius.circular(22),
                             ),
                             child: Text(
@@ -511,7 +518,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                               'All Time',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Color(0xFF69D3E4),
+                                color: Color(0xFF0891B2), // Darker cyan
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -534,16 +541,18 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Color(0xFF69D3E4),
-                          Color(0xFFA4A9FC),
-                        ], // Palette colors
+                          Color(0xFF0891B2), // Darker cyan
+                          Color(0xFF7C7FCC), // Darker periwinkle
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0xFF69D3E4).withOpacity(0.4),
+                          color: Color(
+                            0xFF0891B2,
+                          ).withOpacity(0.4), // Darker cyan
                           blurRadius: 16,
                           offset: Offset(0, 8),
                         ),
@@ -619,7 +628,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             vertical: 16,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(0xFF69D3E4), // Bright cyan
+                            color: Color(0xFF0891B2), // Darker cyan
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
@@ -778,102 +787,95 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   }
 
   Widget _buildModernNavBar() {
-    final navItems = [
-      {
-        'label': 'Home',
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home_rounded,
-        'color': const Color(0xFF2563EB),
-        'emoji': '🏠',
-      },
-      {
-        'label': 'Quest',
-        'icon': Icons.menu_book_outlined,
-        'activeIcon': Icons.menu_book_rounded,
-        'color': const Color(0xFF22C55E),
-        'emoji': '📚',
-      },
-      {
-        'label': 'Ranking',
-        'icon': Icons.leaderboard_outlined,
-        'activeIcon': Icons.leaderboard,
-        'color': const Color(0xFF63539C),
-        'emoji': '🏆',
-      },
-      {
-        'label': 'Profile',
-        'icon': Icons.person_outline_rounded,
-        'activeIcon': Icons.person_rounded,
-        'color': const Color(0xFFF59E0B),
-        'emoji': '👤',
-      },
-    ];
-
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          height: 67,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            color: const Color(0xFF6ac5e6),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF6ac5e6).withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Color(0xFF0891B2).withOpacity(0.3),
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF0891B2).withOpacity(0.15),
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                emoji: '🏠',
+                label: 'Home',
+                isSelected: _selectedIndex == 0,
+                onTap: () => _onNavBarTap(0),
+              ),
+              _buildNavItem(
+                emoji: '📚',
+                label: 'Quest',
+                isSelected: _selectedIndex == 1,
+                onTap: () => _onNavBarTap(1),
+              ),
+              _buildNavItem(
+                emoji: '🏆',
+                label: 'Ranking',
+                isSelected: _selectedIndex == 2,
+                onTap: () => _onNavBarTap(2),
+              ),
+              _buildNavItem(
+                emoji: '👤',
+                label: 'Profile',
+                isSelected: _selectedIndex == 3,
+                onTap: () => _onNavBarTap(3),
               ),
             ],
           ),
-          child: Row(
-            children: List.generate(navItems.length, (i) {
-              final active = i == _selectedIndex;
-              final color = active
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.7);
-              final emoji = navItems[i]['emoji'] as String;
+        ),
+      ),
+    );
+  }
 
-              return Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () => _onNavBarTap(i),
-                    child: Container(
-                      decoration: active
-                          ? BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            )
-                          : null,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(emoji, style: const TextStyle(fontSize: 20)),
-                          const SizedBox(height: 4),
-                          Text(
-                            navItems[i]['label'] as String,
-                            style: TextStyle(
-                              color: color,
-                              fontWeight: active
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+  Widget _buildNavItem({
+    required String emoji,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Color(0xFF0891B2).withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: TextStyle(fontSize: isSelected ? 28 : 24)),
+              SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected
+                      ? Color(0xFF0891B2)
+                      : Color(0xFF2D5263).withOpacity(0.6),
                 ),
-              );
-            }),
+              ),
+            ],
           ),
         ),
       ),

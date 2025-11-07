@@ -31,142 +31,142 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     {
       "image": "assets/images/animal/anai.jpg",
       "options": ["Spider", "Cat", "Thermite", "Beetle"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     {
       "image": "assets/images/animal/angsa.jpg",
       "options": ["Chicken", "Dog", "Bear", "Goose"],
-      "correctIndex": 3
+      "correctIndex": 3,
     },
     {
       "image": "assets/images/animal/anjing.jpg",
       "options": ["Cat", "Dog", "Wolf", "Fox"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/arnab.jpg",
       "options": ["Rabbit", "Squirrel", "Mouse", "Guinea Pig"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/ayam.jpg",
       "options": ["Duck", "Chicken", "Turkey", "Peacock"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/babi.jpg",
       "options": ["Pig", "Boar", "Hippo", "Cow"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/badak sumbu.jpg",
       "options": ["Rhino", "Elephant", "Hippo", "Buffalo"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/belalang.jpg",
       "options": ["Grasshopper", "Cricket", "Mantis", "Beetle"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/beruang.jpg",
       "options": ["Wolf", "Bear", "Lion", "Tiger"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/biawak.jpg",
       "options": ["Monitor Lizard", "Iguana", "Crocodile", "Komodo"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/biri.jpg",
       "options": ["Goat", "Sheep", "Deer", "Antelope"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/buaya.jpg",
       "options": ["Alligator", "Crocodile", "Lizard", "Komodo"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/burung.jpg",
       "options": ["Bird", "Bat", "Butterfly", "Eagle"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/cicak.jpg",
       "options": ["Gecko", "Lizard", "Salamander", "Frog"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/gajah.jpg",
       "options": ["Rhino", "Hippo", "Elephant", "Buffalo"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     {
       "image": "assets/images/animal/gorila.jpg",
       "options": ["Chimpanzee", "Orangutan", "Gorilla", "Baboon"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     {
       "image": "assets/images/animal/harimau.jpg",
       "options": ["Lion", "Leopard", "Tiger", "Cheetah"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
     {
       "image": "assets/images/animal/helang.jpg",
       "options": ["Hawk", "Eagle", "Falcon", "Vulture"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/ikan.jpg",
       "options": ["Fish", "Dolphin", "Whale", "Shark"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/itik.jpg",
       "options": ["Duck", "Goose", "Swan", "Penguin"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/jengking.jpg",
       "options": ["Spider", "Scorpion", "Crab", "Lobster"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/kambing.jpg",
       "options": ["Sheep", "Goat", "Deer", "Antelope"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/kancil.jpg",
       "options": ["Mouse Deer", "Deer", "Rabbit", "Squirrel"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/Labah.jpg",
       "options": ["Spider", "Scorpion", "Beetle", "Ant"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/merak.jpg",
       "options": ["Peacock", "Pheasant", "Turkey", "Rooster"],
-      "correctIndex": 0
+      "correctIndex": 0,
     },
     {
       "image": "assets/images/animal/rama-rama.jpg",
       "options": ["Moth", "Butterfly", "Dragonfly", "Bee"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/singa.jpg",
       "options": ["Tiger", "Lion", "Leopard", "Cheetah"],
-      "correctIndex": 1
+      "correctIndex": 1,
     },
     {
       "image": "assets/images/animal/zirafah.jpg",
       "options": ["Deer", "Camel", "Giraffe", "Llama"],
-      "correctIndex": 2
+      "correctIndex": 2,
     },
   ];
 
@@ -206,12 +206,18 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller =
-        AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -242,7 +248,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-        "This action can't be undone and your progress this round will be lost.",
+            "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -275,8 +281,10 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       );
 
       if (levels > 0) {
-        final newlyUnlocked =
-        QuestStatus.unlockedBetween(oldLvl, QuestStatus.level);
+        final newlyUnlocked = QuestStatus.unlockedBetween(
+          oldLvl,
+          QuestStatus.level,
+        );
         for (final key in newlyUnlocked) {
           _showToast(
             icon: Icons.lock_open,
@@ -289,7 +297,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       }
     } else {
       final correctValue =
-      (questions[qIdx]['options'] as List<dynamic>)[correctIndex].toString();
+          (questions[qIdx]['options'] as List<dynamic>)[correctIndex]
+              .toString();
       _showToast(
         icon: Icons.close,
         title: "Incorrect",
@@ -302,8 +311,9 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
     if (_allAnsweredInSession()) {
       if (!mounted) return;
-      final sessionScore =
-          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      final sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
       _showToast(
         icon: Icons.emoji_events,
         title: "Quiz Complete!",
@@ -347,8 +357,10 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     } else {
       final nextSlot = _nextUnansweredSlotAfter(currentSlot);
       setState(() {
-        currentSlot =
-            (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+          0,
+          activeIndices.length - 1,
+        );
         isOptionSelected = false;
         _pendingIndex = null;
         _controller.reset();
@@ -389,8 +401,9 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
-      final int sessionScore =
-          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      final int sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
 
       await showDialog(
         context: context,
@@ -413,8 +426,9 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options =
-    (question['options'] as List).map((e) => e.toString()).toList();
+    final options = (question['options'] as List)
+        .map((e) => e.toString())
+        .toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
@@ -462,8 +476,11 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
               color: const Color(0xFFEFF3FF),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Color(0xFF2C5CB0), size: 20),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Color(0xFF2C5CB0),
+              size: 20,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -471,15 +488,20 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Animals Level",
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C5CB0),
-                      letterSpacing: -0.5)),
+              const Text(
+                "Animals Level",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C5CB0),
+                  letterSpacing: -0.5,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text("Question ${currentSlot + 1} of ${activeIndices.length}",
-                  style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(
+                "Question ${currentSlot + 1} of ${activeIndices.length}",
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
             ],
           ),
         ),
@@ -493,11 +515,14 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
             children: [
               const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
               const SizedBox(width: 4),
-              Text("Lvl ${QuestStatus.level}",
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white)),
+              Text(
+                "Lvl ${QuestStatus.level}",
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
@@ -612,18 +637,20 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
             "What animal is shown?",
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF2C5CB0),
-                letterSpacing: -0.3),
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2C5CB0),
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE3E6EE))),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE3E6EE)),
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -637,11 +664,16 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.broken_image_rounded,
-                              size: 36, color: Colors.grey),
+                          Icon(
+                            Icons.broken_image_rounded,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 8),
-                          Text('Image not found',
-                              style: TextStyle(color: Colors.grey)),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         ],
                       ),
                     ),
@@ -656,20 +688,26 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   }
 
   Widget _buildOptionsGrid(
-      List<String> options, int qIdx, Map<String, dynamic> question) {
+    List<String> options,
+    int qIdx,
+    Map<String, dynamic> question,
+  ) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.6,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16),
+          crossAxisCount: 2,
+          childAspectRatio: 1.6,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
           final wasSelected =
-              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+              alreadyAnswered &&
+              _sessionAnswers[qIdx] == isCorrect &&
+              isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return _OptionCard(
@@ -691,28 +729,39 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: const Color(0xFFF6F7FB),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE3E6EE))),
+        color: const Color(0xFFF6F7FB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE3E6EE)),
+      ),
       child: Row(
         children: [
           const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
           const SizedBox(width: 8),
-          Text('Selected: ${options[idx]}',
+          Expanded(
+            child: Text(
+              'Selected: ${options[idx]}',
               style: const TextStyle(
-                  color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
-          const Spacer(),
+                color: Color(0xFF2C5CB0),
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
           TextButton(
-              onPressed: () => setState(() => _pendingIndex = null),
-              child: const Text('Cancel')),
+            onPressed: () => setState(() => _pendingIndex = null),
+            child: const Text('Cancel'),
+          ),
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2C5CB0),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+              backgroundColor: const Color(0xFF2C5CB0),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
@@ -768,9 +817,13 @@ class _OptionCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: const Color(0xFF2C5CB0),
-                  child: Text(number.toString(),
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    number.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -779,7 +832,9 @@ class _OptionCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.black : const Color(0xFF2C5CB0),
+                      color: isSelected
+                          ? Colors.black
+                          : const Color(0xFF2C5CB0),
                     ),
                   ),
                 ),
@@ -804,16 +859,19 @@ class _LegendDot extends StatelessWidget {
     return Row(
       children: [
         Container(
-            width: 10,
-            height: 10,
-            decoration:
-            BoxDecoration(color: color, shape: BoxShape.circle)),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black54,
-                fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -839,11 +897,13 @@ class _SlideInToast extends StatefulWidget {
 class _SlideInToastState extends State<_SlideInToast>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller = AnimationController(
-      duration: const Duration(milliseconds: 280), vsync: this)
-    ..forward();
-  late final Animation<Offset> offsetAnimation =
-  Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero)
-      .animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+    duration: const Duration(milliseconds: 280),
+    vsync: this,
+  )..forward();
+  late final Animation<Offset> offsetAnimation = Tween<Offset>(
+    begin: const Offset(1.1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
 
   @override
   void dispose() {
@@ -870,14 +930,21 @@ class _SlideInToastState extends State<_SlideInToast>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold)),
-                    Text(widget.subtitle,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 14)),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -907,35 +974,43 @@ class _CleanConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding:
-      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape:
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-                width: 64,
-                height: 64,
-                decoration: const BoxDecoration(
-                    color: Color(0xFFF4F7FF), shape: BoxShape.circle),
-                child:
-                Icon(icon, size: 34, color: Color(0xFF2C5CB0))),
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF4F7FF),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 34, color: Color(0xFF2C5CB0)),
+            ),
             const SizedBox(height: 16),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1E1E),
-                    letterSpacing: -0.2)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E1E1E),
+                letterSpacing: -0.2,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14.5, color: Color(0xFF6B7280), height: 1.35)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14.5,
+                color: Color(0xFF6B7280),
+                height: 1.35,
+              ),
+            ),
             const SizedBox(height: 18),
             Row(
               children: [
@@ -945,13 +1020,15 @@ class _CleanConfirmDialog extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE5E7EB)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding:
-                      const EdgeInsets.symmetric(vertical: 12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       foregroundColor: const Color(0xFF2C5CB0),
                     ),
-                    child: Text(secondaryLabel,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(
+                      secondaryLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -963,12 +1040,14 @@ class _CleanConfirmDialog extends StatelessWidget {
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding:
-                      const EdgeInsets.symmetric(vertical: 12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(primaryLabel,
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                    child: Text(
+                      primaryLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 ),
               ],
@@ -1037,7 +1116,9 @@ class _GreatWorkDialog extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              isPerfect ? 'You answered all questions correctly.' : 'You completed this round.',
+              isPerfect
+                  ? 'You answered all questions correctly.'
+                  : 'You completed this round.',
               style: const TextStyle(fontSize: 16, color: Color(0xFF5A5F6A)),
               textAlign: TextAlign.center,
             ),
@@ -1083,11 +1164,16 @@ class _GreatWorkDialog extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: onReturn,
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                label: const Text(
+                  'Return',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2C5CB0),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   elevation: 0,
                 ),
               ),

@@ -23,6 +23,17 @@ class UserProgressService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception('No user logged in');
 
+    // Get display name from users collection for leaderboard
+    String? displayName;
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        displayName = userDoc.data()?['displayName'] as String?;
+      }
+    } catch (e) {
+      print('Error getting display name for progress save: $e');
+    }
+
     // This saves progress PER-USER, using their UID as document
     await _firestore.collection('progress').doc(user.uid).set({
       'level': level,
@@ -39,17 +50,40 @@ class UserProgressService {
       'learningStates': learningStates,
       'unlockedContent': unlockedContent,
       'level1Answers': level1Answers,
+      'displayName':
+          displayName, // Store displayName in progress for leaderboard
       'timestamp': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    print(
+      'Progress saved - Level: $level, XP: $score, UserPoints: $userPoints',
+    );
   }
 
   Future<Map<String, dynamic>?> getProgress() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception('No user logged in');
 
-    // This loads progress PER-USER, using their UID as document
-    var doc = await _firestore.collection('progress').doc(user.uid).get();
-    return doc.exists ? doc.data() : null;
+    try {
+      // This loads progress PER-USER, using their UID as document
+      var doc = await _firestore.collection('progress').doc(user.uid).get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        print('Progress loaded from Firestore for user ${user.uid}');
+        print('Data keys: ${data?.keys.toList()}');
+        print(
+          'Level: ${data?['level']}, Score: ${data?['score']}, UserPoints: ${data?['userPoints']}',
+        );
+        return data;
+      } else {
+        print('No progress document found for user ${user.uid}');
+        return null;
+      }
+    } catch (e) {
+      print('Error loading progress from Firestore: $e');
+      rethrow;
+    }
   }
 
   /// Get the current user ID

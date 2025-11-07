@@ -1,5 +1,6 @@
 // lib/verb_learn.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'sign_video_player.dart';
 import 'quest_status.dart';
 
@@ -44,10 +45,8 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
     final watched = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => SignVideoPlayer(
-          title: item['label']!,
-          videoPath: item['video']!,
-        ),
+        builder: (_) =>
+            SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
       ),
     );
 
@@ -81,80 +80,213 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
   @override
   Widget build(BuildContext context) {
     final watchedCount = _watched.length;
+    final progress = watchedCount / _all.length;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFCFFFF7), // Light mint background
       appBar: AppBar(
-        title: const Text("Learn Verb Signs"),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFFF6B9D), Color(0xFFC06C84)],
+              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
+          ),
+        ),
+        title: Text(
+          "Learn Verb Signs",
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
         actions: [
           IconButton(
             tooltip: _columns == 3 ? "Bigger cards" : "More per row",
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
-            icon: Icon(_columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt),
+            icon: Icon(
+              _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search + Progress
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: "Search verbs",
-                      isDense: true,
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                    ),
-                  ),
+          // Progress header
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0891B2).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFEEF3),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFFFB3C6)),
-                  ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.auto_awesome, color: Color(0xFFFF6B9D), size: 18),
-                      const SizedBox(width: 6),
-                      Text("$watchedCount / ${_all.length}",
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Your Progress",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "$watchedCount / ${_all.length} Verbs",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.1),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.auto_awesome,
+                              color: Color(0xFFFFEB99),
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "${(progress * 100).toInt()}%",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                // Progress bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            height: 8,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFEB99), Color(0xFFFCD34D)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFFFEB99,
+                                  ).withOpacity(0.5),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
+            ),
+          ),
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              onChanged: (v) => setState(() => _query = v),
+              style: GoogleFonts.montserrat(),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF0891B2)),
+                hintText: "Search verbs",
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey.shade500),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF0891B2),
+                    width: 2,
+                  ),
+                ),
+              ),
             ),
           ),
 
           // Grid
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: _columns,
-                childAspectRatio: _columns == 3 ? 0.9 : 1.0,
+                childAspectRatio: _columns == 3 ? 0.85 : 0.95,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -164,19 +296,8 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
                 final label = item['label']!;
                 final watched = _watched.contains(label);
 
-                // Colorful gradients
-                final gradients = [
-                  [const Color(0xFFFF6B9D), const Color(0xFFFFC3A0)],
-                  [const Color(0xFFB06AB3), const Color(0xFF4568DC)],
-                  [const Color(0xFFFF9A8B), const Color(0xFFFF6A88)],
-                  [const Color(0xFFFEAC5E), const Color(0xFFC779D0)],
-                  [const Color(0xFF4FACFE), const Color(0xFF00F2FE)],
-                ];
-                final g = gradients[index % gradients.length];
-
                 return _VerbCard(
                   label: label,
-                  gradient: g,
                   watched: watched,
                   onTap: () => _openVideo(item),
                 );
@@ -191,13 +312,11 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
 
 class _VerbCard extends StatefulWidget {
   final String label;
-  final List<Color> gradient;
   final bool watched;
   final VoidCallback onTap;
 
   const _VerbCard({
     required this.label,
-    required this.gradient,
     required this.watched,
     required this.onTap,
   });
@@ -206,11 +325,16 @@ class _VerbCard extends StatefulWidget {
   State<_VerbCard> createState() => _VerbCardState();
 }
 
-class _VerbCardState extends State<_VerbCard> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-  AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
-  late final Animation<double> _scale =
-  Tween<double>(begin: 1.0, end: 0.97).animate(_ctrl);
+class _VerbCardState extends State<_VerbCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 120),
+  );
+  late final Animation<double> _scale = Tween<double>(
+    begin: 1.0,
+    end: 0.97,
+  ).animate(_ctrl);
 
   @override
   void dispose() {
@@ -232,22 +356,54 @@ class _VerbCardState extends State<_VerbCard> with SingleTickerProviderStateMixi
         scale: _scale,
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: widget.gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: widget.watched
+                ? const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: widget.watched
+                  ? const Color(0xFF0891B2)
+                  : Colors.grey.shade200,
+              width: widget.watched ? 2.5 : 1.5,
             ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                blurRadius: 12,
-                offset: Offset(0, 8),
+                color: widget.watched
+                    ? const Color(0xFF0891B2).withOpacity(0.25)
+                    : Colors.black.withOpacity(0.08),
+                blurRadius: widget.watched ? 16 : 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Stack(
             children: [
+              // Accent gradient overlay
+              if (widget.watched)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF06B6D4).withOpacity(0.1),
+                          const Color(0xFF0891B2).withOpacity(0.05),
+                          Colors.transparent,
+                        ],
+                        center: Alignment.topRight,
+                        radius: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
               // Verb text
               Center(
                 child: Padding(
@@ -255,45 +411,93 @@ class _VerbCardState extends State<_VerbCard> with SingleTickerProviderStateMixi
                   child: Text(
                     widget.label,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: widget.watched
+                          ? const Color(0xFF0891B2)
+                          : const Color(0xFF2D5263),
                       letterSpacing: 0.5,
                     ),
                   ),
                 ),
               ),
-              // Play pill
+              // Status badge
               Positioned(
-                right: 10,
-                bottom: 10,
+                right: 8,
+                bottom: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(999),
+                    gradient: widget.watched
+                        ? const LinearGradient(
+                            colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : LinearGradient(
+                            colors: [Colors.grey.shade100, Colors.grey.shade50],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: widget.watched
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF0891B2).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.play_circle_fill, size: 18,
-                          color: widget.watched ? Colors.green : Colors.black87),
-                      const SizedBox(width: 6),
-                      Text(widget.watched ? "Watched" : "Learn",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: widget.watched ? Colors.green : Colors.black87,
-                          )),
+                      Icon(
+                        widget.watched
+                            ? Icons.check_circle
+                            : Icons.play_circle_outline,
+                        size: 16,
+                        color: widget.watched
+                            ? Colors.white
+                            : Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        widget.watched ? "Done" : "Learn",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: widget.watched
+                              ? Colors.white
+                              : Colors.grey.shade600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
+              // Checkmark icon for completed
               if (widget.watched)
-                const Positioned(
-                  left: 10,
-                  top: 10,
-                  child: Icon(Icons.verified, color: Colors.white, size: 24),
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0891B2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.verified,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
             ],
           ),

@@ -190,6 +190,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   String _userName = '';
   int? _userRank;
   bool _loadingRank = true;
+  int _unlockedCategoryCount = 0;
 
   @override
   void initState() {
@@ -254,8 +255,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         const Duration(seconds: 5),
       );
     } catch (_) {}
+    // compute how many categories user has unlocked (alphabet always unlocked)
+    final keys = [
+      QuestStatus.levelAlphabet,
+      QuestStatus.levelNumbers,
+      QuestStatus.levelColour,
+      QuestStatus.levelGreetings,
+      QuestStatus.levelCommonVerb,
+      QuestStatus.levelVerbs,
+    ];
+    final cnt = keys.where((k) => QuestStatus.isContentUnlocked(k)).length;
     if (!mounted) return;
-    setState(() => _loadingUnlocks = false);
+    setState(() {
+      _loadingUnlocks = false;
+      _unlockedCategoryCount = cnt;
+    });
   }
 
   Future<void> _loadUserRank() async {
@@ -338,131 +352,176 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     }
   }
 
-  void _showNavigationMenu() {
-    showModalBottomSheet(
+  void _showLevelInfo() {
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFCFFFF7), // Light mint from palette
-                Color(0xFFFFFFD0), // Light yellow from palette
-              ],
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.emoji_events, color: Color(0xFF5A7A8A), size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Level ${QuestStatus.level}',
+              style: GoogleFonts.montserrat(
+                color: Color(0xFF0891B2),
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+              ),
             ),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
+          ],
+        ),
+        content: Text(
+          'Your current level shows your overall progress in WaveAct!\n\n'
+          '📚 Complete quizzes to earn XP\n'
+          '🎯 Each correct answer gives you XP\n'
+          '⬆️ Level up to unlock new quiz categories\n\n'
+          'Keep learning to reach higher levels!',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF2D5263),
+            fontSize: 15,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0891B2),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Got it!',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Color(0xFF9B8563).withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: 20),
-              _buildMenuTile(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                emoji: '🏠',
-                isSelected: _selectedIndex == 0,
-                onTap: () {
-                  Navigator.pop(context);
-                  _onItemTapped(0);
-                },
-              ),
-              _buildMenuTile(
-                icon: Icons.menu_book_rounded,
-                label: 'Quest',
-                emoji: '📚',
-                isSelected: _selectedIndex == 1,
-                onTap: () {
-                  Navigator.pop(context);
-                  _onItemTapped(1);
-                },
-              ),
-              _buildMenuTile(
-                icon: Icons.leaderboard,
-                label: 'Ranking',
-                emoji: '🏆',
-                isSelected: _selectedIndex == 2,
-                onTap: () {
-                  Navigator.pop(context);
-                  _onItemTapped(2);
-                },
-              ),
-              _buildMenuTile(
-                icon: Icons.person_rounded,
-                label: 'Profile',
-                emoji: '👤',
-                isSelected: _selectedIndex == 3,
-                onTap: () {
-                  Navigator.pop(context);
-                  _onItemTapped(3);
-                },
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _buildMenuTile({
-    required IconData icon,
-    required String label,
-    required String emoji,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Color(0xFF9B8563).withOpacity(0.3)
-                      : Color(0xFF9B8563).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(emoji, style: TextStyle(fontSize: 24)),
-                ),
+  void _showLivequizInfo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.star, color: Color(0xFF8B6914), size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Unlocked Categories',
+              style: GoogleFonts.montserrat(
+                color: Color(0xFF0891B2),
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
               ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 18,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: Color(0xFF9B8563),
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Icon(Icons.check_circle, color: Color(0xFF9B8563), size: 24),
-            ],
+            ),
+          ],
+        ),
+        content: Text(
+          'You have unlocked $_unlockedCategoryCount out of 6 quiz categories!\n\n'
+          '🔑 Complete quests to earn keys\n'
+          '🎮 Use 200 keys to unlock new categories\n'
+          '📈 Reach required levels to access locked content\n\n'
+          'Play more quizzes and complete quests to unlock all categories and become a sign language master!',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF2D5263),
+            fontSize: 15,
+            height: 1.5,
           ),
         ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0891B2),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Got it!',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRankInfo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.leaderboard, color: Color(0xFF2C5263), size: 28),
+            SizedBox(width: 12),
+            Text(
+              _userRank != null ? 'Rank #$_userRank' : 'Your Rank',
+              style: GoogleFonts.montserrat(
+                color: Color(0xFF0891B2),
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          _userRank != null
+              ? 'You are ranked #$_userRank among all WaveAct learners!\n\n'
+                    '🏆 Your rank is based on your total XP\n'
+                    '⚡ Complete quizzes to earn more XP\n'
+                    '📊 Tap "Ranking" tab to see the full leaderboard\n\n'
+                    'Keep practicing to climb higher!'
+              : 'Your ranking is being calculated...\n\n'
+                    '🏆 Rankings are based on total XP earned\n'
+                    '⚡ Complete quizzes to earn XP and improve your rank\n'
+                    '📊 Check the "Ranking" tab to see all learners\n\n'
+                    'Start your journey to the top!',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF2D5263),
+            fontSize: 15,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0891B2),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Got it!',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -981,21 +1040,47 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              100,
+            ), // Extra bottom padding for nav bar
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top bar with menu and points
+                // Top bar with logo and points
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.menu,
-                        color: Color(0xFF69D3E4),
-                        size: 28,
-                      ),
-                      onPressed: () => _showNavigationMenu(),
+                    // WaveAct branding
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF0891B2).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'WaveAct',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0891B2),
+                          ),
+                        ),
+                      ],
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
@@ -1015,14 +1100,18 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         children: [
                           Icon(
                             Icons.vpn_key,
-                            color: Color(0xFFC4A574), // Warm brown from screenshot
+                            color: Color(
+                              0xFF8B6914,
+                            ), // Darker brown for better visibility
                             size: 20,
                           ),
                           SizedBox(width: 8),
                           Text(
                             '${QuestStatus.userPoints}',
                             style: TextStyle(
-                              color: Color(0xFFC4A574),
+                              color: Color(
+                                0xFF8B6914,
+                              ), // Darker brown for better visibility
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
                             ),
@@ -1050,7 +1139,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF69D3E4).withOpacity(0.15),
+                        color: Color(
+                          0xFF0891B2,
+                        ).withOpacity(0.15), // Darker cyan shadow
                         blurRadius: 15,
                         offset: Offset(0, 5),
                       ),
@@ -1068,7 +1159,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFF69D3E4),
+                                color: Color(
+                                  0xFF0891B2,
+                                ), // Darker cyan for better visibility
                               ),
                             ),
                             SizedBox(height: 8),
@@ -1085,20 +1178,29 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         ),
                       ),
                       SizedBox(width: 16),
-                      // WaveAct logo
+                      // User profile picture
                       Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Color(0xFF69D3E4).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            fit: BoxFit.contain,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0891B2).withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          size: 45,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -1113,19 +1215,28 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   children: [
                     _buildIconButton(
                       icon: Icons.emoji_events,
-                      label: 'Ranked',
-                      color: Color(0xFF9DB4C0), // Muted blue-gray
+                      label: 'Level',
+                      color: Color(
+                        0xFF5A7A8A,
+                      ), // Darker blue-gray for better visibility
                       displayText: '${QuestStatus.level}',
-                      onTap: () {},
+                      textColor: Colors.white,
+                      onTap: _showLevelInfo,
                     ),
                     _buildIconButton(
                       icon: Icons.star,
                       label: 'Livequiz',
-                      color: Color(0xFFFFFFD0), // Light yellow
-                      iconColor: Color(0xFFD4A574),
-                      displayText: '${QuestStatus.streakDays}',
-                      textColor: Color(0xFFD4A574),
-                      onTap: () {},
+                      color: Color(
+                        0xFFFFEB99,
+                      ), // Slightly darker yellow for better contrast
+                      iconColor: Color(
+                        0xFF8B6914,
+                      ), // Darker brown for better visibility
+                      displayText: '$_unlockedCategoryCount',
+                      textColor: Color(
+                        0xFF5D4A0E,
+                      ), // Much darker brown for better visibility
+                      onTap: _showLivequizInfo,
                     ),
                     _buildRankButton(),
                   ],
@@ -1138,7 +1249,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   style: GoogleFonts.montserrat(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF8FA9B5), // Muted blue-gray
+                    color: Color(
+                      0xFF2D5263,
+                    ), // Darker blue-gray for better visibility
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -1374,6 +1487,104 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               ],
             ),
           ),
+          bottomNavigationBar: _buildModernNavBar(),
+        ),
+      ),
+    );
+  }
+
+  // Modern Bottom Navigation Bar
+  Widget _buildModernNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Color(0xFF0891B2).withOpacity(0.3),
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF0891B2).withOpacity(0.15),
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                emoji: '🏠',
+                label: 'Home',
+                isSelected: _selectedIndex == 0,
+                onTap: () => _onItemTapped(0),
+              ),
+              _buildNavItem(
+                emoji: '📚',
+                label: 'Quest',
+                isSelected: _selectedIndex == 1,
+                onTap: () => _onItemTapped(1),
+              ),
+              _buildNavItem(
+                emoji: '🏆',
+                label: 'Ranking',
+                isSelected: _selectedIndex == 2,
+                onTap: () => _onItemTapped(2),
+              ),
+              _buildNavItem(
+                emoji: '👤',
+                label: 'Profile',
+                isSelected: _selectedIndex == 3,
+                onTap: () => _onItemTapped(3),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required String emoji,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Color(0xFF0891B2).withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: TextStyle(fontSize: isSelected ? 28 : 24)),
+              SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected
+                      ? Color(0xFF0891B2)
+                      : Color(0xFF2D5263).withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1491,14 +1702,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 if (!isUnlocked)
                   Padding(
                     padding: EdgeInsets.only(right: 4),
-                    child: Icon(Icons.lock, size: 12, color: Color(0xFF9B8563)),
+                    child: Icon(
+                      Icons.lock,
+                      size: 12,
+                      color: Color(0xFF6B5D42),
+                    ), // Darker brown for better visibility
                   ),
                 Text(
                   title,
                   style: GoogleFonts.montserrat(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isUnlocked ? Color(0xFF69D3E4) : Color(0xFF9B8563),
+                    color: isUnlocked
+                        ? Color(0xFF0891B2)
+                        : Color(
+                            0xFF6B5D42,
+                          ), // Darker colors for better visibility
                   ),
                 ),
               ],
@@ -1542,21 +1761,30 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                       displayText,
                       style: GoogleFonts.montserrat(
                         color: textColor ?? Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
                       ),
                     )
                   : Icon(icon, color: iconColor ?? Colors.white, size: 32),
             ),
           ),
           SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.montserrat(
-              color: Color(0xFF8FA9B5), // Muted blue-gray
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  color: Color(
+                    0xFF2D5263,
+                  ), // Darker blue-gray for better visibility
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(width: 4),
+              Icon(Icons.info_outline, size: 14, color: Color(0xFF0891B2)),
+            ],
           ),
         ],
       ),
@@ -1564,54 +1792,64 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }
 
   Widget _buildRankButton() {
-    return Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFF2C5263), // Very dark teal for maximum contrast
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF2C5263).withOpacity(0.4),
-                blurRadius: 10,
-                offset: Offset(0, 4),
+    return GestureDetector(
+      onTap: _showRankInfo,
+      child: Column(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF2C5263), // Very dark teal for maximum contrast
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF2C5263).withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: _loadingRank
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : _userRank != null
+                  ? Text(
+                      '#$_userRank',
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : Icon(Icons.leaderboard, color: Colors.white, size: 32),
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Rank',
+                style: GoogleFonts.montserrat(
+                  color: Color(0xFF0891B2), // Darker cyan for better visibility
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              SizedBox(width: 4),
+              Icon(Icons.info_outline, size: 14, color: Color(0xFF0891B2)),
             ],
           ),
-          child: Center(
-            child: _loadingRank
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : _userRank != null
-                ? Text(
-                    '#$_userRank',
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : Icon(Icons.leaderboard, color: Colors.white, size: 32),
-          ),
-        ),
-        SizedBox(height: 8),
-        Text(
-          'Rank',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF69D3E4),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1633,7 +1871,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF69D3E4).withOpacity(0.25),
+            color: Color(0xFF0891B2).withOpacity(0.25), // Darker cyan shadow
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1683,7 +1921,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF69D3E4),
+                      color: Color(
+                        0xFF0891B2,
+                      ), // Darker cyan for better visibility
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1692,7 +1932,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF69D3E4).withOpacity(0.7),
+                      color: Color(
+                        0xFF0891B2,
+                      ).withOpacity(0.7), // Darker cyan for better visibility
                     ),
                   ),
                 ],
@@ -1706,7 +1948,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Center(
-                    child: Icon(Icons.lock, color: Color(0xFFAADCEC), size: 32),
+                    child: Icon(
+                      Icons.lock,
+                      color: Color(0xFF6B9BAF),
+                      size: 32,
+                    ), // Darker lock icon
                   ),
                 ),
               ),
