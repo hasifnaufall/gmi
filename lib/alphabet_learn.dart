@@ -1,8 +1,9 @@
 // alphabet_learn.dart
 // Modified to work WITHOUT shared_preferences (in-memory only)
-// number_learn.dart - Updated to link with Quest 8
+// Modern cyan/mint theme design
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'sign_video_player.dart';
 import 'quest_status.dart';
 
@@ -104,18 +105,27 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
   @override
   Widget build(BuildContext context) {
     final watchedCount = QuestStatus.watchedAlphabet.length;
+    final progress = watchedCount / 26;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFCFFFF7), // Light mint background
       appBar: AppBar(
-        title: const Text("Learn Alphabet Signs"),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF80D0C7), Color(0xFF0093E9)],
+              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
+          ),
+        ),
+        title: Text(
+          "Learn Alphabet Signs",
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
         actions: [
@@ -124,80 +134,184 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
             onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
             icon: Icon(
               _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
+              color: Colors.white,
             ),
-            onLongPress: () {
-              setState(() => QuestStatus.watchedAlphabet.clear());
-              QuestStatus.autoSaveProgress();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Progress cleared')),
-                );
-              }
-            },
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: "Search A–Z",
-                      isDense: true,
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                    ),
-                  ),
+          // Progress header
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0891B2).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF9FF),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFBEE3F8)),
-                  ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.auto_awesome,
-                        color: Color(0xFF0EA5E9),
-                        size: 18,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Your Progress",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "$watchedCount / 26 Letters",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "$watchedCount / 26",
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.1),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.auto_awesome,
+                              color: Color(0xFFFFEB99),
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "${(progress * 100).toInt()}%",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
+                  ),
+                ),
+                // Progress bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            height: 8,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFEB99), Color(0xFFFCD34D)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFFFEB99,
+                                  ).withOpacity(0.5),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              onChanged: (v) => setState(() => _query = v),
+              style: GoogleFonts.montserrat(),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF0891B2)),
+                hintText: "Search A–Z",
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey.shade500),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF0891B2),
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Grid
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: _columns,
-                childAspectRatio: _columns == 3 ? 0.9 : 1.0,
+                childAspectRatio: _columns == 3 ? 0.85 : 0.95,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -207,18 +321,8 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
                 final label = item['label']!;
                 final watched = QuestStatus.watchedAlphabet.contains(label);
 
-                final gradients = [
-                  [const Color(0xFFFF9A9E), const Color(0xFFFAD0C4)],
-                  [const Color(0xFFA18CD1), const Color(0xFFFBC2EB)],
-                  [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)],
-                  [const Color(0xFFFFDEE9), const Color(0xFFB5FFFC)],
-                  [const Color(0xFFFFF1B1), const Color(0xFFFFD1FF)],
-                ];
-                final g = gradients[index % gradients.length];
-
                 return _LetterCard(
                   label: label,
-                  gradient: g,
                   watched: watched,
                   onTap: () => _openVideo(item),
                 );
@@ -233,13 +337,11 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
 
 class _LetterCard extends StatefulWidget {
   final String label;
-  final List<Color> gradient;
   final bool watched;
   final VoidCallback onTap;
 
   const _LetterCard({
     required this.label,
-    required this.gradient,
     required this.watched,
     required this.onTap,
   });
@@ -279,69 +381,144 @@ class _LetterCardState extends State<_LetterCard>
         scale: _scale,
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: widget.gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: widget.watched
+                ? const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: widget.watched
+                  ? const Color(0xFF0891B2)
+                  : Colors.grey.shade200,
+              width: widget.watched ? 2.5 : 1.5,
             ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                blurRadius: 12,
-                offset: Offset(0, 8),
+                color: widget.watched
+                    ? const Color(0xFF0891B2).withOpacity(0.25)
+                    : Colors.black.withOpacity(0.08),
+                blurRadius: widget.watched ? 16 : 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Stack(
             children: [
+              // Accent gradient overlay
+              if (widget.watched)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF06B6D4).withOpacity(0.1),
+                          const Color(0xFF0891B2).withOpacity(0.05),
+                          Colors.transparent,
+                        ],
+                        center: Alignment.topRight,
+                        radius: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              // Letter
               Center(
                 child: Text(
                   widget.label,
-                  style: const TextStyle(
-                    fontSize: 44,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 52,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
+                    color: widget.watched
+                        ? const Color(0xFF0891B2)
+                        : const Color(0xFF2D5263),
+                    letterSpacing: 1,
                   ),
                 ),
               ),
+              // Status badge
               Positioned(
-                right: 10,
-                bottom: 10,
+                right: 8,
+                bottom: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(999),
+                    gradient: widget.watched
+                        ? const LinearGradient(
+                            colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : LinearGradient(
+                            colors: [Colors.grey.shade100, Colors.grey.shade50],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: widget.watched
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF0891B2).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.play_circle_fill,
-                        size: 18,
-                        color: widget.watched ? Colors.green : Colors.black87,
+                        widget.watched
+                            ? Icons.check_circle
+                            : Icons.play_circle_outline,
+                        size: 16,
+                        color: widget.watched
+                            ? Colors.white
+                            : Colors.grey.shade600,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Text(
-                        widget.watched ? "Watched" : "Learn",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: widget.watched ? Colors.green : Colors.black87,
+                        widget.watched ? "Done" : "Learn",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: widget.watched
+                              ? Colors.white
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+              // Checkmark icon for completed
               if (widget.watched)
-                const Positioned(
-                  left: 10,
-                  top: 10,
-                  child: Icon(Icons.verified, color: Colors.white, size: 24),
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0891B2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.verified,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
             ],
           ),

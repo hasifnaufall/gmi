@@ -1,5 +1,6 @@
 // lib/alphabet_q.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 
 import 'quest_status.dart';
@@ -30,32 +31,136 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   late Animation<double> _fadeAnimation;
 
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/alphabet/Q1.jpg", "options": ["P", "A", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q2.jpg", "options": ["W", "U", "F", "B"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q3.jpg", "options": ["C", "Z", "R", "H"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q4.jpg", "options": ["U", "Y", "D", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q5.jpg", "options": ["J", "E", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q6.jpg", "options": ["M", "F", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q7.jpg", "options": ["X", "N", "G", "D"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q8.jpg", "options": ["H", "O", "R", "Q"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q9.jpg", "options": ["U", "Y", "N", "I"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q14.jpg", "options": ["Z", "Y", "N", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0},
-    {"image": "assets/images/alphabet/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3},
-    {"image": "assets/images/alphabet/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2},
-    {"image": "assets/images/alphabet/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1},
-    {"image": "assets/images/alphabet/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3},
+    {
+      "image": "assets/images/alphabet/Q1.jpg",
+      "options": ["P", "A", "E", "S"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q2.jpg",
+      "options": ["W", "U", "F", "B"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q3.jpg",
+      "options": ["C", "Z", "R", "H"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q4.jpg",
+      "options": ["U", "Y", "D", "L"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q5.jpg",
+      "options": ["J", "E", "I", "O"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q6.jpg",
+      "options": ["M", "F", "E", "S"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q7.jpg",
+      "options": ["X", "N", "G", "D"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q8.jpg",
+      "options": ["H", "O", "R", "Q"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q9.jpg",
+      "options": ["U", "Y", "N", "I"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q10.jpg",
+      "options": ["Z", "L", "I", "J"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q11.jpg",
+      "options": ["O", "K", "E", "S"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q12.jpg",
+      "options": ["L", "N", "F", "D"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q13.jpg",
+      "options": ["K", "O", "M", "R"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q14.jpg",
+      "options": ["Z", "Y", "N", "L"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q15.jpg",
+      "options": ["J", "L", "I", "O"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q16.jpg",
+      "options": ["R", "P", "E", "A"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q17.jpg",
+      "options": ["Q", "V", "F", "D"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q18.jpg",
+      "options": ["K", "O", "R", "H"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q19.jpg",
+      "options": ["C", "Y", "N", "S"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q20.jpg",
+      "options": ["J", "T", "I", "O"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q21.jpg",
+      "options": ["U", "P", "E", "J"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q22.jpg",
+      "options": ["V", "N", "F", "D"],
+      "correctIndex": 0,
+    },
+    {
+      "image": "assets/images/alphabet/Q23.jpg",
+      "options": ["K", "O", "R", "W"],
+      "correctIndex": 3,
+    },
+    {
+      "image": "assets/images/alphabet/Q24.jpg",
+      "options": ["U", "Y", "X", "L"],
+      "correctIndex": 2,
+    },
+    {
+      "image": "assets/images/alphabet/Q25.jpg",
+      "options": ["J", "Y", "I", "O"],
+      "correctIndex": 1,
+    },
+    {
+      "image": "assets/images/alphabet/Q26.jpg",
+      "options": ["A", "L", "I", "Z"],
+      "correctIndex": 3,
+    },
   ];
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
@@ -164,7 +269,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       QuestStatus.addXp(20);
     } else {
       final correctLetter =
-      (questions[qIdx]['options'] as List<String>)[correctIndex];
+          (questions[qIdx]['options'] as List<String>)[correctIndex];
       showAnimatedPopup(
         icon: Icons.close,
         title: "Incorrect",
@@ -179,13 +284,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
-      final sessionScore =
-          activeIndices.where((i) => _sessionAnswers[i] == true).length;
+      final sessionScore = activeIndices
+          .where((i) => _sessionAnswers[i] == true)
+          .length;
 
       // ---- Update counters/quests silently ----
       QuestStatus.alphabetRoundsCompleted += 1;
 
-      if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
+      if (QuestStatus.alphabetRoundsCompleted >= 3 &&
+          !QuestStatus.quest5Claimed) {
         if (QuestStatus.canClaimQuest5()) {
           QuestStatus.claimQuest5();
         }
@@ -294,7 +401,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-        "This action can’t be undone and your progress this round will be lost.",
+            "This action can’t be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -338,12 +445,14 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   Widget build(BuildContext context) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List).map((e) => e.toString()).toList();
+    final options = (question['options'] as List)
+        .map((e) => e.toString())
+        .toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFFDC),
+        backgroundColor: const Color(0xFFCFFFF7), // Light mint background
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -375,39 +484,100 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   Widget _buildConfirmBar(List<String> options) {
     final idx = _pendingIndex!;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
+        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Selected: ${options[idx]}',
+              style: GoogleFonts.montserrat(
+                color: const Color(0xFF69D3E4),
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           const SizedBox(width: 8),
-          Text('Selected: ${options[idx]}',
-              style: const TextStyle(
-                  color: Color(0xFF2C5CB0), fontWeight: FontWeight.w600)),
-          const Spacer(),
           TextButton(
             onPressed: () => setState(() => _pendingIndex = null),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.montserrat(color: Colors.grey.shade600),
+            ),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+            style:
+                ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ).copyWith(
+                  backgroundColor: MaterialStateProperty.all(
+                    Colors.transparent,
+                  ),
+                ),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
             },
-            child: const Text('Confirm'),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Text(
+                  'Confirm',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -422,12 +592,26 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF3FF),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF69D3E4).withOpacity(0.3),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF69D3E4).withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF2C5CB0),
+              color: Color(0xFF69D3E4),
               size: 20,
             ),
           ),
@@ -437,28 +621,43 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Alphabet Quiz",
-                style: TextStyle(
+                style: GoogleFonts.montserrat(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C5CB0),
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF69D3E4),
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF2C5CB0),
-            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF69D3E4).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -466,10 +665,11 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
               const SizedBox(width: 4),
               Text(
                 "Lvl ${QuestStatus.level}",
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white),
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -501,7 +701,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           decoration: BoxDecoration(color: color, borderRadius: radius),
-          height: 10,
+          height: 12,
         ),
       );
     }
@@ -514,35 +714,35 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     if (hasCorrect) {
       bars.add(
         segment(
-          color: const Color(0xFF44b427),
+          color: const Color(0xFF22C55E),
           flex: correct,
           radius: hasWrong || hasRemaining
-              ? const BorderRadius.horizontal(left: Radius.circular(8))
-              : BorderRadius.circular(8),
+              ? const BorderRadius.horizontal(left: Radius.circular(10))
+              : BorderRadius.circular(10),
         ),
       );
     }
     if (hasWrong) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
       bars.add(
         segment(
           color: const Color(0xFFFF4B4A),
           flex: wrong,
           radius: (!hasCorrect && !hasRemaining)
-              ? BorderRadius.circular(8)
+              ? BorderRadius.circular(10)
               : BorderRadius.zero,
         ),
       );
     }
     if (hasRemaining) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
       bars.add(
         segment(
-          color: const Color(0xFFE8EEF9),
+          color: const Color(0xFFE0F2F1),
           flex: remaining,
           radius: (hasCorrect || hasWrong)
-              ? const BorderRadius.horizontal(right: Radius.circular(8))
-              : BorderRadius.circular(8),
+              ? const BorderRadius.horizontal(right: Radius.circular(10))
+              : BorderRadius.circular(10),
         ),
       );
     }
@@ -551,19 +751,30 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F6FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE3E6EE)),
+            gradient: LinearGradient(
+              colors: [Colors.white, const Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF69D3E4).withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(children: bars),
         ),
-        const SizedBox(height: 6),
-        const Row(
+        const SizedBox(height: 8),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _LegendDot(label: 'Correct', color: Color(0xFF44b427)),
+            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
             _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
           ],
         ),
@@ -576,19 +787,33 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FBFF),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
+        border: Border.all(
+          color: const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             "What sign is shown?",
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF2C5CB0),
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF69D3E4),
               letterSpacing: -0.3,
             ),
           ),
@@ -598,7 +823,16 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE3E6EE)),
+              border: Border.all(
+                color: const Color(0xFF69D3E4).withOpacity(0.2),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF69D3E4).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -607,17 +841,22 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                 fit: BoxFit.contain,
                 height: 140,
                 errorBuilder: (context, error, stack) {
-                  return const SizedBox(
+                  return SizedBox(
                     height: 140,
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.broken_image_rounded,
-                              size: 36, color: Colors.grey),
+                          Icon(
+                            Icons.broken_image_rounded,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 8),
-                          Text('Image not found',
-                              style: TextStyle(color: Colors.grey)),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         ],
                       ),
                     ),
@@ -632,10 +871,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   }
 
   Widget _buildOptionsGrid(
-      List<String> options,
-      int qIdx,
-      Map<String, dynamic> question,
-      ) {
+    List<String> options,
+    int qIdx,
+    Map<String, dynamic> question,
+  ) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -649,7 +888,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
           final wasSelected =
-              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+              alreadyAnswered &&
+              _sessionAnswers[qIdx] == isCorrect &&
+              isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -690,14 +931,32 @@ class OptionCard extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: isSelected || isPending
+            ? const LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : const LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF2C5CB0)
-              : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)),
-          width: isSelected || isPending ? 2 : 1,
+              ? const Color(0xFF69D3E4)
+              : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)),
+          width: isSelected || isPending ? 2.5 : 1.5,
         ),
+        boxShadow: [
+          if (isSelected || isPending)
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -709,26 +968,65 @@ class OptionCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: const Color(0xFF2C5CB0),
-                  child: Text(
-                    number.toString(),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      number.toString(),
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     option,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.black : const Color(0xFF2C5CB0),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected || isPending
+                          ? const Color(0xFF69D3E4)
+                          : const Color(0xFF2D5263),
                     ),
                   ),
                 ),
-                if (isSelected) const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
+                if (isSelected)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -748,9 +1046,30 @@ class _LegendDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ],
     );
   }
@@ -761,15 +1080,27 @@ class _SlideInBadge extends StatefulWidget {
   final String title;
   final String subtitle;
   final Color color;
-  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
+  const _SlideInBadge({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
 
   @override
   State<_SlideInBadge> createState() => _SlideInBadgeState();
 }
 
-class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
-  late final Animation<Offset> _a = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+class _SlideInBadgeState extends State<_SlideInBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+  )..forward();
+  late final Animation<Offset> _a = Tween<Offset>(
+    begin: const Offset(1.1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
 
   @override
   void dispose() {
@@ -782,22 +1113,61 @@ class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderS
     return SlideTransition(
       position: _a,
       child: Material(
-        elevation: 6,
-        borderRadius: BorderRadius.circular(12),
-        color: widget.color,
+        elevation: 8,
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.transparent,
         child: Container(
-          width: 280,
-          padding: const EdgeInsets.all(12),
+          width: 300,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.color == const Color(0xFF2C5CB0)
+                  ? [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)]
+                  : [widget.color, widget.color.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color == const Color(0xFF2C5CB0)
+                    ? const Color(0xFF69D3E4).withOpacity(0.4)
+                    : widget.color.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.white),
-              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text(widget.subtitle, style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      widget.title,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -814,7 +1184,7 @@ class _CleanConfirmDialog extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
-  final String primaryLabel;   // right button
+  final String primaryLabel; // right button
   final String secondaryLabel; // left button
 
   const _CleanConfirmDialog({
@@ -829,91 +1199,163 @@ class _CleanConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Soft circular icon
-            Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8EEFF),
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/trophy_quiz.gif',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E1E1E),
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14.5,
-                color: Color(0xFF6B7280),
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFE5E7EB)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      foregroundColor: const Color(0xFF2C5CB0),
-                    ),
-                    child: Text(
-                      secondaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF4B4A),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      primaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ),
-              ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFF69D3E4).withOpacity(0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Gradient circular icon
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: icon == Icons.warning_amber_rounded
+                        ? [const Color(0xFFFF4B4A), const Color(0xFFFF6B6A)]
+                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (icon == Icons.warning_amber_rounded
+                                  ? const Color(0xFFFF4B4A)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 56, color: Colors.white),
+              ),
+
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  color: const Color(0xFF6B7280),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFF69D3E4).withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: const Color(0xFF69D3E4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF4B4A), Color(0xFFFF6B6A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF4B4A).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, true),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              primaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -937,99 +1379,198 @@ class _GreatWorkDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: const Color(0xFFF9FBFF),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Trophy Icon
-            Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8EEFF),
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/gifs/trophy_quiz.gif',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Title
-            Text(
-              isPerfect ? "Perfection!" : "Great Work!",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF2C5CB0),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Subtitle
-            Text(
-              isPerfect
-                  ? "You answered every question flawlessly."
-                  : "You completed this quiz successfully!",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF4B5563),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Score Display
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Center(
-                child: Text(
-                  "$score / $total",
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Return button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onReturn,
-                icon: const Icon(Icons.arrow_back_rounded, size: 22),
-                label: const Text(
-                  'Return',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2C5CB0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: const Color(0xFF69D3E4).withOpacity(0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Trophy Icon with gradient
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isPerfect
+                        ? [const Color(0xFFFFD700), const Color(0xFFFFA500)]
+                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isPerfect
+                                  ? const Color(0xFFFFD700)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/gifs/trophy_quiz.gif',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Title with gradient text
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: isPerfect
+                      ? [const Color(0xFFFFD700), const Color(0xFFFFA500)]
+                      : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                ).createShader(bounds),
+                child: Text(
+                  isPerfect ? "Perfection!" : "Great Work!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Subtitle
+              Text(
+                isPerfect
+                    ? "You answered every question flawlessly."
+                    : "You completed this quiz successfully!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  color: const Color(0xFF4B5563),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 26),
+
+              // Score Display with gradient
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 28,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    ).createShader(bounds),
+                    child: Text(
+                      "$score / $total",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Return button with gradient
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onReturn,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Return',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -25,26 +25,38 @@ class AuthService {
     required String email,
     required String password,
   }) {
-    return _auth.createUserWithEmailAndPassword(email: email, password: password);
+    return _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   // Google sign-in (mobile & web)
   Future<UserCredential?> signInWithGoogle() async {
-    if (kIsWeb) {
-      final provider = GoogleAuthProvider();
-      return _auth.signInWithPopup(provider);
+    try {
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        return _auth.signInWithPopup(provider);
+      }
+
+      // Android/iOS
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        // User canceled - return null without changing auth state
+        return null;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      return _auth.signInWithCredential(credential);
+    } catch (e) {
+      // If sign-in fails, make sure we're logged out
+      print("Google Sign-In error: $e");
+      rethrow;
     }
-
-    // Android/iOS
-    final googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) return null; // user canceled
-
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    return _auth.signInWithCredential(credential);
   }
 
   // Sign out
