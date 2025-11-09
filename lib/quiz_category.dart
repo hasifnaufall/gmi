@@ -1,14 +1,17 @@
 // lib/quiz_category.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 import 'leaderboard.dart';
 import 'profile.dart';
 import 'quest.dart';
 import 'quest_status.dart';
 import 'user_progress_service.dart';
+import 'theme_manager.dart';
 
 // Learn + Quiz screens
 import 'alphabet_learn.dart';
@@ -27,104 +30,6 @@ import 'verb_q.dart';
 /// ===================
 /// Candy Crush Path Painter
 /// ===================
-class _LevelPathPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.7)
-      ..strokeWidth = 8
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final dottedPaint = Paint()
-      ..color = Color(0xFF69D3E4)
-          .withOpacity(0.5) // Bright cyan theme
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    // Define path points (matching the positioned widgets) - Creating a smooth S-curve
-    final path = Path();
-
-    // Start from bottom left (Alphabet - 40, 30)
-    path.moveTo(82, size.height - 72);
-
-    // Smooth curve to Numbers (middle center - 140, 130)
-    path.cubicTo(
-      100,
-      size.height - 100, // control point 1
-      120,
-      size.height - 150, // control point 2
-      182,
-      size.height - 172, // end point (Numbers)
-    );
-
-    // Smooth curve to Colour (right side - right:30, 220)
-    path.cubicTo(
-      220,
-      size.height - 190, // control point 1
-      size.width - 80,
-      size.height - 210, // control point 2
-      size.width - 72,
-      size.height - 262, // end point (Colour)
-    );
-
-    // Smooth curve back to Fruits (middle left - 100, 320)
-    path.cubicTo(
-      size.width - 100,
-      size.height - 290, // control point 1
-      180,
-      size.height - 310, // control point 2
-      142,
-      size.height - 362, // end point (Fruits)
-    );
-
-    // Smooth curve to Animals (right side upper - right:45, 420)
-    path.cubicTo(
-      170,
-      size.height - 390, // control point 1
-      size.width - 100,
-      size.height - 410, // control point 2
-      size.width - 87,
-      size.height - 462, // end point (Animals)
-    );
-
-    // Smooth curve to Verbs (top center - 130, 510)
-    path.cubicTo(
-      size.width - 120,
-      size.height - 490, // control point 1
-      200,
-      size.height - 510, // control point 2
-      172,
-      size.height - 552, // end point (Verbs)
-    );
-
-    // Draw white base path
-    canvas.drawPath(path, paint);
-
-    // Draw pink dotted overlay
-    final metrics = path.computeMetrics().toList();
-    for (var metric in metrics) {
-      double distance = 0.0;
-      final dashWidth = 15.0;
-      final dashSpace = 10.0;
-
-      while (distance < metric.length) {
-        final start = distance;
-        final end = (distance + dashWidth).clamp(0.0, metric.length);
-
-        final extractPath = metric.extractPath(start, end);
-        canvas.drawPath(extractPath, dottedPaint);
-
-        distance += dashWidth + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 /// ===================
 /// Top-level helper used in popup
 /// ===================
@@ -135,7 +40,6 @@ class _BigChoiceButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _BigChoiceButton({
-    super.key,
     required this.label,
     required this.icon,
     required this.color,
@@ -200,10 +104,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   Future<void> _initializeApp() async {
     try {
+      // Load critical data first
       await _loadUserProgress();
       await _loadUserName();
       await _loadUnlocks();
-      await _loadUserRank();
+
+      // Disable rank loading for now - it's too slow
+      // _loadUserRank();
+      if (mounted) {
+        setState(() => _loadingRank = false);
+      }
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -280,10 +190,17 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         return;
       }
 
-      // Fetch all users and calculate rank locally
+      // Fetch all users and calculate rank locally with timeout
       final allUsersSnapshot = await FirebaseFirestore.instance
           .collection('progress')
-          .get();
+          .get()
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              print('Rank loading timed out');
+              throw TimeoutException('Rank loading timed out');
+            },
+          );
 
       // Create a list of users with their level and score
       List<Map<String, dynamic>> allUsers = [];
@@ -1015,491 +932,535 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loadingUnlocks || _loadingProgress) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        if (_loadingUnlocks || _loadingProgress) {
+          return Scaffold(
+            backgroundColor: themeManager.backgroundColor,
+            body: Center(
+              child: CircularProgressIndicator(color: themeManager.primary),
+            ),
+          );
+        }
 
-    final isNumbersUnlocked =
-        kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
-    final isColourUnlocked =
-        kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelColour);
-    final isFruitsUnlocked =
-        kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
-    final isAnimalsUnlocked =
-        kUnlocksDisabled ||
-        QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+        final isNumbersUnlocked =
+            kUnlocksDisabled ||
+            QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+        final isColourUnlocked =
+            kUnlocksDisabled ||
+            QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+        final isFruitsUnlocked =
+            kUnlocksDisabled ||
+            QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+        final isAnimalsUnlocked =
+            kUnlocksDisabled ||
+            QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFFCFFFF7), // Light mint background
-      ),
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              12,
-              16,
-              100,
-            ), // Extra bottom padding for nav bar
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top bar with logo and points
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Container(
+          decoration: BoxDecoration(color: themeManager.backgroundColor),
+          child: SafeArea(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  100,
+                ), // Extra bottom padding for nav bar
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // WaveAct branding
+                    // Top bar with logo and points
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF0891B2).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.contain,
+                        // WaveAct branding
+                        Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: themeManager.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/logo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            SizedBox(width: 12),
+                            Text(
+                              'WaveAct',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: themeManager.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 12),
-                        Text(
-                          'WaveAct',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF0891B2),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: themeManager.isDarkMode
+                                  ? [Color(0xFF636366), Color(0xFF8E8E93)]
+                                  : [Color(0xFFF5E6C8), Color(0xFFF0DDB8)],
+                            ),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.vpn_key,
+                                color: themeManager.isDarkMode
+                                    ? Color(0xFFE8E8E8)
+                                    : Color(0xFF8B6914),
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                '${QuestStatus.userPoints}',
+                                style: TextStyle(
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFFE8E8E8)
+                                      : Color(0xFF8B6914),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
+
+                    const SizedBox(height: 24),
+
+                    // Premium banner
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
+                      padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Color(0xFFF5E6C8),
-                            Color(0xFFF0DDB8),
-                          ], // Cream/beige from screenshot
+                          colors: themeManager.isDarkMode
+                              ? [Color(0xFF2C2C2E), Color(0xFF3A3A3C)]
+                              : [
+                                  Color(0xFFCFFFF7),
+                                  Color(0xFFA4A9FC).withOpacity(0.3),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeManager.isDarkMode
+                                ? Color(0xFFD23232).withOpacity(0.3)
+                                : Color(0xFF0891B2).withOpacity(0.15),
+                            blurRadius: 15,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.vpn_key,
-                            color: Color(
-                              0xFF8B6914,
-                            ), // Darker brown for better visibility
-                            size: 20,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Welcome message
+                                Text(
+                                  'Welcome to WaveAct',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFFD23232)
+                                        : Color(0xFF0891B2),
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                // User greeting
+                                Text(
+                                  'Hi, ${_userName.isNotEmpty ? _userName : 'User'}',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFFE8E8E8)
+                                        : Color(0xFF1A202C),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          SizedBox(width: 8),
-                          Text(
-                            '${QuestStatus.userPoints}',
-                            style: TextStyle(
-                              color: Color(
-                                0xFF8B6914,
-                              ), // Darker brown for better visibility
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
+                          SizedBox(width: 16),
+                          // User profile picture
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: themeManager.isDarkMode
+                                    ? [Color(0xFF8B1F1F), Color(0xFFD23232)]
+                                    : [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFFD23232).withOpacity(0.3)
+                                      : Color(0xFF0891B2).withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              size: 45,
+                              color: Colors.white,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
 
-                const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                // Premium banner
-                Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
+                    // Three icon buttons row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildIconButton(
+                          icon: Icons.emoji_events,
+                          label: 'Level',
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF8B1F1F)
+                              : Color(0xFF5A7A8A),
+                          displayText: '${QuestStatus.level}',
+                          textColor: Colors.white,
+                          labelTextColor: themeManager.isDarkMode
+                              ? Color(0xFFE8E8E8)
+                              : Color(0xFF2D5263),
+                          onTap: _showLevelInfo,
+                        ),
+                        _buildIconButton(
+                          icon: Icons.star,
+                          label: 'Livequiz',
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF636366)
+                              : Color(0xFFFFEB99),
+                          iconColor: themeManager.isDarkMode
+                              ? Color(0xFFE8E8E8)
+                              : Color(0xFF8B6914),
+                          displayText: '$_unlockedCategoryCount',
+                          textColor: themeManager.isDarkMode
+                              ? Color(0xFFE8E8E8)
+                              : Color(0xFF5D4A0E),
+                          labelTextColor: themeManager.isDarkMode
+                              ? Color(0xFFE8E8E8)
+                              : Color(0xFF2D5263),
+                          onTap: _showLivequizInfo,
+                        ),
+                        _buildRankButton(),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(
-                          0xFF0891B2,
-                        ).withOpacity(0.15), // Darker cyan shadow
-                        blurRadius: 15,
-                        offset: Offset(0, 5),
+
+                    const SizedBox(height: 24),
+
+                    Text(
+                      "Today's Quiz",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: themeManager.isDarkMode
+                            ? Color(0xFFE8E8E8)
+                            : Color(0xFF2D5263),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Welcome message
-                            Text(
-                              'Welcome to WaveAct',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Color(
-                                  0xFF0891B2,
-                                ), // Darker cyan for better visibility
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            // User greeting
-                            Text(
-                              'Hi, ${_userName.isNotEmpty ? _userName : 'User'}',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1A202C),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      // User profile picture
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0891B2).withOpacity(0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 45,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Three icon buttons row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildIconButton(
-                      icon: Icons.emoji_events,
-                      label: 'Level',
-                      color: Color(
-                        0xFF5A7A8A,
-                      ), // Darker blue-gray for better visibility
-                      displayText: '${QuestStatus.level}',
-                      textColor: Colors.white,
-                      onTap: _showLevelInfo,
                     ),
-                    _buildIconButton(
-                      icon: Icons.star,
-                      label: 'Livequiz',
-                      color: Color(
-                        0xFFFFEB99,
-                      ), // Slightly darker yellow for better contrast
-                      iconColor: Color(
-                        0xFF8B6914,
-                      ), // Darker brown for better visibility
-                      displayText: '$_unlockedCategoryCount',
-                      textColor: Color(
-                        0xFF5D4A0E,
-                      ), // Much darker brown for better visibility
-                      onTap: _showLivequizInfo,
-                    ),
-                    _buildRankButton(),
-                  ],
-                ),
+                    const SizedBox(height: 14),
 
-                const SizedBox(height: 24),
-
-                Text(
-                  "Today's Quiz",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Color(
-                      0xFF2D5263,
-                    ), // Darker blue-gray for better visibility
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Category grid
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.05,
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  children: [
-                    _categoryTile(
-                      title: 'Alphabet',
-                      questions: 26,
-                      imageAsset: 'assets/images/alphabet/ABC.png',
-                      imageWidth: 96,
-                      isUnlocked: true,
-                      onTap: () {
-                        _triggerQuest1();
-                        _openLevelChoice(
-                          title: "Alphabet",
-                          onLearn: () async {
-                            await Navigator.push(
-                              context,
-                              _buildImmersiveRoute(const AlphabetLearnScreen()),
-                            );
-                            await QuestStatus.autoSaveProgress();
-                          },
-                          onQuiz: () async {
-                            await Navigator.push(
-                              context,
-                              _buildImmersiveRoute(const AlphabetQuizScreen()),
-                            );
-                            await QuestStatus.autoSaveProgress();
-                            if (!mounted) return;
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ),
-                    _categoryTile(
-                      title: 'Numbers',
-                      questions: 10,
-                      imageAsset: 'assets/images/number/NUMBERS.png',
-                      imageWidth: 92,
-                      isUnlocked: isNumbersUnlocked,
-                      onTap: () {
-                        _handleOpenOrUnlock(
-                          key: QuestStatus.levelNumbers,
-                          title: "Numbers",
-                          onOpen: () async {
+                    // Category grid
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.05,
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      children: [
+                        _categoryTile(
+                          title: 'Alphabet',
+                          questions: 26,
+                          imageAsset: 'assets/images/alphabet/ABC.png',
+                          imageWidth: 96,
+                          isUnlocked: true,
+                          themeManager: themeManager,
+                          onTap: () {
+                            _triggerQuest1();
                             _openLevelChoice(
+                              title: "Alphabet",
+                              onLearn: () async {
+                                await Navigator.push(
+                                  context,
+                                  _buildImmersiveRoute(
+                                    const AlphabetLearnScreen(),
+                                  ),
+                                );
+                                await QuestStatus.autoSaveProgress();
+                              },
+                              onQuiz: () async {
+                                await Navigator.push(
+                                  context,
+                                  _buildImmersiveRoute(
+                                    const AlphabetQuizScreen(),
+                                  ),
+                                );
+                                await QuestStatus.autoSaveProgress();
+                                if (!mounted) return;
+                                setState(() {});
+                              },
+                            );
+                          },
+                        ),
+                        _categoryTile(
+                          title: 'Numbers',
+                          questions: 10,
+                          imageAsset: 'assets/images/number/NUMBERS.png',
+                          imageWidth: 92,
+                          isUnlocked: isNumbersUnlocked,
+                          themeManager: themeManager,
+                          onTap: () {
+                            _handleOpenOrUnlock(
+                              key: QuestStatus.levelNumbers,
                               title: "Numbers",
-                              onLearn: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const NumberLearnScreen(),
-                                  ),
+                              onOpen: () async {
+                                _openLevelChoice(
+                                  title: "Numbers",
+                                  onLearn: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const NumberLearnScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                  },
+                                  onQuiz: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const NumberQuizScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                    if (!mounted) return;
+                                    setState(() {});
+                                  },
                                 );
-                                await QuestStatus.autoSaveProgress();
-                              },
-                              onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const NumberQuizScreen(),
-                                  ),
-                                );
-                                await QuestStatus.autoSaveProgress();
-                                if (!mounted) return;
-                                setState(() {});
                               },
                             );
                           },
-                        );
-                      },
-                    ),
-                    _categoryTile(
-                      title: 'Colour',
-                      questions: 12,
-                      imageAsset: 'assets/images/colour/COLOURS.png',
-                      imageWidth: 92,
-                      isUnlocked: isColourUnlocked,
-                      onTap: () {
-                        _handleOpenOrUnlock(
-                          key: QuestStatus.levelColour,
-                          title: "Colour",
-                          onOpen: () async {
-                            _openLevelChoice(
+                        ),
+                        _categoryTile(
+                          title: 'Colour',
+                          questions: 12,
+                          imageAsset: 'assets/images/colour/COLOURS.png',
+                          imageWidth: 92,
+                          isUnlocked: isColourUnlocked,
+                          themeManager: themeManager,
+                          onTap: () {
+                            _handleOpenOrUnlock(
+                              key: QuestStatus.levelColour,
                               title: "Colour",
-                              onLearn: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const ColourLearnScreen(),
-                                  ),
+                              onOpen: () async {
+                                _openLevelChoice(
+                                  title: "Colour",
+                                  onLearn: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const ColourLearnScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                  },
+                                  onQuiz: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const ColourQuizScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                    if (!mounted) return;
+                                    setState(() {});
+                                  },
                                 );
-                                await QuestStatus.autoSaveProgress();
-                              },
-                              onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const ColourQuizScreen(),
-                                  ),
-                                );
-                                await QuestStatus.autoSaveProgress();
-                                if (!mounted) return;
-                                setState(() {});
                               },
                             );
                           },
-                        );
-                      },
-                    ),
-                    _categoryTile(
-                      title: 'Fruits',
-                      questions: 15,
-                      imageAsset: 'assets/images/fruit/FRUITS.png',
-                      imageWidth: 92,
-                      isUnlocked: isFruitsUnlocked,
-                      onTap: () {
-                        _handleOpenOrUnlock(
-                          key: QuestStatus.levelGreetings,
-                          title: "Fruits",
-                          onOpen: () async {
-                            _openLevelChoice(
+                        ),
+                        _categoryTile(
+                          title: 'Fruits',
+                          questions: 15,
+                          imageAsset: 'assets/images/fruit/FRUITS.png',
+                          imageWidth: 92,
+                          isUnlocked: isFruitsUnlocked,
+                          themeManager: themeManager,
+                          onTap: () {
+                            _handleOpenOrUnlock(
+                              key: QuestStatus.levelGreetings,
                               title: "Fruits",
-                              onLearn: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const FruitsLearnScreen(),
-                                  ),
+                              onOpen: () async {
+                                _openLevelChoice(
+                                  title: "Fruits",
+                                  onLearn: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const FruitsLearnScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                  },
+                                  onQuiz: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const FruitsQuizScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                    if (!mounted) return;
+                                    setState(() {});
+                                  },
                                 );
-                                await QuestStatus.autoSaveProgress();
-                              },
-                              onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const FruitsQuizScreen(),
-                                  ),
-                                );
-                                await QuestStatus.autoSaveProgress();
-                                if (!mounted) return;
-                                setState(() {});
                               },
                             );
                           },
-                        );
-                      },
-                    ),
-                    _categoryTile(
-                      title: 'Animals',
-                      questions: 20,
-                      imageAsset: 'assets/images/animal/ANIMALS.png',
-                      imageWidth: 92,
-                      isUnlocked: isAnimalsUnlocked,
-                      onTap: () {
-                        _handleOpenOrUnlock(
-                          key: QuestStatus.levelCommonVerb,
-                          title: "Animals",
-                          onOpen: () async {
-                            _openLevelChoice(
+                        ),
+                        _categoryTile(
+                          title: 'Animals',
+                          questions: 20,
+                          imageAsset: 'assets/images/animal/ANIMALS.png',
+                          imageWidth: 92,
+                          isUnlocked: isAnimalsUnlocked,
+                          themeManager: themeManager,
+                          onTap: () {
+                            _handleOpenOrUnlock(
+                              key: QuestStatus.levelCommonVerb,
                               title: "Animals",
-                              onLearn: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const AnimalsLearnScreen(),
-                                  ),
+                              onOpen: () async {
+                                _openLevelChoice(
+                                  title: "Animals",
+                                  onLearn: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const AnimalsLearnScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                  },
+                                  onQuiz: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const AnimalQuizScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                    if (!mounted) return;
+                                    setState(() {});
+                                  },
                                 );
-                                await QuestStatus.autoSaveProgress();
-                              },
-                              onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const AnimalQuizScreen(),
-                                  ),
-                                );
-                                await QuestStatus.autoSaveProgress();
-                                if (!mounted) return;
-                                setState(() {});
                               },
                             );
                           },
-                        );
-                      },
-                    ),
-                    _categoryTile(
-                      title: 'Verbs',
-                      questions: 15,
-                      imageAsset: 'assets/images/verb/VERBS.jpg',
-                      imageWidth: 92,
-                      isUnlocked:
-                          kUnlocksDisabled ||
-                          QuestStatus.isContentUnlocked(QuestStatus.levelVerbs),
-                      onTap: () {
-                        _handleOpenOrUnlock(
-                          key: QuestStatus.levelVerbs,
-                          title: "Verbs",
-                          onOpen: () async {
-                            _openLevelChoice(
+                        ),
+                        _categoryTile(
+                          title: 'Verbs',
+                          questions: 15,
+                          imageAsset: 'assets/images/verb/VERBS.jpg',
+                          imageWidth: 92,
+                          isUnlocked:
+                              kUnlocksDisabled ||
+                              QuestStatus.isContentUnlocked(
+                                QuestStatus.levelVerbs,
+                              ),
+                          themeManager: themeManager,
+                          onTap: () {
+                            _handleOpenOrUnlock(
+                              key: QuestStatus.levelVerbs,
                               title: "Verbs",
-                              onLearn: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(const VerbLearnScreen()),
+                              onOpen: () async {
+                                _openLevelChoice(
+                                  title: "Verbs",
+                                  onLearn: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const VerbLearnScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                  },
+                                  onQuiz: () async {
+                                    await Navigator.push(
+                                      context,
+                                      _buildImmersiveRoute(
+                                        const VerbQuizScreen(),
+                                      ),
+                                    );
+                                    await QuestStatus.autoSaveProgress();
+                                    if (!mounted) return;
+                                    setState(() {});
+                                  },
                                 );
-                                await QuestStatus.autoSaveProgress();
-                              },
-                              onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(const VerbQuizScreen()),
-                                );
-                                await QuestStatus.autoSaveProgress();
-                                if (!mounted) return;
-                                setState(() {});
                               },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
+              bottomNavigationBar: _buildModernNavBar(themeManager),
             ),
           ),
-          bottomNavigationBar: _buildModernNavBar(),
-        ),
-      ),
+        );
+      },
     );
   }
 
   // Modern Bottom Navigation Bar
-  Widget _buildModernNavBar() {
+  Widget _buildModernNavBar(ThemeManager themeManager) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeManager.isDarkMode
+            ? Color(0xFF000000)
+            : themeManager.surface,
         border: Border.all(
-          color: Color(0xFF0891B2).withOpacity(0.3),
+          color: themeManager.primary.withOpacity(0.3),
           width: 1.5,
         ),
         borderRadius: BorderRadius.only(
@@ -1508,7 +1469,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF0891B2).withOpacity(0.15),
+            color: themeManager.primary.withOpacity(0.15),
             blurRadius: 20,
             offset: Offset(0, -5),
           ),
@@ -1525,24 +1486,28 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 label: 'Home',
                 isSelected: _selectedIndex == 0,
                 onTap: () => _onItemTapped(0),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '📚',
                 label: 'Quest',
                 isSelected: _selectedIndex == 1,
                 onTap: () => _onItemTapped(1),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '🏆',
                 label: 'Ranking',
                 isSelected: _selectedIndex == 2,
                 onTap: () => _onItemTapped(2),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '👤',
                 label: 'Profile',
                 isSelected: _selectedIndex == 3,
                 onTap: () => _onItemTapped(3),
+                themeManager: themeManager,
               ),
             ],
           ),
@@ -1556,6 +1521,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required ThemeManager themeManager,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -1564,7 +1530,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Color(0xFF0891B2).withOpacity(0.1)
+                ? (themeManager.isDarkMode
+                      ? Color(0xFFD23232).withOpacity(0.15)
+                      : Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -1579,8 +1547,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? Color(0xFF0891B2)
-                      : Color(0xFF2D5263).withOpacity(0.6),
+                      ? (themeManager.isDarkMode
+                            ? Color(0xFFD23232)
+                            : Color(0xFF0891B2))
+                      : (themeManager.isDarkMode
+                            ? Color(0xFF8E8E93)
+                            : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -1592,142 +1564,6 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   // ===== UI BUILDERS =====
 
-  Widget _buildCandyCrushLevel({
-    required int level,
-    required String title,
-    required String imageAsset,
-    required bool isUnlocked,
-    required bool isCompleted,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 85,
-            height: 85,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: isUnlocked
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isCompleted
-                          ? [
-                              Color(0xFFFFFFD0),
-                              Color(0xFFFFF7D1),
-                            ] // Yellow theme for completed
-                          : [
-                              Color(0xFF69D3E4),
-                              Color(0xFFA4A9FC),
-                            ], // Cyan to periwinkle theme
-                    )
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFD0D0D0),
-                        Color(0xFFB0B0B0),
-                      ], // Gray for locked
-                    ),
-              border: Border.all(color: Colors.white, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: isUnlocked
-                      ? Color(0xFF69D3E4).withOpacity(0.4)
-                      : Colors.grey.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // Lock overlay for locked levels
-                if (!isUnlocked)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withOpacity(0.3),
-                      ),
-                    ),
-                  ),
-                Center(
-                  child: isUnlocked
-                      ? Image.asset(
-                          imageAsset,
-                          width: 55,
-                          height: 55,
-                          fit: BoxFit.contain,
-                        )
-                      : Icon(Icons.lock, color: Colors.white, size: 40),
-                ),
-                if (isCompleted)
-                  Positioned(
-                    top: 5,
-                    right: 5,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Color(0xFF4CAF50),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Icon(Icons.check, color: Colors.white, size: 14),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!isUnlocked)
-                  Padding(
-                    padding: EdgeInsets.only(right: 4),
-                    child: Icon(
-                      Icons.lock,
-                      size: 12,
-                      color: Color(0xFF6B5D42),
-                    ), // Darker brown for better visibility
-                  ),
-                Text(
-                  title,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isUnlocked
-                        ? Color(0xFF0891B2)
-                        : Color(
-                            0xFF6B5D42,
-                          ), // Darker colors for better visibility
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildIconButton({
     required IconData icon,
     required String label,
@@ -1735,6 +1571,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     Color? iconColor,
     String? displayText,
     Color? textColor,
+    Color? labelTextColor,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -1775,9 +1612,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               Text(
                 label,
                 style: GoogleFonts.montserrat(
-                  color: Color(
-                    0xFF2D5263,
-                  ), // Darker blue-gray for better visibility
+                  color: labelTextColor ?? Colors.grey[600],
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
@@ -1860,18 +1695,23 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     double imageWidth = 92,
     required bool isUnlocked,
     required VoidCallback onTap,
+    required ThemeManager themeManager,
   }) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFCFCFC), Color(0xFFF7F5F0)],
+          colors: themeManager.isDarkMode
+              ? [Color(0xFF2C2C2E), Color(0xFF3A3A3C)]
+              : [Color(0xFFFCFCFC), Color(0xFFF7F5F0)],
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF0891B2).withOpacity(0.25), // Darker cyan shadow
+            color: themeManager.isDarkMode
+                ? Color(0xFFD23232).withOpacity(0.3)
+                : Color(0xFF0891B2).withOpacity(0.25),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1896,7 +1736,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(0xFFEAF5F9),
+                              color: themeManager.isDarkMode
+                                  ? Color(0xFF636366)
+                                  : Color(0xFFEAF5F9),
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
@@ -1921,9 +1763,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(
-                        0xFF0891B2,
-                      ), // Darker cyan for better visibility
+                      color: themeManager.isDarkMode
+                          ? Color(0xFFD23232)
+                          : Color(0xFF0891B2),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1932,9 +1774,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(
-                        0xFF0891B2,
-                      ).withOpacity(0.7), // Darker cyan for better visibility
+                      color:
+                          (themeManager.isDarkMode
+                                  ? Color(0xFFE8E8E8)
+                                  : Color(0xFF0891B2))
+                              .withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -1944,15 +1788,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Color(0xFFFCFCFC).withOpacity(0.92),
+                    color:
+                        (themeManager.isDarkMode
+                                ? Color(0xFF1C1C1E)
+                                : Color(0xFFFCFCFC))
+                            .withOpacity(0.92),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Center(
                     child: Icon(
                       Icons.lock,
-                      color: Color(0xFF6B9BAF),
+                      color: themeManager.isDarkMode
+                          ? Color(0xFF8E8E93)
+                          : Color(0xFF6B9BAF),
                       size: 32,
-                    ), // Darker lock icon
+                    ),
                   ),
                 ),
               ),

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'sign_video_player.dart';
-import 'quest_status.dart';
 
 class VerbLearnScreen extends StatefulWidget {
   const VerbLearnScreen({super.key});
@@ -44,9 +43,32 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
   Future<void> _openVideo(Map<String, String> item) async {
     final watched = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) =>
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
             SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = 0.0;
+          const end = 1.0;
+          const curve = Curves.easeInOut;
+
+          var fadeTween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          var scaleTween = Tween(
+            begin: 0.85,
+            end: 1.0,
+          ).chain(CurveTween(curve: curve));
+
+          return FadeTransition(
+            opacity: animation.drive(fadeTween),
+            child: ScaleTransition(
+              scale: animation.drive(scaleTween),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 400),
       ),
     );
 

@@ -1,7 +1,7 @@
 // lib/verb_q.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'quest_status.dart';
-import 'quiz_category.dart';
 import 'services/sfx_service.dart';
 
 class VerbQuizScreen extends StatefulWidget {
@@ -212,7 +212,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         icon: Icons.star,
         title: "Correct!",
         subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
-        bgColor: const Color(0xFF2C5CB0),
+        bgColor: const Color(0xFF69D3E4),
       );
 
       if (levels > 0) {
@@ -254,7 +254,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         icon: Icons.emoji_events,
         title: "Quiz Complete!",
         subtitle: "Score: $sessionScore/${activeIndices.length}",
-        bgColor: const Color(0xFF2C5CB0),
+        bgColor: const Color(0xFF69D3E4),
       );
 
       await Sfx().playLevelComplete();
@@ -265,7 +265,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           icon: Icons.military_tech,
           title: "Medal unlocked!",
           subtitle: "Finish your first quiz",
-          bgColor: const Color(0xFF2C5CB0),
+          bgColor: const Color(0xFF69D3E4),
         );
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -370,7 +370,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFFDC),
+        backgroundColor: const Color(0xFFCFFFF7),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -410,43 +410,58 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF3FF),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF69D3E4).withOpacity(0.3),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF69D3E4).withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF2C5CB0),
+              color: Color(0xFF69D3E4),
               size: 20,
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Verb Level",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C5CB0),
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-            ],
+          child: Text(
+            "Verb Quiz",
+            style: GoogleFonts.montserrat(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF69D3E4),
+              letterSpacing: -0.5,
+            ),
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF2C5CB0),
-            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF69D3E4).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -454,9 +469,9 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
               const SizedBox(width: 4),
               Text(
                 "Lvl ${QuestStatus.level}",
-                style: const TextStyle(
+                style: GoogleFonts.montserrat(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
               ),
@@ -489,7 +504,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           decoration: BoxDecoration(color: color, borderRadius: radius),
-          height: 10,
+          height: 12,
         ),
       );
     }
@@ -502,35 +517,35 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     if (hasCorrect) {
       bars.add(
         segment(
-          color: const Color(0xFF44b427),
+          color: const Color(0xFF22C55E),
           flex: correct,
           radius: hasWrong || hasRemaining
-              ? const BorderRadius.horizontal(left: Radius.circular(8))
-              : BorderRadius.circular(8),
+              ? const BorderRadius.horizontal(left: Radius.circular(10))
+              : BorderRadius.circular(10),
         ),
       );
     }
     if (hasWrong) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
       bars.add(
         segment(
           color: const Color(0xFFFF4B4A),
           flex: wrong,
           radius: (!hasCorrect && !hasRemaining)
-              ? BorderRadius.circular(8)
+              ? BorderRadius.circular(10)
               : BorderRadius.zero,
         ),
       );
     }
     if (hasRemaining) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
       bars.add(
         segment(
-          color: const Color(0xFFE8EEF9),
+          color: const Color(0xFFE0F2F1),
           flex: remaining,
           radius: (hasCorrect || hasWrong)
-              ? const BorderRadius.horizontal(right: Radius.circular(8))
-              : BorderRadius.circular(8),
+              ? const BorderRadius.horizontal(right: Radius.circular(10))
+              : BorderRadius.circular(10),
         ),
       );
     }
@@ -539,19 +554,30 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F6FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE3E6EE)),
+            gradient: const LinearGradient(
+              colors: [Colors.white, Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF69D3E4).withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(children: bars),
         ),
-        const SizedBox(height: 6),
-        const Row(
+        const SizedBox(height: 8),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _LegendDot(label: 'Correct', color: Color(0xFF44b427)),
+          children: const [
+            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
             _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
           ],
         ),
@@ -564,19 +590,33 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FBFF),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
+        border: Border.all(
+          color: const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             "What verb is shown?",
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF2C5CB0),
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF69D3E4),
               letterSpacing: -0.3,
             ),
           ),
@@ -586,7 +626,16 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE3E6EE)),
+              border: Border.all(
+                color: const Color(0xFF69D3E4).withOpacity(0.2),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF69D3E4).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -672,13 +721,13 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
       ),
       child: Row(
         children: [
-          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
+          const Icon(Icons.touch_app, size: 18, color: Color(0xFF69D3E4)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Selected: ${options[idx]}',
               style: const TextStyle(
-                color: Color(0xFF2C5CB0),
+                color: Color(0xFF69D3E4),
                 fontWeight: FontWeight.w600,
               ),
               overflow: TextOverflow.ellipsis,
@@ -692,7 +741,7 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
+              backgroundColor: const Color(0xFF69D3E4),
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -736,7 +785,7 @@ class OptionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF2C5CB0)
+              ? const Color(0xFF69D3E4)
               : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)),
           width: isSelected || isPending ? 2 : 1,
         ),
@@ -753,7 +802,7 @@ class OptionCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: const Color(0xFF2C5CB0),
+                  backgroundColor: const Color(0xFF69D3E4),
                   child: Text(
                     number.toString(),
                     style: const TextStyle(
@@ -766,17 +815,17 @@ class OptionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     option,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? Colors.black
-                          : const Color(0xFF2C5CB0),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected || isPending
+                          ? const Color(0xFF69D3E4)
+                          : const Color(0xFF2D5263),
                     ),
                   ),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
+                  const Icon(Icons.check_circle, color: Color(0xFF69D3E4)),
               ],
             ),
           ),
@@ -899,7 +948,6 @@ class _CleanConfirmDialog extends StatelessWidget {
   final String message;
   final String primaryLabel;
   final String secondaryLabel;
-
   const _CleanConfirmDialog({
     required this.icon,
     required this.title,
@@ -907,89 +955,165 @@ class _CleanConfirmDialog extends StatelessWidget {
     required this.primaryLabel,
     required this.secondaryLabel,
   });
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF4F7FF),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 34, color: Color(0xFF2C5CB0)),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1E1E1E),
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14.5,
-                color: Color(0xFF6B7280),
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFE5E7EB)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      foregroundColor: const Color(0xFF2C5CB0),
-                    ),
-                    child: Text(
-                      secondaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF4B4A),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      primaryLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ),
-              ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFF69D3E4).withOpacity(0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: icon == Icons.warning_amber_rounded
+                        ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
+                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (icon == Icons.warning_amber_rounded
+                                  ? const Color(0xFFFF4B4A)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 56, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  color: const Color(0xFF6B7280),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFF69D3E4).withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: const Color(0xFF69D3E4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF69D3E4).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, true),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              primaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1041,7 +1165,7 @@ class _GreatWorkDialog extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF2C5CB0),
+                color: Color(0xFF69D3E4),
               ),
             ),
             const SizedBox(height: 10),
@@ -1086,7 +1210,7 @@ class _GreatWorkDialog extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2C5CB0),
+                  backgroundColor: const Color(0xFF69D3E4),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
