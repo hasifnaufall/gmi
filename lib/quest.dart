@@ -1,12 +1,14 @@
 // quest.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'leaderboard.dart';
 import 'quiz_category.dart';
 import 'profile.dart';
 import 'quest_status.dart';
 import 'user_progress_service.dart';
+import 'theme_manager.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -144,7 +146,14 @@ class _QuestScreenState extends State<QuestScreen> {
       padding: EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.white, Colors.white.withOpacity(0.9)],
+          colors: [
+            Theme.of(context).brightness == Brightness.dark
+                ? Color(0xFF1C1C1E)
+                : Colors.white,
+            Theme.of(context).brightness == Brightness.dark
+                ? Color(0xFF2C2C2E)
+                : Colors.white.withOpacity(0.9),
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.3), width: 2),
@@ -173,7 +182,9 @@ class _QuestScreenState extends State<QuestScreen> {
               Text(
                 label,
                 style: GoogleFonts.montserrat(
-                  color: Color(0xFF2D5263),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Color(0xFFF8F8F8)
+                      : Color(0xFF2D5263),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -181,7 +192,9 @@ class _QuestScreenState extends State<QuestScreen> {
               Text(
                 value,
                 style: GoogleFonts.montserrat(
-                  color: color,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Color(0xFFFFE5E5)
+                      : color,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
@@ -195,34 +208,36 @@ class _QuestScreenState extends State<QuestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            color: Color(
-              0xFFCFFFF7,
-            ), // Light mint background matching quiz_category
-          ),
-          child: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0891B2)),
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        if (_isLoading) {
+          return Scaffold(
+            body: Container(
+              decoration: BoxDecoration(color: themeManager.backgroundColor),
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    themeManager.primary,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      );
-    }
+          );
+        }
 
+        return _buildQuestScreen(context, themeManager);
+      },
+    );
+  }
+
+  Widget _buildQuestScreen(BuildContext context, ThemeManager themeManager) {
     final bool chestEnabled = _isChestUnlocked;
 
     // Lightweight refresh (no auto-claim inside)
-    QuestStatus.ensureUnlocksLoaded();
+    // QuestStatus.ensureUnlocksLoaded(); // Commented out - was being called on every build
 
     return Container(
-      decoration: BoxDecoration(
-        color: Color(
-          0xFFCFFFF7,
-        ), // Light mint background matching quiz_category
-      ),
+      decoration: BoxDecoration(color: themeManager.backgroundColor),
       child: SafeArea(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -244,7 +259,9 @@ class _QuestScreenState extends State<QuestScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF0891B2), // Darker cyan
+                            color: themeManager.isDarkMode
+                                ? Color(0xFFFFE5E5)
+                                : themeManager.primary,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -252,7 +269,9 @@ class _QuestScreenState extends State<QuestScreen> {
                           'Complete missions & earn rewards',
                           style: GoogleFonts.montserrat(
                             fontSize: 13,
-                            color: Color(0xFF2D5263),
+                            color: themeManager.isDarkMode
+                                ? Color(0xFFF8F8F8)
+                                : Color(0xFF2D5263),
                           ),
                         ),
                       ],
@@ -265,7 +284,9 @@ class _QuestScreenState extends State<QuestScreen> {
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFFF5E6C8), Color(0xFFF0DDB8)],
+                          colors: themeManager.isDarkMode
+                              ? [Color(0xFF636366), Color(0xFF8E8E93)]
+                              : [Color(0xFFF5E6C8), Color(0xFFF0DDB8)],
                         ),
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -273,14 +294,18 @@ class _QuestScreenState extends State<QuestScreen> {
                         children: [
                           Icon(
                             Icons.vpn_key,
-                            color: Color(0xFF8B6914),
+                            color: themeManager.isDarkMode
+                                ? Color(0xFFE8E8E8)
+                                : Color(0xFF8B6914),
                             size: 20,
                           ),
                           SizedBox(width: 8),
                           Text(
                             '${QuestStatus.userPoints}',
                             style: TextStyle(
-                              color: Color(0xFF8B6914),
+                              color: themeManager.isDarkMode
+                                  ? Color(0xFFE8E8E8)
+                                  : Color(0xFF8B6914),
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
                             ),
@@ -310,7 +335,9 @@ class _QuestScreenState extends State<QuestScreen> {
                         icon: Icons.check_circle,
                         label: 'Completed',
                         value: '${_getCompletedQuestCount()}/28',
-                        color: Color(0xFF0891B2), // Darker cyan
+                        color: themeManager.isDarkMode
+                            ? Color(0xFFD23232)
+                            : Color(0xFF2D5263),
                       ),
                     ),
                   ],
@@ -323,17 +350,18 @@ class _QuestScreenState extends State<QuestScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
-                      ],
+                      colors: themeManager.isDarkMode
+                          ? [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
+                          : [Color(0xFFF5E6C8), Color(0xFFF0DDB8)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF0891B2).withOpacity(0.15),
+                        color: themeManager.isDarkMode
+                            ? Color(0xFFD23232).withOpacity(0.10)
+                            : Color(0xFF8E8E93).withOpacity(0.10),
                         blurRadius: 15,
                         offset: Offset(0, 5),
                       ),
@@ -374,7 +402,9 @@ class _QuestScreenState extends State<QuestScreen> {
                                   style: GoogleFonts.montserrat(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0891B2), // Darker cyan
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFFFFE5E5)
+                                        : Color(0xFF2D5263),
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -384,7 +414,9 @@ class _QuestScreenState extends State<QuestScreen> {
                                       : 'Complete quests to unlock',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 13,
-                                    color: Color(0xFF2D5263),
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFFF8F8F8)
+                                        : Color(0xFF2D5263),
                                   ),
                                 ),
                               ],
@@ -397,7 +429,9 @@ class _QuestScreenState extends State<QuestScreen> {
                       Container(
                         height: 10,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.5),
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF2C2C2E)
+                              : Colors.white.withOpacity(0.5),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: LayoutBuilder(
@@ -408,8 +442,8 @@ class _QuestScreenState extends State<QuestScreen> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: chestEnabled
-                                      ? [Color(0xFFFFEB99), Color(0xFF8B6914)]
-                                      : [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                      ? [Color(0xFFD23232), Color(0xFF8E8E93)]
+                                      : [Color(0xFF636366), Color(0xFF1C1C1E)],
                                 ),
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -425,8 +459,8 @@ class _QuestScreenState extends State<QuestScreen> {
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
                             backgroundColor: chestEnabled
-                                ? Color(0xFF0891B2)
-                                : Color(0xFF6B5D42).withOpacity(0.3),
+                                ? Color(0xFFD23232)
+                                : Color(0xFF636366).withOpacity(0.3),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -453,7 +487,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   style: GoogleFonts.montserrat(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF2D5263),
+                    color: themeManager.isDarkMode
+                        ? Color(0xFFFFE5E5)
+                        : Color(0xFF2D5263),
                   ),
                 ),
                 SizedBox(height: 4),
@@ -461,7 +497,9 @@ class _QuestScreenState extends State<QuestScreen> {
                   '${_getCompletedQuestCount()} of 28 completed',
                   style: GoogleFonts.montserrat(
                     fontSize: 14,
-                    color: Color(0xFF2D5263).withOpacity(0.7),
+                    color: themeManager.isDarkMode
+                        ? Color(0xFFF8F8F8)
+                        : Color(0xFF2D5263).withOpacity(0.7),
                   ),
                 ),
 
@@ -951,19 +989,19 @@ class _QuestScreenState extends State<QuestScreen> {
               ],
             ),
           ),
-          bottomNavigationBar: _buildFunNavBar(),
+          bottomNavigationBar: _buildFunNavBar(themeManager),
         ),
       ),
     );
   }
 
   // Navigation bar matching quiz_category and leaderboard theme
-  Widget _buildFunNavBar() {
+  Widget _buildFunNavBar(ThemeManager themeManager) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeManager.isDarkMode ? Color(0xFF000000) : Colors.white,
         border: Border.all(
-          color: Color(0xFF0891B2).withOpacity(0.3),
+          color: themeManager.primary.withOpacity(0.3),
           width: 1.5,
         ),
         borderRadius: BorderRadius.only(
@@ -972,7 +1010,7 @@ class _QuestScreenState extends State<QuestScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF0891B2).withOpacity(0.15),
+            color: themeManager.primary.withOpacity(0.15),
             blurRadius: 20,
             offset: Offset(0, -5),
           ),
@@ -989,24 +1027,28 @@ class _QuestScreenState extends State<QuestScreen> {
                 label: 'Home',
                 isSelected: _selectedIndex == 0,
                 onTap: () => _onItemTapped(0),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '📚',
                 label: 'Quest',
                 isSelected: _selectedIndex == 1,
                 onTap: () => _onItemTapped(1),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '🏆',
                 label: 'Ranking',
                 isSelected: _selectedIndex == 2,
                 onTap: () => _onItemTapped(2),
+                themeManager: themeManager,
               ),
               _buildNavItem(
                 emoji: '👤',
                 label: 'Profile',
                 isSelected: _selectedIndex == 3,
                 onTap: () => _onItemTapped(3),
+                themeManager: themeManager,
               ),
             ],
           ),
@@ -1020,6 +1062,7 @@ class _QuestScreenState extends State<QuestScreen> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required ThemeManager themeManager,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -1028,7 +1071,9 @@ class _QuestScreenState extends State<QuestScreen> {
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Color(0xFF0891B2).withOpacity(0.1)
+                ? (themeManager.isDarkMode
+                      ? Color(0xFFD23232).withOpacity(0.15)
+                      : Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -1043,8 +1088,12 @@ class _QuestScreenState extends State<QuestScreen> {
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? Color(0xFF0891B2)
-                      : Color(0xFF2D5263).withOpacity(0.6),
+                      ? (themeManager.isDarkMode
+                            ? Color(0xFFD23232)
+                            : Color(0xFF0891B2))
+                      : (themeManager.isDarkMode
+                            ? Color(0xFF8E8E93)
+                            : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],

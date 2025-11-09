@@ -8,12 +8,12 @@ class QuestStatus {
   static bool _saveQueued = false;
 
   // ================= Content Keys & Level Thresholds =================
-  static const String levelAlphabet   = 'alphabet';
-  static const String levelNumbers    = 'numbers';
-  static const String levelGreetings  = 'greetings';   // Fruits (UI)
-  static const String levelColour     = 'colour';
-  static const String levelCommonVerb = 'commonVerb';  // Animals (UI)
-  static const String levelVerbs      = 'verbs';       // Verbs (UI)
+  static const String levelAlphabet = 'alphabet';
+  static const String levelNumbers = 'numbers';
+  static const String levelGreetings = 'greetings'; // Fruits (UI)
+  static const String levelColour = 'colour';
+  static const String levelCommonVerb = 'commonVerb'; // Animals (UI)
+  static const String levelVerbs = 'verbs'; // Verbs (UI)
 
   // Unlock requirements (Alphabet free, Numbers 5, Colour 10, Fruits 15, Animals 25, Verbs 30)
   static const Map<String, int> _unlockAtLevel = {
@@ -22,7 +22,7 @@ class QuestStatus {
     levelColour: 10,
     levelGreetings: 15,
     levelCommonVerb: 25,
-    levelVerbs:      30,
+    levelVerbs: 30,
   };
 
   static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
@@ -100,9 +100,9 @@ class QuestStatus {
   static int animalsPerfectRounds = 0; // Q20
 
   // Verbs
-  static bool learnedVerbsAll         = false; // Q26
-  static int  verbsRoundsCompleted    = 0;     // Q27
-  static int  verbsPerfectRounds      = 0;     // Q28
+  static bool learnedVerbsAll = false; // Q26
+  static int verbsRoundsCompleted = 0; // Q27
+  static int verbsPerfectRounds = 0; // Q28
 
   // Misc tracker
   static bool firstQuizMedalEarned =
@@ -212,11 +212,13 @@ class QuestStatus {
     _autoClaimAll();
     Future.microtask(() => autoSaveProgress());
   }
+
   static void incVerbsRoundsCompleted() {
     verbsRoundsCompleted++;
     _autoClaimAll();
     Future.microtask(() => autoSaveProgress());
   }
+
   static void incVerbsPerfectRounds() {
     verbsPerfectRounds++;
     _autoClaimAll();
@@ -582,12 +584,12 @@ class QuestStatus {
 
   static bool canClaimQuest23() =>
       isContentUnlocked(levelNumbers) &&
-          isContentUnlocked(levelColour)  &&
-          isContentUnlocked(levelGreetings) &&
-          isContentUnlocked(levelCommonVerb) &&
-          isContentUnlocked(levelVerbs) &&
-          !quest23Claimed;
-  static int  claimQuest23({int reward = 200, int progress = 20}) {
+      isContentUnlocked(levelColour) &&
+      isContentUnlocked(levelGreetings) &&
+      isContentUnlocked(levelCommonVerb) &&
+      isContentUnlocked(levelVerbs) &&
+      !quest23Claimed;
+  static int claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
     quest23Claimed = true;
     userPoints += reward;
@@ -606,28 +608,45 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest25() => isContentUnlocked(levelVerbs) && !quest25Claimed;
-  static int  claimQuest25({int reward = 100, int progress = 15}) {
+  static bool canClaimQuest25() =>
+      isContentUnlocked(levelVerbs) && !quest25Claimed;
+  static int claimQuest25({int reward = 100, int progress = 15}) {
     if (!canClaimQuest25()) return 0;
-    quest25Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(50); return reward;
+    quest25Claimed = true;
+    userPoints += reward;
+    _applyChestProgress(progress);
+    addXp(50);
+    return reward;
   }
 
   static bool canClaimQuest26() => learnedVerbsAll && !quest26Claimed;
-  static int  claimQuest26({int reward = 120, int progress = 15}) {
+  static int claimQuest26({int reward = 120, int progress = 15}) {
     if (!canClaimQuest26()) return 0;
-    quest26Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(80); return reward;
+    quest26Claimed = true;
+    userPoints += reward;
+    _applyChestProgress(progress);
+    addXp(80);
+    return reward;
   }
 
   static bool canClaimQuest27() => verbsRoundsCompleted >= 2 && !quest27Claimed;
-  static int  claimQuest27({int reward = 150, int progress = 20}) {
+  static int claimQuest27({int reward = 150, int progress = 20}) {
     if (!canClaimQuest27()) return 0;
-    quest27Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(150); return reward;
+    quest27Claimed = true;
+    userPoints += reward;
+    _applyChestProgress(progress);
+    addXp(150);
+    return reward;
   }
 
   static bool canClaimQuest28() => verbsPerfectRounds >= 1 && !quest28Claimed;
-  static int  claimQuest28({int reward = 200, int progress = 20}) {
+  static int claimQuest28({int reward = 200, int progress = 20}) {
     if (!canClaimQuest28()) return 0;
-    quest28Claimed = true; userPoints += reward; _applyChestProgress(progress); addXp(180); return reward;
+    quest28Claimed = true;
+    userPoints += reward;
+    _applyChestProgress(progress);
+    addXp(180);
+    return reward;
   }
 
   // ================== AUTO-CLAIM DISABLED ==================
@@ -656,12 +675,18 @@ class QuestStatus {
 
   static String titleFor(String key) {
     switch (key) {
-      case levelAlphabet:   return 'Alphabet Quest';
-      case levelNumbers:    return 'Numbers Quest';
-      case levelGreetings:  return 'Fruits Quest';
-      case levelColour:     return 'Colors Quest';
-      case levelCommonVerb: return 'Animals Quest';
-      case levelVerbs:      return 'Verbs Quest';
+      case levelAlphabet:
+        return 'Alphabet Quest';
+      case levelNumbers:
+        return 'Numbers Quest';
+      case levelGreetings:
+        return 'Fruits Quest';
+      case levelColour:
+        return 'Colors Quest';
+      case levelCommonVerb:
+        return 'Animals Quest';
+      case levelVerbs:
+        return 'Verbs Quest';
       default:
         return key.replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
     }
