@@ -1,15 +1,21 @@
 // lib/alphabet_q.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
 
 import 'quest_status.dart';
-import 'services/sfx_service.dart'; // <-- uses your singleton Sfx()
+import 'services/sfx_service.dart';
+
+enum QuizType { multipleChoice, mixMatch }
 
 class AlphabetQuizScreen extends StatefulWidget {
   final int? startIndex;
+  final QuizType quizType;
 
-  const AlphabetQuizScreen({super.key, this.startIndex});
+  const AlphabetQuizScreen({
+    super.key,
+    this.startIndex,
+    this.quizType = QuizType.multipleChoice,
+  });
 
   @override
   State<AlphabetQuizScreen> createState() => _AlphabetQuizScreenState();
@@ -17,168 +23,78 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
-  static const int sessionSize = 5;
+  // Session sizes
+  static const int multipleChoiceSize = 5;
+  static const int mixMatchSize = 6;
 
+  // Mix & Match visual sizing
+  static const double mmRowGap = 10;
+  static const double mmImageHeight = 95;   // hand sign box
+  static const double mmLetterHeight = 70;  // letter box
+
+  // Multiple choice state
   late List<int> activeIndices;
   late int currentSlot;
   bool isOptionSelected = false;
   int? _pendingIndex;
-
   final Map<int, bool> _sessionAnswers = {};
 
+  // Mix & Match state
+  late List<int> mixMatchIndices;
+  bool _isInMixMatchRound = false;
+  final Map<String, String> _currentMatches = {}; // leftId -> rightId
+  List<String> _mmLettersOrder = [];
+  List<String> _mmImagesOrder = [];
+  Map<String, String> _imageForLetter = {}; // letter -> imagePath
+  final ScrollController _mmScroll = ScrollController();
+
+  // NEW: Review mode (show correct/wrong for 7s)
+  bool _mmReviewMode = false;
+  final Set<String> _mmCorrectRightIds = {}; // e.g. right_A
+  final Set<String> _mmWrongRightIds = {};
+
+  // Animations
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
+  // Questions
   final List<Map<String, dynamic>> questions = [
-    {
-      "image": "assets/images/alphabet/Q1.jpg",
-      "options": ["P", "A", "E", "S"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q2.jpg",
-      "options": ["W", "U", "F", "B"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q3.jpg",
-      "options": ["C", "Z", "R", "H"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q4.jpg",
-      "options": ["U", "Y", "D", "L"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q5.jpg",
-      "options": ["J", "E", "I", "O"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q6.jpg",
-      "options": ["M", "F", "E", "S"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q7.jpg",
-      "options": ["X", "N", "G", "D"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q8.jpg",
-      "options": ["H", "O", "R", "Q"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q9.jpg",
-      "options": ["U", "Y", "N", "I"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q10.jpg",
-      "options": ["Z", "L", "I", "J"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q11.jpg",
-      "options": ["O", "K", "E", "S"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q12.jpg",
-      "options": ["L", "N", "F", "D"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q13.jpg",
-      "options": ["K", "O", "M", "R"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q14.jpg",
-      "options": ["Z", "Y", "N", "L"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q15.jpg",
-      "options": ["J", "L", "I", "O"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q16.jpg",
-      "options": ["R", "P", "E", "A"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q17.jpg",
-      "options": ["Q", "V", "F", "D"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q18.jpg",
-      "options": ["K", "O", "R", "H"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q19.jpg",
-      "options": ["C", "Y", "N", "S"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q20.jpg",
-      "options": ["J", "T", "I", "O"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q21.jpg",
-      "options": ["U", "P", "E", "J"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q22.jpg",
-      "options": ["V", "N", "F", "D"],
-      "correctIndex": 0,
-    },
-    {
-      "image": "assets/images/alphabet/Q23.jpg",
-      "options": ["K", "O", "R", "W"],
-      "correctIndex": 3,
-    },
-    {
-      "image": "assets/images/alphabet/Q24.jpg",
-      "options": ["U", "Y", "X", "L"],
-      "correctIndex": 2,
-    },
-    {
-      "image": "assets/images/alphabet/Q25.jpg",
-      "options": ["J", "Y", "I", "O"],
-      "correctIndex": 1,
-    },
-    {
-      "image": "assets/images/alphabet/Q26.jpg",
-      "options": ["A", "L", "I", "Z"],
-      "correctIndex": 3,
-    },
+    {"image": "assets/images/alphabet/Q1.jpg", "options": ["P", "A", "E", "S"], "correctIndex": 1, "letter": "A"},
+    {"image": "assets/images/alphabet/Q2.jpg", "options": ["W", "U", "F", "B"], "correctIndex": 3, "letter": "B"},
+    {"image": "assets/images/alphabet/Q3.jpg", "options": ["C", "Z", "R", "H"], "correctIndex": 0, "letter": "C"},
+    {"image": "assets/images/alphabet/Q4.jpg", "options": ["U", "Y", "D", "L"], "correctIndex": 2, "letter": "D"},
+    {"image": "assets/images/alphabet/Q5.jpg", "options": ["J", "E", "I", "O"], "correctIndex": 1, "letter": "E"},
+    {"image": "assets/images/alphabet/Q6.jpg", "options": ["M", "F", "E", "S"], "correctIndex": 1, "letter": "F"},
+    {"image": "assets/images/alphabet/Q7.jpg", "options": ["X", "N", "G", "D"], "correctIndex": 2, "letter": "G"},
+    {"image": "assets/images/alphabet/Q8.jpg", "options": ["H", "O", "R", "Q"], "correctIndex": 0, "letter": "H"},
+    {"image": "assets/images/alphabet/Q9.jpg", "options": ["U", "Y", "N", "I"], "correctIndex": 3, "letter": "I"},
+    {"image": "assets/images/alphabet/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3, "letter": "J"},
+    {"image": "assets/images/alphabet/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1, "letter": "K"},
+    {"image": "assets/images/alphabet/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0, "letter": "L"},
+    {"image": "assets/images/alphabet/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2, "letter": "M"},
+    {"image": "assets/images/alphabet/Q14.jpg", "options": ["Z", "Y", "N", "L"], "correctIndex": 2, "letter": "N"},
+    {"image": "assets/images/alphabet/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3, "letter": "O"},
+    {"image": "assets/images/alphabet/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1, "letter": "P"},
+    {"image": "assets/images/alphabet/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0, "letter": "Q"},
+    {"image": "assets/images/alphabet/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2, "letter": "R"},
+    {"image": "assets/images/alphabet/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3, "letter": "S"},
+    {"image": "assets/images/alphabet/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1, "letter": "T"},
+    {"image": "assets/images/alphabet/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0, "letter": "U"},
+    {"image": "assets/images/alphabet/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0, "letter": "V"},
+    {"image": "assets/images/alphabet/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3, "letter": "W"},
+    {"image": "assets/images/alphabet/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2, "letter": "X"},
+    {"image": "assets/images/alphabet/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1, "letter": "Y"},
+    {"image": "assets/images/alphabet/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3, "letter": "Z"},
   ];
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
-
-  int _firstUnansweredSlot() {
-    for (int s = 0; s < activeIndices.length; s++) {
-      if (!_isAnsweredInSession(activeIndices[s])) return s;
-    }
-    return 0;
-  }
-
   bool _allAnsweredInSession() {
     for (final i in activeIndices) {
       if (!_sessionAnswers.containsKey(i)) return false;
     }
     return true;
   }
-
   int? _nextUnansweredSlotAfter(int fromSlot) {
     for (int s = fromSlot + 1; s < activeIndices.length; s++) {
       if (!_isAnsweredInSession(activeIndices[s])) return s;
@@ -189,61 +105,60 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   @override
   void initState() {
     super.initState();
-
-    // Init SFX once (safe to call multiple times)
     Sfx().init();
 
-    // Mark quest 3 when alphabet quiz opens (no extra popups here)
     if (!QuestStatus.alphabetQuizStarted) {
       QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) {
-        QuestStatus.claimQuest3();
-      }
+      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
     }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    final takeCount = math.min(sessionSize, all.length);
-    activeIndices = all.take(takeCount).toList();
+    activeIndices = all.take(multipleChoiceSize).toList();
+    final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
+    mixMatchIndices = remaining.take(mixMatchSize).toList();
 
-    QuestStatus.ensureLevel1Length(activeIndices.length);
+    QuestStatus.ensureLevel1Length(activeIndices.length + 1);
     QuestStatus.resetLevel1Answers();
 
-    int startSlot = widget.startIndex ?? _firstUnansweredSlot();
+    int startSlot = widget.startIndex ?? 0;
     startSlot = startSlot.clamp(0, activeIndices.length - 1);
     currentSlot = startSlot;
 
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _offsetAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _isInMixMatchRound = widget.quizType == QuizType.mixMatch;
+    if (_isInMixMatchRound) _prepareMixMatchRound();
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
+    _controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentSlot > 0 && mounted) {
-        _showFloatingMessage('Resumed where you left off');
-      }
-    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _mmScroll.dispose();
     super.dispose();
   }
 
+  // Freeze orders for Mix&Match
+  void _prepareMixMatchRound() {
+    _imageForLetter.clear();
+    for (final idx in mixMatchIndices) {
+      final letter = questions[idx]['letter'] as String;
+      final image = questions[idx]['image'] as String;
+      _imageForLetter[letter] = image;
+    }
+    final letters = mixMatchIndices.map((i) => questions[i]['letter'] as String).toList();
+    final images = mixMatchIndices.map((i) => questions[i]['image'] as String).toList();
+    _mmLettersOrder = List<String>.from(letters)..shuffle();
+    _mmImagesOrder = List<String>.from(images)..shuffle();
+  }
+
+  // MULTIPLE CHOICE handler
   Future<void> handleAnswer(int selectedIndex) async {
     if (isOptionSelected) return;
-
     final qIdx = activeIndices[currentSlot];
     if (_sessionAnswers.containsKey(qIdx)) return;
 
@@ -258,88 +173,33 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     _sessionAnswers[qIdx] = isCorrect;
     QuestStatus.level1Answers[currentSlot] = isCorrect;
 
-    // Visual feedback only (Option B = no per-answer sound)
     if (isCorrect) {
-      showAnimatedPopup(
-        icon: Icons.star,
-        title: "Correct!",
-        subtitle: "You earned 20 XP",
-        bgColor: const Color(0xFF2C5CB0),
-      );
+      showAnimatedPopup(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP", bgColor: const Color(0xFF2C5CB0));
       QuestStatus.addXp(20);
     } else {
-      final correctLetter =
-          (questions[qIdx]['options'] as List<String>)[correctIndex];
-      showAnimatedPopup(
-        icon: Icons.close,
-        title: "Incorrect",
-        subtitle: "Correct: $correctLetter",
-        bgColor: const Color(0xFFFF4B4A),
-      );
+      final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
+      showAnimatedPopup(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctLetter", bgColor: const Color(0xFFFF4B4A));
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
 
-    // ====== FINISH SESSION (Option B sounds here) ======
     if (_allAnsweredInSession()) {
       if (!mounted) return;
-
-      final sessionScore = activeIndices
-          .where((i) => _sessionAnswers[i] == true)
-          .length;
-
-      // ---- Update counters/quests silently ----
-      QuestStatus.alphabetRoundsCompleted += 1;
-
-      if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-          !QuestStatus.quest5Claimed) {
-        if (QuestStatus.canClaimQuest5()) {
-          QuestStatus.claimQuest5();
-        }
-      }
-
-      if (sessionScore == activeIndices.length && !QuestStatus.quest6Claimed) {
-        if (QuestStatus.canClaimQuest6()) {
-          QuestStatus.claimQuest6();
-        }
-      }
-
-      QuestStatus.markFirstQuizMedalEarned();
-
-      // Streak increase check
-      final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease) {
-        // Play the streak sound (Option B)
-        await Sfx().playStreak();
-      }
-
-      // Play end-of-round jingle (Option B)
-      await Sfx().playLevelComplete();
-
-      // Show the big result dialog (Score only, “Perfection” if perfect)
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _GreatWorkDialog(
-          score: sessionScore,
-          total: activeIndices.length,
-          onReturn: () {
-            Navigator.of(context).pop(); // close dialog
-            Navigator.of(context).pop(); // back to QuizCategory
-          },
-        ),
-      );
-
+      await Future.delayed(const Duration(milliseconds: 500));
+      await showDialog(context: context, barrierDismissible: false, builder: (_) => const _BonusRoundDialog());
+      setState(() {
+        _prepareMixMatchRound();
+        _isInMixMatchRound = true;
+        currentSlot = 0;
+        _controller.reset();
+        _controller.forward();
+      });
       return;
     }
 
-    // Move to next question
     final nextSlot = _nextUnansweredSlotAfter(currentSlot);
     setState(() {
-      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
-        0,
-        activeIndices.length - 1,
-      );
+      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
       isOptionSelected = false;
       _pendingIndex = null;
       _controller.reset();
@@ -347,39 +207,115 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     });
   }
 
-  void _showFloatingMessage(String message) {
-    final overlay = Overlay.of(context);
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        top: 100,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C5CB0),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
+  // MIX & MATCH: After all pairs filled → confirm dialog
+  void _onAllPairsFilled() async {
+    final submit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _CleanConfirmDialog(
+        icon: Icons.check_circle_rounded,
+        title: 'Submit answers?',
+        message: "You've matched all pairs. Submit now or reset all to try again.",
+        primaryLabel: 'Submit',
+        secondaryLabel: 'Reset',
       ),
     );
 
-    overlay.insert(entry);
-    Future.delayed(const Duration(seconds: 2), () => entry.remove());
+    if (submit == true) {
+      _evaluateMixMatchAndReview(); // NEW: review for 7s then finish
+    } else {
+      setState(() => _currentMatches.clear());
+    }
   }
 
-  // -------------------- TWO-STEP SIMPLE CONFIRM UI --------------------
+  // NEW: Evaluate + enter review mode (7s), then finish
+  void _evaluateMixMatchAndReview() {
+    _mmCorrectRightIds.clear();
+    _mmWrongRightIds.clear();
+
+    bool allCorrect = true;
+    for (final idx in mixMatchIndices) {
+      final letter = questions[idx]['letter'] as String;
+      final leftId = "left_$letter";
+      final rightId = "right_$letter";
+      if (_currentMatches[leftId] == rightId) {
+        _mmCorrectRightIds.add(rightId);
+      } else {
+        allCorrect = false;
+        _mmWrongRightIds.add(rightId);
+      }
+    }
+
+    // Save result as 6th item (after 5 MC)
+    QuestStatus.level1Answers[activeIndices.length] = allCorrect;
+
+    // Enter review mode (disable dragging; show colors)
+    setState(() => _mmReviewMode = true);
+
+    // After 7s → exit review, show popup + finish
+    Future.delayed(const Duration(seconds: 7), () {
+      if (!mounted) return;
+      setState(() => _mmReviewMode = false);
+      _completeMixMatch(allCorrect); // popup + XP + finish
+    });
+  }
+
+  // Separate finisher (used after review)
+  void _completeMixMatch(bool allCorrect) {
+    if (allCorrect) {
+      showAnimatedPopup(icon: Icons.star, title: "Perfect Match!", subtitle: "You earned 50 XP", bgColor: const Color(0xFF2C5CB0));
+      QuestStatus.addXp(50);
+    } else {
+      showAnimatedPopup(icon: Icons.close, title: "Some Incorrect", subtitle: "Try again next time!", bgColor: const Color(0xFFFF4B4A));
+    }
+    Future.delayed(const Duration(milliseconds: 500), () => _finishSession());
+  }
+
+  // Session Completion
+  Future<void> _finishSession() async {
+    if (!mounted) return;
+
+    int sessionScore = 0;
+    for (final i in activeIndices) {
+      if (_sessionAnswers[i] == true) sessionScore++;
+    }
+    if (QuestStatus.level1Answers.length > activeIndices.length &&
+        QuestStatus.level1Answers[activeIndices.length] == true) {
+      sessionScore++;
+    }
+
+    final totalQuestions = activeIndices.length + 1; // 5 MC + 1 Mix&Match
+    QuestStatus.alphabetRoundsCompleted += 1;
+
+    if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
+      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
+    }
+    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
+      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+    }
+
+    QuestStatus.markFirstQuizMedalEarned();
+
+    final didIncrease = QuestStatus.addStreakForLevel();
+    if (didIncrease) await Sfx().playStreak();
+    await Sfx().playLevelComplete();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _GreatWorkDialog(
+        score: sessionScore,
+        total: totalQuestions,
+        onReturn: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  // Back helpers
   Future<bool> _confirmExitQuiz() async {
-    // Step 1 — soft warning
     final first = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -393,15 +329,13 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
     if (first != true) return false;
 
-    // Step 2 — final confirmation
     final second = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message:
-            "This action can’t be undone and your progress this round will be lost.",
+        message: "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -409,15 +343,11 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return second == true;
   }
 
-  // Back handler used by the header back icon
   Future<void> _handleBackPressed() async {
     final shouldExit = await _confirmExitQuiz();
-    if (shouldExit && mounted) {
-      Navigator.pop(context);
-    }
+    if (shouldExit && mounted) Navigator.pop(context);
   }
 
-  // Simple slide-in popup (small badge)
   void showAnimatedPopup({
     required IconData icon,
     required String title,
@@ -429,30 +359,29 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _SlideInBadge(
-          icon: icon,
-          title: title,
-          subtitle: subtitle,
-          color: bgColor,
-        ),
+        child: _SlideInBadge(icon: icon, title: title, subtitle: subtitle, color: bgColor),
       ),
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
   }
 
+  // BUILD
   @override
   Widget build(BuildContext context) {
+    return _isInMixMatchRound ? _buildMixMatchQuiz() : _buildMultipleChoiceQuiz();
+  }
+
+  // MULTIPLE CHOICE UI
+  Widget _buildMultipleChoiceQuiz() {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List)
-        .map((e) => e.toString())
-        .toList();
+    final options = (question['options'] as List).map((e) => e.toString()).toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFCFFFF7), // Light mint background
+        backgroundColor: const Color(0xFFCFFFF7),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -462,7 +391,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    _buildHeader(),
+                    _buildHeader("Alphabet Quiz"),
                     const SizedBox(height: 12),
                     _buildProgressBar(),
                     const SizedBox(height: 16),
@@ -481,110 +410,58 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
   }
 
-  Widget _buildConfirmBar(List<String> options) {
-    final idx = _pendingIndex!;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  // MIX & MATCH UI
+  Widget _buildMixMatchQuiz() {
+    if (_mmLettersOrder.isEmpty || _mmImagesOrder.isEmpty) {
+      _prepareMixMatchRound();
+    }
+
+    final totalPairs = mixMatchIndices.length;
+
+    return WillPopScope(
+      onWillPop: () async => await _confirmExitQuiz(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFCFFFF7),
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _offsetAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    _buildHeader("Mix & Match"),
+                    const SizedBox(height: 8),
+                    _buildStableMixMatchProgress(totalPairs),
+                    const SizedBox(height: 12),
+                    _buildMixMatchInstruction(),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Scrollbar(
+                        controller: _mmScroll,
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          controller: _mmScroll,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: _buildMatchingAreaStable(
+                            lettersOrder: _mmLettersOrder,
+                            imagesOrder: _mmImagesOrder,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF69D3E4).withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Selected: ${options[idx]}',
-              style: GoogleFonts.montserrat(
-                color: const Color(0xFF69D3E4),
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(color: Colors.grey.shade600),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.all(
-                    Colors.transparent,
-                  ),
-                ),
-            onPressed: () {
-              final i = _pendingIndex;
-              if (i != null) handleAnswer(i);
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Text(
-                  'Confirm',
-                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String title) {
     return Row(
       children: [
         IconButton(
@@ -592,96 +469,42 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF69D3E4).withOpacity(0.3),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF69D3E4).withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
             ),
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF69D3E4),
-              size: 20,
-            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF69D3E4), size: 20),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Alphabet Quiz",
-                style: GoogleFonts.montserrat(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF69D3E4),
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          child: Text(
+            title,
+            style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF69D3E4), letterSpacing: -0.5),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF69D3E4).withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))],
           ),
-          child: Row(
-            children: [
-              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
-              const SizedBox(width: 4),
-              Text(
-                "Lvl ${QuestStatus.level}",
-                style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+          child: Row(children: [
+            const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
+            const SizedBox(width: 4),
+            Text("Lvl ${QuestStatus.level}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+          ]),
         ),
       ],
     );
   }
 
+  // Progress (MC)
   Widget _buildProgressBar() {
     final total = activeIndices.length;
-    int correct = 0;
-    int wrong = 0;
+    int correct = 0, wrong = 0;
     for (final i in activeIndices) {
       if (_sessionAnswers.containsKey(i)) {
         if (_sessionAnswers[i] == true) correct++;
@@ -690,61 +513,26 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({
-      required Color color,
-      required int flex,
-      required BorderRadius radius,
-    }) {
+    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
       if (flex <= 0) return const SizedBox.shrink();
       return Expanded(
         flex: flex,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          decoration: BoxDecoration(color: color, borderRadius: radius),
-          height: 12,
-        ),
+        child: AnimatedContainer(duration: const Duration(milliseconds: 220), decoration: BoxDecoration(color: color, borderRadius: radius), height: 12),
       );
     }
 
-    final hasCorrect = correct > 0;
-    final hasWrong = wrong > 0;
-    final hasRemaining = remaining > 0;
-
+    final hasCorrect = correct > 0, hasWrong = wrong > 0, hasRemaining = remaining > 0;
     final bars = <Widget>[];
     if (hasCorrect) {
-      bars.add(
-        segment(
-          color: const Color(0xFF22C55E),
-          flex: correct,
-          radius: hasWrong || hasRemaining
-              ? const BorderRadius.horizontal(left: Radius.circular(10))
-              : BorderRadius.circular(10),
-        ),
-      );
+      bars.add(segment(color: const Color(0xFF22C55E), flex: correct, radius: hasWrong || hasRemaining ? const BorderRadius.horizontal(left: Radius.circular(10)) : BorderRadius.circular(10)));
     }
     if (hasWrong) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
-      bars.add(
-        segment(
-          color: const Color(0xFFFF4B4A),
-          flex: wrong,
-          radius: (!hasCorrect && !hasRemaining)
-              ? BorderRadius.circular(10)
-              : BorderRadius.zero,
-        ),
-      );
+      bars.add(segment(color: const Color(0xFFFF4B4A), flex: wrong, radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(10) : BorderRadius.zero));
     }
     if (hasRemaining) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
-      bars.add(
-        segment(
-          color: const Color(0xFFE0F2F1),
-          flex: remaining,
-          radius: (hasCorrect || hasWrong)
-              ? const BorderRadius.horizontal(right: Radius.circular(10))
-              : BorderRadius.circular(10),
-        ),
-      );
+      bars.add(segment(color: const Color(0xFFE0F2F1), flex: remaining, radius: (hasCorrect || hasWrong) ? const BorderRadius.horizontal(right: Radius.circular(10)) : BorderRadius.circular(10)));
     }
 
     return Column(
@@ -753,86 +541,193 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, const Color(0xFFF0FDFA)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: const LinearGradient(colors: [Colors.white, Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF69D3E4).withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
           ),
           child: Row(children: bars),
         ),
         const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
-            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
-          ],
-        ),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: const [
+          _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
+          _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+        ]),
       ],
     );
   }
 
+  // Progress (Mix&Match)
+  Widget _buildStableMixMatchProgress(int total) {
+    final matched = _currentMatches.length;
+    final value = total == 0 ? 0.0 : matched / total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 10,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: value,
+              backgroundColor: const Color(0xFFE0F2F1),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF69D3E4)),
+              minHeight: 10,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text("$matched / $total matched", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Widget _buildMixMatchInstruction() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text("Drag letters to their matching signs", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF69D3E4))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Matching area (organized rows; right is bigger)
+  Widget _buildMatchingAreaStable({
+    required List<String> lettersOrder,
+    required List<String> imagesOrder,
+  }) {
+    assert(lettersOrder.length == imagesOrder.length, "lettersOrder and imagesOrder must be same length");
+
+    return Column(
+      children: List.generate(lettersOrder.length, (i) {
+        final letter = lettersOrder[i];
+        final leftId = "left_$letter";
+        final isLeftMatched = _currentMatches.containsKey(leftId);
+
+        final imagePath = imagesOrder[i];
+        final rightLetter = _imageForLetter.entries.firstWhere((e) => e.value == imagePath).key;
+        final rightId = "right_$rightLetter";
+        final isRightMatched = _currentMatches.values.contains(rightId);
+
+        // During review, compute status for this right target
+        final showCorrect = _mmReviewMode && _mmCorrectRightIds.contains(rightId);
+        final showWrong = _mmReviewMode && _mmWrongRightIds.contains(rightId);
+
+        return Padding(
+          key: ValueKey('ROW_$i'),
+          padding: const EdgeInsets.only(bottom: mmRowGap),
+          child: SizedBox(
+            height: mmImageHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: draggable letter (disabled in review)
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: SizedBox(
+                      height: mmLetterHeight,
+                      child: Opacity(
+                        opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
+                        child: IgnorePointer(
+                          ignoring: isLeftMatched || _mmReviewMode,
+                          child: Draggable<String>(
+                            data: leftId,
+                            feedback: Material(
+                              elevation: 8,
+                              borderRadius: BorderRadius.circular(16),
+                              child: _LetterCard(letter: letter, isFloating: true),
+                            ),
+                            childWhenDragging: Opacity(opacity: 0.3, child: _LetterCard(letter: letter)),
+                            child: _LetterCard(letter: letter, isMatched: isLeftMatched),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                // Right: drag target (disabled in review)
+                Expanded(
+                  flex: 4,
+                  child: DragTarget<String>(
+                    onWillAccept: (data) => !_mmReviewMode && data != null && !isRightMatched,
+                    onAccept: (draggedLeftId) {
+                      setState(() {
+                        _currentMatches[draggedLeftId] = rightId;
+                      });
+                      if (_currentMatches.length >= mixMatchIndices.length) {
+                        _onAllPairsFilled();
+                      }
+                    },
+                    builder: (context, candidate, rejected) {
+                      final isHovering = !_mmReviewMode && candidate.isNotEmpty && !isRightMatched;
+                      return SizedBox(
+                        height: mmImageHeight,
+                        child: _ImageCard(
+                          imagePath: imagePath,
+                          isMatched: isRightMatched,
+                          isHovering: isHovering,
+                          reviewCorrect: showCorrect,   // NEW
+                          reviewWrong: showWrong,       // NEW
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // Question Card (MC)
   Widget _buildQuestionCard(Map<String, dynamic> question) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFF69D3E4).withOpacity(0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF69D3E4).withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(
         children: [
-          Text(
-            "What sign is shown?",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF69D3E4),
-              letterSpacing: -0.3,
-            ),
-          ),
+          Text("What sign is shown?", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF69D3E4), letterSpacing: -0.3)),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFF69D3E4).withOpacity(0.2),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF69D3E4).withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.2)),
+              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -840,28 +735,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                 question['image'],
                 fit: BoxFit.contain,
                 height: 140,
-                errorBuilder: (context, error, stack) {
-                  return SizedBox(
-                    height: 140,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.broken_image_rounded,
-                            size: 36,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Image not found',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                errorBuilder: (context, error, stack) => const SizedBox(
+                  height: 140,
+                  child: Center(child: Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey)),
+                ),
               ),
             ),
           ),
@@ -870,27 +747,16 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
   }
 
-  Widget _buildOptionsGrid(
-    List<String> options,
-    int qIdx,
-    Map<String, dynamic> question,
-  ) {
+  // Options Grid (MC)
+  Widget _buildOptionsGrid(List<String> options, int qIdx, Map<String, dynamic> question) {
     return Expanded(
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 1.6,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-        ),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
           final isCorrect = index == question['correctIndex'];
-          final wasSelected =
-              alreadyAnswered &&
-              _sessionAnswers[qIdx] == isCorrect &&
-              isCorrect;
+          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -898,17 +764,60 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
-            onTap: alreadyAnswered
-                ? null
-                : () => setState(() => _pendingIndex = index),
+            onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index),
           );
         },
       ),
     );
   }
+
+  // Confirm Bar (MC)
+  Widget _buildConfirmBar(List<String> options) {
+    final idx = _pendingIndex!;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
+        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('Selected: ${options[idx]}', style: GoogleFonts.montserrat(color: const Color(0xFF69D3E4), fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
+          TextButton(onPressed: () => setState(() => _pendingIndex = null), child: Text('Cancel', style: GoogleFonts.montserrat(color: Colors.grey.shade600))),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))
+                .copyWith(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+            onPressed: () {
+              final i = _pendingIndex;
+              if (i != null) handleAnswer(i);
+            },
+            child: Ink(
+              decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(12)),
+              child: Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Text('Confirm', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700))),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-// ---------- Minimal widgets ----------
+// ---------- Small widgets ----------
 
 class OptionCard extends StatelessWidget {
   final String option;
@@ -932,30 +841,13 @@ class OptionCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         gradient: isSelected || isPending
-            ? const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            ? const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+            : const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected
-              ? const Color(0xFF69D3E4)
-              : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)),
-          width: isSelected || isPending ? 2.5 : 1.5,
-        ),
+        border: Border.all(color: isSelected ? const Color(0xFF69D3E4) : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)), width: isSelected || isPending ? 2.5 : 1.5),
         boxShadow: [
           if (isSelected || isPending)
-            BoxShadow(
-              color: const Color(0xFF69D3E4).withOpacity(0.25),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
+            BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: Material(
@@ -969,63 +861,29 @@ class OptionCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 32, height: 32,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF69D3E4).withOpacity(0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))],
                   ),
-                  child: Center(
-                    child: Text(
-                      number.toString(),
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
+                  child: Center(child: Text(number.toString(), style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15))),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     option,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: isSelected || isPending
-                          ? const Color(0xFF69D3E4)
-                          : const Color(0xFF2D5263),
-                    ),
+                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w800, color: isSelected || isPending ? const Color(0xFF69D3E4) : const Color(0xFF2D5263)),
                   ),
                 ),
                 if (isSelected)
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    child: const Icon(Icons.check, color: Colors.white, size: 18),
                   ),
               ],
             ),
@@ -1039,38 +897,142 @@ class OptionCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
-
   const _LegendDot({required this.label, required this.color});
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 1))])),
+      const SizedBox(width: 6),
+      Text(label, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w700)),
+    ]);
+  }
+}
+
+// ========== Mix & Match Widgets ==========
+
+class _LetterCard extends StatelessWidget {
+  final String letter;
+  final bool isMatched;
+  final bool isDragging;
+  final bool isFloating;
+
+  const _LetterCard({
+    required this.letter,
+    this.isMatched = false,
+    this.isDragging = false,
+    this.isFloating = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
+    return Container(
+      width: isFloating ? 100 : double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isMatched ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [BoxShadow(color: (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4)).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Center(
+        child: Text(letter, style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.w900, color: isMatched ? Colors.white : const Color(0xFF69D3E4))),
+      ),
+    );
+  }
+}
+
+// UPDATED: supports reviewCorrect / reviewWrong + dark-blue outline
+class _ImageCard extends StatelessWidget {
+  final String imagePath;
+  final bool isMatched;
+  final bool isHovering;
+  final bool reviewCorrect; // NEW
+  final bool reviewWrong;   // NEW
+
+  const _ImageCard({
+    required this.imagePath,
+    this.isMatched = false,
+    this.isHovering = false,
+    this.reviewCorrect = false,
+    this.reviewWrong = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Choose gradient based on review state first
+    List<Color> colors;
+    if (reviewCorrect) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)]; // green
+    } else if (reviewWrong) {
+      colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)]; // red
+    } else if (isHovering) {
+      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+    } else if (isMatched) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else {
+      colors = const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+
+        // 1pt dark blue outline (always visible)
+        border: Border.all(color: const Color(0xFF1B3C73), width: 1.0),
+
+        boxShadow: [
+          BoxShadow(
+            color: (reviewWrong ? const Color(0xFFFF4B4A)
+                : reviewCorrect ? const Color(0xFF22C55E)
+                : const Color(0xFF69D3E4))
+                .withOpacity(isHovering ? 0.3 : 0.15),
+            blurRadius: isHovering ? 12 : 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stack) => const Center(
+                    child: Icon(Icons.broken_image_rounded, size: 32, color: Colors.grey),
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+            // Optional: tick/cross overlay in review
+            if (reviewCorrect || reviewWrong)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    reviewCorrect ? Icons.check_rounded : Icons.close_rounded,
+                    size: 18,
+                    color: reviewCorrect ? const Color(0xFF16A34A) : const Color(0xFFD90416),
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: GoogleFonts.montserrat(
-            fontSize: 12,
-            color: Colors.black54,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -1080,121 +1042,54 @@ class _SlideInBadge extends StatefulWidget {
   final String title;
   final String subtitle;
   final Color color;
-  const _SlideInBadge({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-  });
-
+  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
   @override
   State<_SlideInBadge> createState() => _SlideInBadgeState();
 }
 
-class _SlideInBadgeState extends State<_SlideInBadge>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 280),
-  )..forward();
-  late final Animation<Offset> _a = Tween<Offset>(
-    begin: const Offset(1.1, 0),
-    end: Offset.zero,
-  ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
-
+class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
+  late final Animation<Offset> _a = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
   @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
+  void dispose() { _c.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _a,
       child: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.transparent,
+        elevation: 8, borderRadius: BorderRadius.circular(16), color: Colors.transparent,
         child: Container(
-          width: 300,
-          padding: const EdgeInsets.all(14),
+          width: 300, padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: widget.color == const Color(0xFF2C5CB0)
-                  ? [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)]
-                  : [widget.color, widget.color.withOpacity(0.8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              colors: widget.color == const Color(0xFF2C5CB0) ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)] : [widget.color, widget.color.withOpacity(0.8)],
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color == const Color(0xFF2C5CB0)
-                    ? const Color(0xFF69D3E4).withOpacity(0.4)
-                    : widget.color.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: widget.color == const Color(0xFF2C5CB0) ? const Color(0xFF69D3E4).withOpacity(0.4) : widget.color.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(widget.icon, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      widget.subtitle,
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: Row(children: [
+            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle), child: Icon(widget.icon, color: Colors.white, size: 24)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(widget.title, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(widget.subtitle, style: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.9), fontSize: 13)),
+            ])),
+          ]),
         ),
       ),
     );
   }
 }
 
-// ---------- Clean, Simple Confirm Dialog ----------
+// Clean Confirm Dialog
 class _CleanConfirmDialog extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
-  final String primaryLabel; // right button
-  final String secondaryLabel; // left button
-
-  const _CleanConfirmDialog({
-    required this.icon,
-    required this.title,
-    required this.message,
-    required this.primaryLabel,
-    required this.secondaryLabel,
-  });
-
+  final String primaryLabel;
+  final String secondaryLabel;
+  const _CleanConfirmDialog({required this.icon, required this.title, required this.message, required this.primaryLabel, required this.secondaryLabel});
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -1203,159 +1098,61 @@ class _CleanConfirmDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: const Color(0xFF69D3E4).withOpacity(0.3),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF69D3E4).withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
+          boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 8))],
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Gradient circular icon
-              Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: icon == Icons.warning_amber_rounded
-                        ? [const Color(0xFFFF4B4A), const Color(0xFFFF6B6A)]
-                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(icon, size: 56, color: Colors.white),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 110, height: 110,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: icon == Icons.warning_amber_rounded ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight),
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: (icon == Icons.warning_amber_rounded ? const Color(0xFFFF4B4A) : const Color(0xFF69D3E4)).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
               ),
-
-              const SizedBox(height: 20),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: -0.3,
+              child: Icon(icon, size: 56, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF1E1E1E), letterSpacing: -0.3)),
+            const SizedBox(height: 10),
+            Text(message, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 15, color: const Color(0xFF6B7280), height: 1.4)),
+            const SizedBox(height: 22),
+            Row(children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.5), width: 2),
+                  ),
+                  child: Material(color: Colors.transparent, child: InkWell(
+                    onTap: () => Navigator.pop(context, false),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(padding: const EdgeInsets.symmetric(vertical: 14), alignment: Alignment.center, child: Text(secondaryLabel, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 15, color: const Color(0xFF69D3E4)))),
+                  )),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 15,
-                  color: const Color(0xFF6B7280),
-                  height: 1.4,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))],
+                  ),
+                  child: Material(color: Colors.transparent, child: InkWell(
+                    onTap: () => Navigator.pop(context, true),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(padding: const EdgeInsets.symmetric(vertical: 14), alignment: Alignment.center, child: Text(primaryLabel, style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white))),
+                  )),
                 ),
               ),
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFF69D3E4).withOpacity(0.5),
-                          width: 2,
-                        ),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, false),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            alignment: Alignment.center,
-                            child: Text(
-                              secondaryLabel,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: const Color(0xFF69D3E4),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF4B4A), Color(0xFFFF6B6A)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFFF4B4A).withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, true),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            alignment: Alignment.center,
-                            child: Text(
-                              primaryLabel,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ]),
+          ]),
         ),
       ),
     );
@@ -1367,11 +1164,7 @@ class _GreatWorkDialog extends StatelessWidget {
   final int total;
   final VoidCallback onReturn;
 
-  const _GreatWorkDialog({
-    required this.score,
-    required this.total,
-    required this.onReturn,
-  });
+  const _GreatWorkDialog({required this.score, required this.total, required this.onReturn});
 
   bool get isPerfect => score == total;
 
@@ -1383,195 +1176,128 @@ class _GreatWorkDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: const Color(0xFF69D3E4).withOpacity(0.3),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF69D3E4).withOpacity(0.25),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
+          boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.25), blurRadius: 24, offset: const Offset(0, 10))],
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Trophy Icon with gradient
-              Container(
-                width: 120,
-                height: 120,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 120, height: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: isPerfect ? const [Color(0xFFFFD700), Color(0xFFFFA500)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: (isPerfect ? const Color(0xFFFFD700) : const Color(0xFF69D3E4)).withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6))],
+              ),
+              child: ClipOval(child: Image.asset('assets/gifs/trophy_quiz.gif', fit: BoxFit.cover)),
+            ),
+            const SizedBox(height: 24),
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(colors: isPerfect ? const [Color(0xFFFFD700), Color(0xFFFFA500)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]).createShader(bounds),
+              child: Text(isPerfect ? "Perfection!" : "Great Work!", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 34, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5)),
+            ),
+            const SizedBox(height: 12),
+            Text(isPerfect ? "You answered every question flawlessly." : "You completed this quiz successfully!", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF4B5563), height: 1.5)),
+            const SizedBox(height: 26),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 28),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
+                boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+              ),
+              child: Center(
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)]).createShader(bounds),
+                  child: Text("$score / $total", style: GoogleFonts.montserrat(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isPerfect
-                        ? [const Color(0xFFFFD700), const Color(0xFFFFA500)]
-                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          (isPerfect
-                                  ? const Color(0xFFFFD700)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.4),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/gifs/trophy_quiz.gif',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Title with gradient text
-              ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
-                  colors: isPerfect
-                      ? [const Color(0xFFFFD700), const Color(0xFFFFA500)]
-                      : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
-                ).createShader(bounds),
-                child: Text(
-                  isPerfect ? "Perfection!" : "Great Work!",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Subtitle
-              Text(
-                isPerfect
-                    ? "You answered every question flawlessly."
-                    : "You completed this quiz successfully!",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  color: const Color(0xFF4B5563),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 26),
-
-              // Score Display with gradient
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 24,
-                  horizontal: 28,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: const Color(0xFF69D3E4).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                    ).createShader(bounds),
-                    child: Text(
-                      "$score / $total",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 40,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Return button with gradient
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onReturn,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF69D3E4).withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onReturn,
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.arrow_back_rounded,
-                              size: 24,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Return',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                        Icon(Icons.arrow_back_rounded, size: 24, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Montserrat')),
+                      ]),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ]),
         ),
+      ),
+    );
+  }
+}
+
+// ========== Bonus Round Dialog ==========
+class _BonusRoundDialog extends StatelessWidget {
+  const _BonusRoundDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 80, height: 80,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+            ),
+            child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 40),
+          ),
+          const SizedBox(height: 24),
+          Text('Bonus Round:\nMix & Match!', textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFF1E1E1E), height: 1.3)),
+          const SizedBox(height: 12),
+          Text('Great job! Now drag letters to their matching signs.', textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 15, color: const Color(0xFF6B7280), height: 1.5)),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.center,
+                    child: Text('Let\'s Go!', style: GoogleFonts.montserrat(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }
