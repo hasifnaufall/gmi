@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 // Call this when the user taps a medal in the Achievements tab
 Future<Object?> showAchievementPopup(
-    BuildContext context, {
-      required String title,
-      required String description,
-      required bool unlocked,
-    }) {
+  BuildContext context, {
+  required String title,
+  required String description,
+  required bool unlocked,
+}) {
   HapticFeedback.selectionClick();
 
   return showGeneralDialog(
@@ -18,9 +18,10 @@ Future<Object?> showAchievementPopup(
     transitionDuration: const Duration(milliseconds: 320),
     pageBuilder: (_, __, ___) => const SizedBox.shrink(),
     transitionBuilder: (ctx, anim, _, __) {
-      final scale = Tween<double>(begin: 0.9, end: 1.0)
-          .chain(CurveTween(curve: Curves.easeOutBack))
-          .animate(anim);
+      final scale = Tween<double>(
+        begin: 0.9,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeOutBack)).animate(anim);
 
       return Stack(
         children: [
@@ -67,7 +68,11 @@ class _AchievementCard extends StatelessWidget {
           color: Colors.white.withOpacity(0.96),
           borderRadius: BorderRadius.circular(22),
           boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 22, offset: Offset(0, 8)),
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 22,
+              offset: Offset(0, 8),
+            ),
           ],
           border: Border.all(color: color.withOpacity(0.25)),
         ),
@@ -99,7 +104,9 @@ class _AchievementCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: unlocked ? Colors.amber : Colors.grey,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: Text(unlocked ? 'Nice!' : 'Keep going'),

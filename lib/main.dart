@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 // Audio
 import 'package:audioplayers/audioplayers.dart';
@@ -17,11 +18,25 @@ import 'profile.dart';
 import 'quest.dart';
 import 'leaderboard.dart';
 import 'quest_status.dart';
+import 'theme_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const WaveActApp());
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10));
+  } catch (e) {
+    print('Firebase initialization error: $e');
+  }
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeManager(),
+      child: const WaveActApp(),
+    ),
+  );
 }
 
 /// =====================================================
@@ -86,41 +101,70 @@ class WaveActApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'WaveAct',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.montserratTextTheme(Theme.of(context).textTheme),
-        fontFamily: GoogleFonts.montserrat().fontFamily,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: <TargetPlatform, PageTransitionsBuilder>{
-            TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
-            TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
-            TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
-            TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
-            TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
-            TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'WaveAct',
+          theme: ThemeData(
+            brightness: Brightness.light,
+            primarySwatch: Colors.blue,
+            textTheme: GoogleFonts.montserratTextTheme(
+              Theme.of(context).textTheme,
+            ),
+            fontFamily: GoogleFonts.montserrat().fontFamily,
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: <TargetPlatform, PageTransitionsBuilder>{
+                TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+              },
+            ),
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            primarySwatch: Colors.blue,
+            textTheme: GoogleFonts.montserratTextTheme(
+              Theme.of(context).textTheme,
+            ),
+            fontFamily: GoogleFonts.montserrat().fontFamily,
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: <TargetPlatform, PageTransitionsBuilder>{
+                TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+                TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+              },
+            ),
+          ),
+          themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          builder: (context, child) {
+            ErrorWidget.builder = (FlutterErrorDetails details) => Container();
+            return ResponsiveBreakpoints.builder(
+              child: child!,
+              breakpoints: const [
+                Breakpoint(start: 0, end: 450, name: MOBILE),
+                Breakpoint(start: 451, end: 800, name: TABLET),
+                Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+              ],
+            );
           },
-        ),
-      ),
-      builder: (context, child) => ResponsiveBreakpoints.builder(
-        child: child!,
-        breakpoints: const [
-          Breakpoint(start: 0, end: 450, name: MOBILE),
-          Breakpoint(start: 451, end: 800, name: TABLET),
-          Breakpoint(start: 801, end: 1920, name: DESKTOP),
-          Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-        ],
-      ),
-      home: const SplashScreen(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/quiz': (context) => const QuizScreen(),
-        '/quests': (context) => const QuestScreen(),
-        '/quest': (context) => const QuestScreen(),
-        '/leaderboard': (context) => const LeaderboardPage(),
+          home: const SplashScreen(),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/profile': (context) => const ProfileScreen(),
+            '/quiz': (context) => const QuizScreen(),
+            '/quests': (context) => const QuestScreen(),
+            '/quest': (context) => const QuestScreen(),
+            '/leaderboard': (context) => const LeaderboardPage(),
+          },
+        );
       },
     );
   }
@@ -202,34 +246,33 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animation
     _animationController.forward();
 
-    Future.delayed(const Duration(seconds: 2), () async {
-      final user = FirebaseAuth.instance.currentUser;
+    // Initialize app and navigate
+    _initializeApp();
+  }
 
-      if (user == null) {
-        // Reset quest status if no user is logged in
-        QuestStatus.resetToDefaults();
-        QuestStatus.clearCurrentUser();
-      } else {
-        // Load progress for the current user
-        try {
-          await QuestStatus.loadProgressForUser(user.uid);
-          // ignore: avoid_print
-          print('Progress loaded for persistent user: ${user.uid}');
-        } catch (e) {
-          // ignore: avoid_print
-          print('Error loading progress for persistent user: $e');
-        }
-      }
+  Future<void> _initializeApp() async {
+    // Reduced delay for faster startup
+    await Future.delayed(const Duration(milliseconds: 1000));
 
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              user != null ? QuizCategoryScreen() : const LoginScreen(),
-        ),
-      );
-    });
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    // Don't load progress here - let screens do it themselves
+    // This prevents blocking the app startup
+    if (user == null) {
+      QuestStatus.resetToDefaults();
+      QuestStatus.clearCurrentUser();
+    }
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            user != null ? QuizCategoryScreen() : const LoginScreen(),
+      ),
+    );
   }
 
   @override
