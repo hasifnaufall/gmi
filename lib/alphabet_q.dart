@@ -5,7 +5,229 @@ import 'package:google_fonts/google_fonts.dart';
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
 
-enum QuizType { multipleChoice, mixMatch }
+enum QuizType { multipleChoice, mixMatch, both }
+
+// NEW: Quiz Type Selection Screen
+class AlphabetQuizSelectionScreen extends StatelessWidget {
+  const AlphabetQuizSelectionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFCFFFF7),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF69D3E4).withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF69D3E4), size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Select Quiz Mode',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF69D3E4),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Quiz Type Cards
+              Expanded(
+                child: ListView(
+                  children: [
+                    _QuizTypeCard(
+                      icon: Icons.quiz_rounded,
+                      title: 'Multiple Choice',
+                      description: '5 questions with 4 options each',
+                      gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      onTap: () {
+                        Navigator.pushReplacement(  // ✅ FIXED
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.multipleChoice),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _QuizTypeCard(
+                      icon: Icons.swap_horiz_rounded,
+                      title: 'Mix & Match',
+                      description: '6 pairs - drag letters to signs',
+                      gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.mixMatch),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _QuizTypeCard(
+                      icon: Icons.stars_rounded,
+                      title: 'Both Modes',
+                      description: '5 multiple choice + 6 mix & match',
+                      gradient: const [Color(0xFFFFD700), Color(0xFFFFA500)],
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.both),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Quiz Type Card Widget
+class _QuizTypeCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+
+  const _QuizTypeCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradient[0].withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 40),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E1E1E),
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          color: const Color(0xFF6B7280),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradient),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 24),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class AlphabetQuizScreen extends StatefulWidget {
   final int? startIndex;
@@ -14,7 +236,7 @@ class AlphabetQuizScreen extends StatefulWidget {
   const AlphabetQuizScreen({
     super.key,
     this.startIndex,
-    this.quizType = QuizType.multipleChoice,
+    this.quizType = QuizType.both,
   });
 
   @override
@@ -58,35 +280,39 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Questions
+  // Questions - NOW WITH RANDOMIZED OPTIONS
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/alphabet/Q1.jpg", "options": ["P", "A", "E", "S"], "correctIndex": 1, "letter": "A"},
-    {"image": "assets/images/alphabet/Q2.jpg", "options": ["W", "U", "F", "B"], "correctIndex": 3, "letter": "B"},
-    {"image": "assets/images/alphabet/Q3.jpg", "options": ["C", "Z", "R", "H"], "correctIndex": 0, "letter": "C"},
-    {"image": "assets/images/alphabet/Q4.jpg", "options": ["U", "Y", "D", "L"], "correctIndex": 2, "letter": "D"},
-    {"image": "assets/images/alphabet/Q5.jpg", "options": ["J", "E", "I", "O"], "correctIndex": 1, "letter": "E"},
-    {"image": "assets/images/alphabet/Q6.jpg", "options": ["M", "F", "E", "S"], "correctIndex": 1, "letter": "F"},
-    {"image": "assets/images/alphabet/Q7.jpg", "options": ["X", "N", "G", "D"], "correctIndex": 2, "letter": "G"},
-    {"image": "assets/images/alphabet/Q8.jpg", "options": ["H", "O", "R", "Q"], "correctIndex": 0, "letter": "H"},
-    {"image": "assets/images/alphabet/Q9.jpg", "options": ["U", "Y", "N", "I"], "correctIndex": 3, "letter": "I"},
-    {"image": "assets/images/alphabet/Q10.jpg", "options": ["Z", "L", "I", "J"], "correctIndex": 3, "letter": "J"},
-    {"image": "assets/images/alphabet/Q11.jpg", "options": ["O", "K", "E", "S"], "correctIndex": 1, "letter": "K"},
-    {"image": "assets/images/alphabet/Q12.jpg", "options": ["L", "N", "F", "D"], "correctIndex": 0, "letter": "L"},
-    {"image": "assets/images/alphabet/Q13.jpg", "options": ["K", "O", "M", "R"], "correctIndex": 2, "letter": "M"},
-    {"image": "assets/images/alphabet/Q14.jpg", "options": ["Z", "Y", "N", "L"], "correctIndex": 2, "letter": "N"},
-    {"image": "assets/images/alphabet/Q15.jpg", "options": ["J", "L", "I", "O"], "correctIndex": 3, "letter": "O"},
-    {"image": "assets/images/alphabet/Q16.jpg", "options": ["R", "P", "E", "A"], "correctIndex": 1, "letter": "P"},
-    {"image": "assets/images/alphabet/Q17.jpg", "options": ["Q", "V", "F", "D"], "correctIndex": 0, "letter": "Q"},
-    {"image": "assets/images/alphabet/Q18.jpg", "options": ["K", "O", "R", "H"], "correctIndex": 2, "letter": "R"},
-    {"image": "assets/images/alphabet/Q19.jpg", "options": ["C", "Y", "N", "S"], "correctIndex": 3, "letter": "S"},
-    {"image": "assets/images/alphabet/Q20.jpg", "options": ["J", "T", "I", "O"], "correctIndex": 1, "letter": "T"},
-    {"image": "assets/images/alphabet/Q21.jpg", "options": ["U", "P", "E", "J"], "correctIndex": 0, "letter": "U"},
-    {"image": "assets/images/alphabet/Q22.jpg", "options": ["V", "N", "F", "D"], "correctIndex": 0, "letter": "V"},
-    {"image": "assets/images/alphabet/Q23.jpg", "options": ["K", "O", "R", "W"], "correctIndex": 3, "letter": "W"},
-    {"image": "assets/images/alphabet/Q24.jpg", "options": ["U", "Y", "X", "L"], "correctIndex": 2, "letter": "X"},
-    {"image": "assets/images/alphabet/Q25.jpg", "options": ["J", "Y", "I", "O"], "correctIndex": 1, "letter": "Y"},
-    {"image": "assets/images/alphabet/Q26.jpg", "options": ["A", "L", "I", "Z"], "correctIndex": 3, "letter": "Z"},
+    {"image": "assets/images/alphabet/Q1.jpg", "correctLetter": "A"},
+    {"image": "assets/images/alphabet/Q2.jpg", "correctLetter": "B"},
+    {"image": "assets/images/alphabet/Q3.jpg", "correctLetter": "C"},
+    {"image": "assets/images/alphabet/Q4.jpg", "correctLetter": "D"},
+    {"image": "assets/images/alphabet/Q5.jpg", "correctLetter": "E"},
+    {"image": "assets/images/alphabet/Q6.jpg", "correctLetter": "F"},
+    {"image": "assets/images/alphabet/Q7.jpg", "correctLetter": "G"},
+    {"image": "assets/images/alphabet/Q8.jpg", "correctLetter": "H"},
+    {"image": "assets/images/alphabet/Q9.jpg", "correctLetter": "I"},
+    {"image": "assets/images/alphabet/Q10.jpg", "correctLetter": "J"},
+    {"image": "assets/images/alphabet/Q11.jpg", "correctLetter": "K"},
+    {"image": "assets/images/alphabet/Q12.jpg", "correctLetter": "L"},
+    {"image": "assets/images/alphabet/Q13.jpg", "correctLetter": "M"},
+    {"image": "assets/images/alphabet/Q14.jpg", "correctLetter": "N"},
+    {"image": "assets/images/alphabet/Q15.jpg", "correctLetter": "O"},
+    {"image": "assets/images/alphabet/Q16.jpg", "correctLetter": "P"},
+    {"image": "assets/images/alphabet/Q17.jpg", "correctLetter": "Q"},
+    {"image": "assets/images/alphabet/Q18.jpg", "correctLetter": "R"},
+    {"image": "assets/images/alphabet/Q19.jpg", "correctLetter": "S"},
+    {"image": "assets/images/alphabet/Q20.jpg", "correctLetter": "T"},
+    {"image": "assets/images/alphabet/Q21.jpg", "correctLetter": "U"},
+    {"image": "assets/images/alphabet/Q22.jpg", "correctLetter": "V"},
+    {"image": "assets/images/alphabet/Q23.jpg", "correctLetter": "W"},
+    {"image": "assets/images/alphabet/Q24.jpg", "correctLetter": "X"},
+    {"image": "assets/images/alphabet/Q25.jpg", "correctLetter": "Y"},
+    {"image": "assets/images/alphabet/Q26.jpg", "correctLetter": "Z"},
   ];
+
+  // Cache for generated options per question
+  final Map<int, List<String>> _questionOptions = {};
+  final Map<int, int> _questionCorrectIndex = {};
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
   bool _allAnsweredInSession() {
@@ -102,6 +328,26 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     return null;
   }
 
+  // NEW: Generate randomized options for a question
+  List<String> _generateOptions(int qIdx) {
+    if (_questionOptions.containsKey(qIdx)) {
+      return _questionOptions[qIdx]!;
+    }
+
+    final correctLetter = questions[qIdx]['correctLetter'] as String;
+    final allLetters = List<String>.generate(26, (i) => String.fromCharCode(65 + i));
+    allLetters.remove(correctLetter);
+    allLetters.shuffle();
+
+    final wrongOptions = allLetters.take(3).toList();
+    final options = [...wrongOptions, correctLetter]..shuffle();
+
+    _questionOptions[qIdx] = options;
+    _questionCorrectIndex[qIdx] = options.indexOf(correctLetter);
+
+    return options;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -113,17 +359,39 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    activeIndices = all.take(multipleChoiceSize).toList();
-    final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
-    mixMatchIndices = remaining.take(mixMatchSize).toList();
 
-    QuestStatus.ensureLevel1Length(activeIndices.length + 1);
+    // Adjust based on quiz type
+    if (widget.quizType == QuizType.multipleChoice) {
+      activeIndices = all.take(multipleChoiceSize).toList();
+      mixMatchIndices = [];
+    } else if (widget.quizType == QuizType.mixMatch) {
+      activeIndices = [];
+      mixMatchIndices = all.take(mixMatchSize).toList();
+    } else { // QuizType.both
+      activeIndices = all.take(multipleChoiceSize).toList();
+      final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
+      mixMatchIndices = remaining.take(mixMatchSize).toList();
+    }
+
+    // Pre-generate options for all active questions
+    for (final idx in activeIndices) {
+      _generateOptions(idx);
+    }
+
+    // Adjust quest status length based on mode
+    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    QuestStatus.ensureLevel1Length(totalQuestions);
     QuestStatus.resetLevel1Answers();
 
     int startSlot = widget.startIndex ?? 0;
-    startSlot = startSlot.clamp(0, activeIndices.length - 1);
-    currentSlot = startSlot;
+    if (activeIndices.isNotEmpty) {
+      startSlot = startSlot.clamp(0, activeIndices.length - 1);
+      currentSlot = startSlot;
+    } else {
+      currentSlot = 0;
+    }
 
+    // Start directly in Mix&Match if that's the only mode
     _isInMixMatchRound = widget.quizType == QuizType.mixMatch;
     if (_isInMixMatchRound) _prepareMixMatchRound();
 
@@ -146,11 +414,11 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   void _prepareMixMatchRound() {
     _imageForLetter.clear();
     for (final idx in mixMatchIndices) {
-      final letter = questions[idx]['letter'] as String;
+      final letter = questions[idx]['correctLetter'] as String;
       final image = questions[idx]['image'] as String;
       _imageForLetter[letter] = image;
     }
-    final letters = mixMatchIndices.map((i) => questions[i]['letter'] as String).toList();
+    final letters = mixMatchIndices.map((i) => questions[i]['correctLetter'] as String).toList();
     final images = mixMatchIndices.map((i) => questions[i]['image'] as String).toList();
     _mmLettersOrder = List<String>.from(letters)..shuffle();
     _mmImagesOrder = List<String>.from(images)..shuffle();
@@ -167,7 +435,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       _pendingIndex = null;
     });
 
-    final correctIndex = questions[qIdx]['correctIndex'] as int;
+    final correctIndex = _questionCorrectIndex[qIdx]!;
     final isCorrect = selectedIndex == correctIndex;
 
     _sessionAnswers[qIdx] = isCorrect;
@@ -177,7 +445,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       showAnimatedPopup(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP", bgColor: const Color(0xFF2C5CB0));
       QuestStatus.addXp(20);
     } else {
-      final correctLetter = (questions[qIdx]['options'] as List<String>)[correctIndex];
+      final correctLetter = _questionOptions[qIdx]![correctIndex];
       showAnimatedPopup(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctLetter", bgColor: const Color(0xFFFF4B4A));
     }
 
@@ -185,15 +453,23 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     if (_allAnsweredInSession()) {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 500));
-      await showDialog(context: context, barrierDismissible: false, builder: (_) => const _BonusRoundDialog());
-      setState(() {
-        _prepareMixMatchRound();
-        _isInMixMatchRound = true;
-        currentSlot = 0;
-        _controller.reset();
-        _controller.forward();
-      });
+
+      // If "both" mode, transition to Mix&Match
+      if (widget.quizType == QuizType.both && mixMatchIndices.isNotEmpty) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        await showDialog(context: context, barrierDismissible: false, builder: (_) => const _BonusRoundDialog());
+        setState(() {
+          _prepareMixMatchRound();
+          _isInMixMatchRound = true;
+          currentSlot = 0;
+          _controller.reset();
+          _controller.forward();
+        });
+      } else {
+        // Multiple choice only mode - finish session
+        await Future.delayed(const Duration(milliseconds: 500));
+        _finishSession();
+      }
       return;
     }
 
@@ -204,6 +480,13 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       _pendingIndex = null;
       _controller.reset();
       _controller.forward();
+    });
+  }
+
+  // NEW: Undo a specific match in Mix & Match
+  void _undoMatch(String rightId) {
+    setState(() {
+      _currentMatches.removeWhere((key, value) => value == rightId);
     });
   }
 
@@ -222,7 +505,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
 
     if (submit == true) {
-      _evaluateMixMatchAndReview(); // NEW: review for 7s then finish
+      _evaluateMixMatchAndReview();
     } else {
       setState(() => _currentMatches.clear());
     }
@@ -235,7 +518,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     bool allCorrect = true;
     for (final idx in mixMatchIndices) {
-      final letter = questions[idx]['letter'] as String;
+      final letter = questions[idx]['correctLetter'] as String;
       final leftId = "left_$letter";
       final rightId = "right_$letter";
       if (_currentMatches[leftId] == rightId) {
@@ -246,8 +529,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
       }
     }
 
-    // Save result as 6th item (after 5 MC)
-    QuestStatus.level1Answers[activeIndices.length] = allCorrect;
+    // Save result - position depends on mode
+    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
+    QuestStatus.level1Answers[mmResultIndex] = allCorrect;
 
     // Enter review mode (disable dragging; show colors)
     setState(() => _mmReviewMode = true);
@@ -256,7 +540,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     Future.delayed(const Duration(seconds: 7), () {
       if (!mounted) return;
       setState(() => _mmReviewMode = false);
-      _completeMixMatch(allCorrect); // popup + XP + finish
+      _completeMixMatch(allCorrect);
     });
   }
 
@@ -276,15 +560,20 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     if (!mounted) return;
 
     int sessionScore = 0;
+
+    // Count MC correct answers
     for (final i in activeIndices) {
       if (_sessionAnswers[i] == true) sessionScore++;
     }
-    if (QuestStatus.level1Answers.length > activeIndices.length &&
-        QuestStatus.level1Answers[activeIndices.length] == true) {
+
+    // Count Mix&Match if present
+    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
+    if (QuestStatus.level1Answers.length > mmResultIndex &&
+        QuestStatus.level1Answers[mmResultIndex] == true) {
       sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length + 1; // 5 MC + 1 Mix&Match
+    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
     QuestStatus.alphabetRoundsCompleted += 1;
 
     if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
@@ -376,7 +665,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   Widget _buildMultipleChoiceQuiz() {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List).map((e) => e.toString()).toList();
+    final options = _questionOptions[qIdx]!;
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
@@ -397,7 +686,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                     const SizedBox(height: 16),
                     _buildQuestionCard(question),
                     const SizedBox(height: 32),
-                    _buildOptionsGrid(options, qIdx, question),
+                    _buildOptionsGrid(options, qIdx),
                     const SizedBox(height: 12),
                     if (_pendingIndex != null) _buildConfirmBar(options),
                   ],
@@ -612,7 +901,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     );
   }
 
-  // Matching area (organized rows; right is bigger)
+  // Matching area (organized rows; right is bigger) - NOW WITH UNDO BUTTON
   Widget _buildMatchingAreaStable({
     required List<String> lettersOrder,
     required List<String> imagesOrder,
@@ -670,32 +959,69 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
                 const SizedBox(width: 10),
 
-                // Right: drag target (disabled in review)
+                // Right: drag target (disabled in review) with UNDO button
                 Expanded(
                   flex: 4,
-                  child: DragTarget<String>(
-                    onWillAccept: (data) => !_mmReviewMode && data != null && !isRightMatched,
-                    onAccept: (draggedLeftId) {
-                      setState(() {
-                        _currentMatches[draggedLeftId] = rightId;
-                      });
-                      if (_currentMatches.length >= mixMatchIndices.length) {
-                        _onAllPairsFilled();
-                      }
-                    },
-                    builder: (context, candidate, rejected) {
-                      final isHovering = !_mmReviewMode && candidate.isNotEmpty && !isRightMatched;
-                      return SizedBox(
-                        height: mmImageHeight,
-                        child: _ImageCard(
-                          imagePath: imagePath,
-                          isMatched: isRightMatched,
-                          isHovering: isHovering,
-                          reviewCorrect: showCorrect,   // NEW
-                          reviewWrong: showWrong,       // NEW
+                  child: Stack(
+                    children: [
+                      DragTarget<String>(
+                        onWillAccept: (data) => !_mmReviewMode && data != null && !isRightMatched,
+                        onAccept: (draggedLeftId) {
+                          setState(() {
+                            _currentMatches[draggedLeftId] = rightId;
+                          });
+                          if (_currentMatches.length >= mixMatchIndices.length) {
+                            _onAllPairsFilled();
+                          }
+                        },
+                        builder: (context, candidate, rejected) {
+                          final isHovering = !_mmReviewMode && candidate.isNotEmpty && !isRightMatched;
+                          return SizedBox(
+                            height: mmImageHeight,
+                            child: _ImageCard(
+                              imagePath: imagePath,
+                              isMatched: isRightMatched,
+                              isHovering: isHovering,
+                              reviewCorrect: showCorrect,
+                              reviewWrong: showWrong,
+                            ),
+                          );
+                        },
+                      ),
+                      // NEW: Undo button (top-right corner) - only show when matched and NOT in review
+                      if (isRightMatched && !_mmReviewMode)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _undoMatch(rightId),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFFF4B4A), width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: Color(0xFFFF4B4A),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                    ],
                   ),
                 ),
               ],
@@ -748,14 +1074,15 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   }
 
   // Options Grid (MC)
-  Widget _buildOptionsGrid(List<String> options, int qIdx, Map<String, dynamic> question) {
+  Widget _buildOptionsGrid(List<String> options, int qIdx) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
-          final isCorrect = index == question['correctIndex'];
+          final correctIndex = _questionCorrectIndex[qIdx]!;
+          final isCorrect = index == correctIndex;
           final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
@@ -944,13 +1271,12 @@ class _LetterCard extends StatelessWidget {
   }
 }
 
-// UPDATED: supports reviewCorrect / reviewWrong + dark-blue outline
 class _ImageCard extends StatelessWidget {
   final String imagePath;
   final bool isMatched;
   final bool isHovering;
-  final bool reviewCorrect; // NEW
-  final bool reviewWrong;   // NEW
+  final bool reviewCorrect;
+  final bool reviewWrong;
 
   const _ImageCard({
     required this.imagePath,
@@ -962,12 +1288,11 @@ class _ImageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Choose gradient based on review state first
     List<Color> colors;
     if (reviewCorrect) {
-      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)]; // green
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
     } else if (reviewWrong) {
-      colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)]; // red
+      colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
       colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
     } else if (isMatched) {
@@ -981,10 +1306,7 @@ class _ImageCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
-
-        // 1pt dark blue outline (always visible)
         border: Border.all(color: const Color(0xFF1B3C73), width: 1.0),
-
         boxShadow: [
           BoxShadow(
             color: (reviewWrong ? const Color(0xFFFF4B4A)
@@ -1012,7 +1334,6 @@ class _ImageCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Optional: tick/cross overlay in review
             if (reviewCorrect || reviewWrong)
               Positioned(
                 right: 8,

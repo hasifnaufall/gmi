@@ -1285,7 +1285,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                           onQuiz: () async {
                             await Navigator.push(
                               context,
-                              _buildImmersiveRoute(const AlphabetQuizScreen()),
+                              _buildImmersiveRoute(const AlphabetQuizSelectionScreen()),
                             );
                             await QuestStatus.autoSaveProgress();
                             if (!mounted) return;
