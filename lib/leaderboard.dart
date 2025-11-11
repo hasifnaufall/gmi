@@ -22,7 +22,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     setState(() {
       _selectedIndex = index;
     });
-    // Navigation logic: pushReplacement to avoid stacking
     switch (index) {
       case 0:
         Navigator.pushReplacement(
@@ -34,7 +33,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         Navigator.pushReplacementNamed(context, '/quest');
         break;
       case 2:
-        // Already on leaderboard
         break;
       case 3:
         Navigator.pushReplacementNamed(context, '/profile');
@@ -63,41 +61,33 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     });
 
     try {
-      // Fetch all users and sort locally (avoids composite index requirement)
       final snapshot = await _firestore
           .collection('progress')
           .get()
           .timeout(const Duration(seconds: 5));
 
-      print(
-        'Leaderboard: Found ${snapshot.docs.length} users in progress collection',
-      );
+      print('Leaderboard: Found ${snapshot.docs.length} users in progress collection');
 
-      // Get current user info from Firebase Auth
       final currentUser = _auth.currentUser;
       final currentUserDisplayName = currentUser?.displayName;
       final currentUserEmail = currentUser?.email;
 
-      // Collect all users with their data
       List<Map<String, dynamic>> allUsers = [];
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
         final userId = doc.id;
 
-        // Get email from progress data, or current user if it's their record
         String? userEmail = data['email'] as String?;
         if (userId == currentUser?.uid && userEmail == null) {
           userEmail = currentUserEmail;
         }
 
-        // Extract username from email (part before @)
         String emailUsername = '';
         if (userEmail != null && userEmail.contains('@')) {
           emailUsername = userEmail.split('@')[0];
         }
 
-        // Priority: progress.displayName > FirebaseAuth.displayName (if current user) > email username > UID short
         String displayName = '';
         if (data['displayName'] != null &&
             data['displayName'].toString().isNotEmpty) {
@@ -121,7 +111,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         });
       }
 
-      // Sort by level (descending), then by score (descending)
       allUsers.sort((a, b) {
         int levelCompare = (b['level'] as int).compareTo(a['level'] as int);
         if (levelCompare != 0) return levelCompare;
@@ -130,12 +119,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
       print('Leaderboard: Top 5 after sorting:');
       for (var i = 0; i < allUsers.length && i < 5; i++) {
-        print(
-          '  ${i + 1}. ${allUsers[i]['displayName']} - Level ${allUsers[i]['level']}, Score ${allUsers[i]['score']}',
-        );
+        print('  ${i + 1}. ${allUsers[i]['displayName']} - Level ${allUsers[i]['level']}, Score ${allUsers[i]['score']}');
       }
 
-      // Assign ranks and take top 50
       List<Map<String, dynamic>> leaderboardData = [];
       int rank = 1;
 
@@ -166,7 +152,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     } catch (e) {
       print('Error loading leaderboard: $e');
 
-      // If compound index doesn't exist, try simpler query
       if (e.toString().contains('index') ||
           e.toString().contains('FAILED_PRECONDITION')) {
         print('Trying fallback query without compound orderBy');
@@ -188,13 +173,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             final data = doc.data();
             final userId = doc.id;
 
-            // Get email from progress data, or current user if it's their record
             String? userEmail = data['email'] as String?;
             if (userId == currentUser?.uid && userEmail == null) {
               userEmail = currentUserEmail;
             }
 
-            // Extract username from email (part before @)
             String emailUsername = '';
             if (userEmail != null && userEmail.contains('@')) {
               emailUsername = userEmail.split('@')[0];
@@ -262,11 +245,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Second place
           if (second != null) _buildDiamondPodium(second, 2, 0, themeManager),
-          // First place
           if (first != null) _buildDiamondPodium(first, 1, 0, themeManager),
-          // Third place
           if (third != null) _buildDiamondPodium(third, 3, 0, themeManager),
         ],
       ),
@@ -286,33 +266,24 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
     if (rank == 1) {
       bgColor = themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2);
-      badgeColor = Color(0xFFFFD700); // Gold
-      avatarBgColor = themeManager.isDarkMode
-          ? Color(0xFF3A3A3C)
-          : Color(0xFFFFF7D1);
+      badgeColor = Color(0xFFFFD700);
+      avatarBgColor = themeManager.isDarkMode ? Color(0xFF3A3A3C) : Color(0xFFFFF7D1);
       emoji = '🥇';
     } else if (rank == 2) {
       bgColor = themeManager.isDarkMode ? Color(0xFF8B1F1F) : Color(0xFF7C7FCC);
-      badgeColor = Color(0xFFC0C0C0); // Silver
-      avatarBgColor = themeManager.isDarkMode
-          ? Color(0xFF2C2C2E)
-          : Color(0xFFCFFFF7);
+      badgeColor = Color(0xFFC0C0C0);
+      avatarBgColor = themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFCFFFF7);
       emoji = '🥈';
     } else {
-      bgColor = themeManager.isDarkMode
-          ? Color(0xFF636366)
-          : Color(0xFF0891B2).withOpacity(0.6);
-      badgeColor = Color(0xFFCD7F32); // Bronze
-      avatarBgColor = themeManager.isDarkMode
-          ? Color(0xFF1C1C1E)
-          : Color(0xFFFFEB99);
+      bgColor = themeManager.isDarkMode ? Color(0xFF636366) : Color(0xFF0891B2).withOpacity(0.6);
+      badgeColor = Color(0xFFCD7F32);
+      avatarBgColor = themeManager.isDarkMode ? Color(0xFF1C1C1E) : Color(0xFFFFEB99);
       emoji = '🥉';
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Avatar with circular background
         Container(
           width: 70,
           height: 70,
@@ -324,14 +295,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           child: Center(child: Text(emoji, style: TextStyle(fontSize: 32))),
         ),
         SizedBox(height: 8),
-        // Diamond shape
         Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // Diamond container
             Transform.rotate(
-              angle: 0.785398, // 45 degrees in radians
+              angle: 0.785398,
               child: Container(
                 width: 95,
                 height: 95,
@@ -341,7 +310,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 ),
               ),
             ),
-            // Name on diamond
             Container(
               width: 90,
               alignment: Alignment.center,
@@ -357,7 +325,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 ),
               ),
             ),
-            // Badge at bottom
             Positioned(
               bottom: -18,
               child: Container(
@@ -382,9 +349,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             ),
           ],
         ),
-        SizedBox(
-          height: 22 + extraHeight,
-        ), // Add extra height as bottom spacing
+        SizedBox(height: 22 + extraHeight),
       ],
     );
   }
@@ -403,9 +368,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               child: Container(
                 margin: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: themeManager.isDarkMode
-                      ? Color(0xFF2C2C2E)
-                      : Colors.white,
+                  color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: themeManager.primary.withOpacity(0.3),
@@ -441,9 +404,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Container(
                   margin: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: themeManager.isDarkMode
-                        ? Color(0xFF2C2C2E)
-                        : Colors.white,
+                    color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: themeManager.primary.withOpacity(0.3),
@@ -472,9 +433,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           body: _isLoading
               ? Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF0891B2),
-                    ), // Darker cyan
+                    valueColor: AlwaysStoppedAnimation<Color>(themeManager.primary),
                   ),
                 )
               : _leaderboard.isEmpty
@@ -482,11 +441,18 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.leaderboard, size: 80, color: Colors.grey),
+                      Icon(
+                        Icons.leaderboard,
+                        size: 80,
+                        color: themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey,
+                      ),
                       SizedBox(height: 20),
                       Text(
                         'No rankings yet',
-                        style: TextStyle(color: Colors.grey, fontSize: 18),
+                        style: TextStyle(
+                          color: themeManager.isDarkMode ? Color(0xFF8E8E93) : Colors.grey,
+                          fontSize: 18,
+                        ),
                       ),
                     ],
                   ),
@@ -499,13 +465,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       child: Container(
                         padding: EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
                           borderRadius: BorderRadius.circular(25),
                           boxShadow: [
                             BoxShadow(
-                              color: Color(
-                                0xFF0891B2,
-                              ).withOpacity(0.2), // Darker cyan
+                              color: themeManager.primary.withOpacity(0.2),
                               blurRadius: 8,
                               offset: Offset(0, 2),
                             ),
@@ -517,7 +481,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: Color(0xFF0891B2), // Darker cyan
+                                  color: themeManager.primary,
                                   borderRadius: BorderRadius.circular(22),
                                 ),
                                 child: Text(
@@ -538,7 +502,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                   'All Time',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Color(0xFF0891B2), // Darker cyan
+                                    color: themeManager.primary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -550,32 +514,29 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                     ),
 
-                    // Top 3 Podium
                     _buildTopThreePodium(themeManager),
 
-                    // Current User Rank Card (if not in top 3)
+                    // Current User Rank Card
                     if (_currentUserRank != null && _currentUserRank! > 3)
                       Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         padding: EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF0891B2), // Darker cyan
-                              Color(0xFF7C7FCC), // Darker periwinkle
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: themeManager.isDarkMode
+                              ? LinearGradient(
+                                  colors: [Color(0xFF8B1F1F), Color(0xFFD23232)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : LinearGradient(
+                                  colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Color(
-                                0xFF0891B2,
-                              ).withOpacity(0.4), // Darker cyan
+                              color: themeManager.primary.withOpacity(0.4),
                               blurRadius: 16,
                               offset: Offset(0, 8),
                             ),
@@ -630,12 +591,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     // Table Container
                     Expanded(
                       child: Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -649,15 +607,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           children: [
                             // Table Header
                             Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                               decoration: BoxDecoration(
-                                color: Color(0xFF0891B2), // Darker cyan
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(20),
-                                ),
+                                color: themeManager.primary,
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                               ),
                               child: Row(
                                 children: [
@@ -703,33 +656,27 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             Expanded(
                               child: ListView.separated(
                                 padding: EdgeInsets.zero,
-                                itemCount: _leaderboard
-                                    .where((e) => e['rank'] > 3)
-                                    .length,
+                                itemCount: _leaderboard.where((e) => e['rank'] > 3).length,
                                 separatorBuilder: (context, index) => Divider(
                                   height: 1,
                                   thickness: 1,
-                                  color: Colors.grey.shade200,
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFF3C3C3E)
+                                      : Colors.grey.shade200,
                                 ),
                                 itemBuilder: (context, index) {
-                                  final allEntries = _leaderboard
-                                      .where((e) => e['rank'] > 3)
-                                      .toList();
+                                  final allEntries = _leaderboard.where((e) => e['rank'] > 3).toList();
                                   final entry = allEntries[index];
-                                  final isCurrentUser =
-                                      entry['isCurrentUser'] as bool;
+                                  final isCurrentUser = entry['isCurrentUser'] as bool;
                                   final rank = entry['rank'] as int;
 
                                   return Container(
                                     color: isCurrentUser
-                                        ? Color(0xFFFFFFD0).withOpacity(
-                                            0.5,
-                                          ) // Light yellow from palette
-                                        : Colors.white,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 16,
-                                    ),
+                                        ? (themeManager.isDarkMode
+                                            ? Color(0xFFD23232).withOpacity(0.1)
+                                            : Color(0xFFFFFFD0).withOpacity(0.5))
+                                        : (themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white),
+                                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                                     child: Row(
                                       children: [
                                         SizedBox(
@@ -737,7 +684,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                           child: Text(
                                             '${rank.toString().padLeft(2, '0')}',
                                             style: TextStyle(
-                                              color: Colors.black87,
+                                              color: themeManager.isDarkMode
+                                                  ? Color(0xFFE8E8E8)
+                                                  : Colors.black87,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -751,39 +700,31 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                                 child: Text(
                                                   entry['displayName'],
                                                   style: TextStyle(
-                                                    color: Colors.black87,
+                                                    color: themeManager.isDarkMode
+                                                        ? Color(0xFFE8E8E8)
+                                                        : Colors.black87,
                                                     fontSize: 16,
                                                     fontWeight: isCurrentUser
                                                         ? FontWeight.bold
                                                         : FontWeight.w500,
                                                   ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               if (isCurrentUser)
                                                 Container(
-                                                  margin: EdgeInsets.only(
-                                                    left: 8,
-                                                  ),
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
+                                                  margin: EdgeInsets.only(left: 8),
+                                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                   decoration: BoxDecoration(
-                                                    color: Color(0xFF69D3E4),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10,
-                                                        ),
+                                                    color: themeManager.primary,
+                                                    borderRadius: BorderRadius.circular(10),
                                                   ),
                                                   child: Text(
                                                     'YOU',
                                                     style: TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                                      fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
@@ -796,7 +737,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                             '${entry['score']}',
                                             textAlign: TextAlign.right,
                                             style: TextStyle(
-                                              color: Colors.black87,
+                                              color: themeManager.isDarkMode
+                                                  ? Color(0xFFE8E8E8)
+                                                  : Colors.black87,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -823,7 +766,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   Widget _buildModernNavBar(ThemeManager themeManager) {
     return Container(
       decoration: BoxDecoration(
-        color: themeManager.isDarkMode ? Color(0xFF000000) : Colors.white,
+        color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
           color: themeManager.primary.withOpacity(0.3),
           width: 1.5,
@@ -895,9 +838,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? (themeManager.isDarkMode
-                      ? Color(0xFFD23232).withOpacity(0.15)
-                      : Color(0xFF0891B2).withOpacity(0.1))
+                ? themeManager.primary.withOpacity(0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -912,12 +853,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? (themeManager.isDarkMode
-                            ? Color(0xFFD23232)
-                            : Color(0xFF0891B2))
+                      ? themeManager.primary
                       : (themeManager.isDarkMode
-                            ? Color(0xFF8E8E93)
-                            : Color(0xFF2D5263).withOpacity(0.6)),
+                          ? Color(0xFF8E8E93)
+                          : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],

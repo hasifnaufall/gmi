@@ -37,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _promptEditDisplayName() async {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
     final controller = TextEditingController(text: _displayName);
     final result = await showDialog<bool>(
       context: context,
@@ -77,14 +78,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
-              backgroundColor: Color(0xFFFFFFFF),
+              backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               title: Text(
                 'Edit Display Name',
                 style: GoogleFonts.montserrat(
-                  color: Color(0xFF0891B2),
+                  color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                   fontWeight: FontWeight.w700,
                   fontSize: 22,
                 ),
@@ -94,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -106,18 +107,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: TextField(
                       controller: controller,
+                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : Color(0xFF2D5263)),
                       decoration: InputDecoration(
                         labelText: 'Display name',
                         labelStyle: GoogleFonts.montserrat(
-                          color: Color(0xFF2D5263),
+                          color: themeManager.isDarkMode ? Color(0xFF8E8E93) : Color(0xFF2D5263),
                         ),
                         prefixIcon: Icon(
                           Icons.person_outline,
-                          color: Color(0xFF0891B2),
+                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                         ),
                         errorText: localError,
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -136,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextButton(
                   onPressed: saving ? null : () => Navigator.of(ctx).pop(false),
                   style: TextButton.styleFrom(
-                    foregroundColor: Color(0xFF0891B2),
+                    foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: Text(
@@ -161,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : const Icon(Icons.save_rounded, size: 18),
                   label: const Text('Save'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0891B2),
+                    backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -184,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'Display name updated',
             style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
           ),
-          backgroundColor: Color(0xFF0891B2),
+          backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -196,29 +198,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _confirmLogout() async {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
     final shouldLogout = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
       builder: (_) => AlertDialog(
-        backgroundColor: Color(0xFFFFFFFF),
+        backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Log out?',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF0891B2),
+            color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
             fontWeight: FontWeight.w700,
             fontSize: 22,
           ),
         ),
         content: Text(
           'Are you sure you want to log out of your account?',
-          style: GoogleFonts.montserrat(color: Color(0xFF2D5263), fontSize: 16),
+          style: GoogleFonts.montserrat(
+            color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263),
+            fontSize: 16,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: Color(0xFF0891B2),
+              foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             child: Text(
@@ -260,6 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showFeedbackDialog() async {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
     final controller = TextEditingController();
     final result = await showDialog<bool>(
       context: context,
@@ -296,18 +303,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
-              backgroundColor: Color(0xFFFFFFFF),
+              backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               title: Row(
                 children: [
-                  Icon(Icons.feedback_rounded, color: const Color(0xFF0891B2)),
+                  Icon(Icons.feedback_rounded, color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2)),
                   const SizedBox(width: 8),
                   Text(
                     'Send Feedback',
                     style: GoogleFonts.montserrat(
-                      color: Color(0xFF0891B2),
+                      color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                       fontWeight: FontWeight.w700,
                       fontSize: 22,
                     ),
@@ -322,13 +329,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'Share your thoughts, suggestions, or report issues.',
                     style: GoogleFonts.montserrat(
                       fontSize: 14,
-                      color: Color(0xFF2D5263),
+                      color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -342,11 +349,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: controller,
                       maxLines: 5,
                       maxLength: 500,
+                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : Color(0xFF2D5263)),
                       decoration: InputDecoration(
                         hintText: 'Type your message here...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        hintStyle: TextStyle(color: themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey.shade400),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -366,7 +374,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? null
                       : () => Navigator.of(ctx).pop(false),
                   style: TextButton.styleFrom(
-                    foregroundColor: Color(0xFF0891B2),
+                    foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: Text(
@@ -391,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : const Icon(Icons.send_rounded, size: 18),
                   label: const Text('Send'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0891B2),
+                    backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -426,11 +434,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildModernNavBar() {
+    final themeManager = Provider.of<ThemeManager>(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
-          color: Color(0xFF0891B2).withOpacity(0.3),
+          color: themeManager.isDarkMode 
+              ? Color(0xFFD23232).withOpacity(0.3)
+              : Color(0xFF0891B2).withOpacity(0.3),
           width: 1.5,
         ),
         borderRadius: BorderRadius.only(
@@ -439,7 +450,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF0891B2).withOpacity(0.15),
+            color: themeManager.isDarkMode 
+                ? Color(0xFFD23232).withOpacity(0.15)
+                : Color(0xFF0891B2).withOpacity(0.15),
             blurRadius: 20,
             offset: Offset(0, -5),
           ),
@@ -488,6 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final themeManager = Provider.of<ThemeManager>(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -495,7 +509,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Color(0xFF0891B2).withOpacity(0.1)
+                ? (themeManager.isDarkMode 
+                    ? Color(0xFFD23232).withOpacity(0.1)
+                    : Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -510,8 +526,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? Color(0xFF0891B2)
-                      : Color(0xFF2D5263).withOpacity(0.6),
+                      ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
+                      : (themeManager.isDarkMode 
+                          ? Color(0xFF8E8E93) 
+                          : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -538,11 +556,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         MaterialPageRoute(builder: (_) => const LeaderboardPage()),
       );
     }
-    // index 3 is Profile - already on this page
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = Provider.of<ThemeManager>(context);
     final user = FirebaseAuth.instance.currentUser;
     final username = _displayName ?? user?.email?.split('@').first ?? 'User';
     final email = user?.email ?? '';
@@ -556,9 +574,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Color(
-          0xFFCFFFF7,
-        ), // Light mint background matching quiz_category
+        color: themeManager.isDarkMode ? Color(0xFF1C1C1E) : Color(0xFFCFFFF7),
       ),
       child: SafeArea(
         child: Scaffold(
@@ -573,13 +589,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: themeManager.isDarkMode 
+                            ? Color(0xFF2C2C2E) 
+                            : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
-                          color: Color(0xFF0891B2),
+                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                         ),
                         onPressed: () {
                           Navigator.pushReplacement(
@@ -597,13 +615,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: GoogleFonts.montserrat(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0891B2),
+                        color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                       ),
                     ),
                     Spacer(),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: themeManager.isDarkMode 
+                            ? Color(0xFF2C2C2E) 
+                            : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -624,18 +644,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: themeManager.isDarkMode
+                        ? LinearGradient(
+                            colors: [
+                              Color(0xFF2C2C2E),
+                              Color(0xFF3C3C3E),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : LinearGradient(
+                            colors: [
+                              Color(0xFFCFFFF7),
+                              Color(0xFFA4A9FC).withOpacity(0.3),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF0891B2).withOpacity(0.15),
+                        color: themeManager.isDarkMode 
+                            ? Colors.black.withOpacity(0.3)
+                            : Color(0xFF0891B2).withOpacity(0.15),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -646,22 +677,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Avatar with new gradient background
+                          // Avatar with gradient background
                           Container(
                             width: 100,
                             height: 100,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              gradient: themeManager.isDarkMode
+                                  ? LinearGradient(
+                                      colors: [Color(0xFFD23232), Color(0xFF8B1F1F)],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    )
+                                  : LinearGradient(
+                                      colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF0891B2,
-                                  ).withOpacity(0.3),
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFFD23232).withOpacity(0.3)
+                                      : Color(0xFF0891B2).withOpacity(0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -682,7 +719,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0891B2),
+                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Colors.white,
@@ -714,7 +751,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0891B2),
+                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                               ),
                             ),
                           ),
@@ -725,13 +762,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0891B2).withOpacity(0.1),
+                                color: themeManager.isDarkMode 
+                                    ? Color(0xFFD23232).withOpacity(0.1)
+                                    : Color(0xFF0891B2).withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.edit,
                                 size: 18,
-                                color: const Color(0xFF0891B2),
+                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                               ),
                             ),
                           ),
@@ -742,7 +781,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         email,
                         style: GoogleFonts.montserrat(
                           fontSize: 14,
-                          color: Color(0xFF2D5263).withOpacity(0.7),
+                          color: themeManager.isDarkMode 
+                              ? Color(0xFF8E8E93) 
+                              : Color(0xFF2D5263).withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -756,23 +797,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: themeManager.isDarkMode
+                        ? LinearGradient(
+                            colors: [
+                              Color(0xFF2C2C2E),
+                              Color(0xFF3C3C3E),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : LinearGradient(
+                            colors: [
+                              Color(0xFFCFFFF7),
+                              Color(0xFFA4A9FC).withOpacity(0.3),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0891B2).withOpacity(0.15),
+                        color: themeManager.isDarkMode 
+                            ? Colors.black.withOpacity(0.3)
+                            : Color(0xFF0891B2).withOpacity(0.15),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
                     ],
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    border: Border.all(
+                      color: themeManager.isDarkMode 
+                          ? Color(0xFF636366).withOpacity(0.3)
+                          : Colors.white.withOpacity(0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,7 +841,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: GoogleFonts.montserrat(
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
-                              color: Color(0xFF0891B2),
+                              color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                             ),
                           ),
                           Container(
@@ -794,13 +850,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0891B2).withOpacity(0.15),
+                              color: themeManager.isDarkMode 
+                                  ? Color(0xFFD23232).withOpacity(0.15)
+                                  : Color(0xFF0891B2).withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               '${(xpToNext - xp).clamp(0, xpToNext)} XP to level up',
                               style: GoogleFonts.montserrat(
-                                color: Color(0xFF0891B2),
+                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -813,8 +871,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
                           value: xpProgress,
-                          backgroundColor: Colors.white.withOpacity(0.5),
-                          color: const Color(0xFF0891B2),
+                          backgroundColor: themeManager.isDarkMode 
+                              ? Color(0xFF636366).withOpacity(0.3)
+                              : Colors.white.withOpacity(0.5),
+                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                           minHeight: 8,
                         ),
                       ),
@@ -826,7 +886,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             '${(xpProgress * 100).round()}%',
                             style: GoogleFonts.montserrat(
                               fontSize: 12,
-                              color: Color(0xFF2D5263).withOpacity(0.7),
+                              color: themeManager.isDarkMode 
+                                  ? Color(0xFF8E8E93) 
+                                  : Color(0xFF2D5263).withOpacity(0.7),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -844,7 +906,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: _buildStatCard(
                         icon: Icons.emoji_events,
-                        iconColor: Color(0xFF0891B2),
+                        iconColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                         label: 'Level',
                         value: level.toString(),
                       ),
@@ -867,7 +929,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: _buildStatCard(
                         icon: Icons.local_fire_department,
-                        iconColor: Color(0xFF7C7FCC),
+                        iconColor: themeManager.isDarkMode ? Color(0xFF8B1F1F) : Color(0xFF7C7FCC),
                         label: 'Streak',
                         value: '$streakDays days',
                       ),
@@ -888,7 +950,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0891B2),
+                      color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     ),
                   ),
                 ),
@@ -905,12 +967,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: themeManager.isDarkMode
-                            ? const Color(0xFF1A1F26)
+                            ? Color(0xFF2C2C2E)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: themeManager.isDarkMode 
+                                ? Colors.black.withOpacity(0.3)
+                                : Colors.black.withOpacity(0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -921,7 +985,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           themeManager.isDarkMode
                               ? Icons.dark_mode
                               : Icons.light_mode,
-                          color: const Color(0xFF0891B2),
+                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                           size: 28,
                         ),
                         title: Text(
@@ -939,7 +1003,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 13,
                             color: themeManager.isDarkMode
-                                ? Colors.grey[400]
+                                ? Color(0xFF8E8E93)
                                 : Colors.grey[600],
                           ),
                         ),
@@ -948,8 +1012,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Switch(
                             value: themeManager.isDarkMode,
                             onChanged: (_) => themeManager.toggleTheme(),
-                            activeColor: const Color(0xFF0891B2),
-                            activeTrackColor: const Color(0xFF69D3E4),
+                            activeColor: Color(0xFFD23232),
+                            activeTrackColor: Color(0xFFD23232).withOpacity(0.5),
                           ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -975,7 +1039,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: GoogleFonts.montserrat(),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0891B2),
+                      backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -997,6 +1061,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAchievementsRow() {
+    final themeManager = Provider.of<ThemeManager>(context);
     final medals = _allMedals();
 
     return SizedBox(
@@ -1009,12 +1074,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final medal = medals[i];
           final isUnlocked = medal.unlocked;
           final bg = isUnlocked
-              ? medal.color.withOpacity(0.12)
-              : Colors.grey.shade100;
+              ? (themeManager.isDarkMode 
+                  ? medal.color.withOpacity(0.2)
+                  : medal.color.withOpacity(0.12))
+              : (themeManager.isDarkMode 
+                  ? Color(0xFF3C3C3E)
+                  : Colors.grey.shade100);
           final border = isUnlocked
               ? medal.color.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.2);
-          final fg = isUnlocked ? medal.color : Colors.grey;
+              : (themeManager.isDarkMode 
+                  ? Color(0xFF636366).withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.2));
+          final fg = isUnlocked 
+              ? medal.color 
+              : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey);
 
           return GestureDetector(
             onTap: () async {
@@ -1051,7 +1124,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w800,
-                            color: isUnlocked ? Color(0xFF0891B2) : Colors.grey,
+                            color: isUnlocked 
+                                ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
+                                : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
                             fontSize: 16,
                           ),
                         ),
@@ -1063,7 +1138,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 12,
                             height: 1.2,
-                            color: isUnlocked ? Color(0xFF2D5263) : Colors.grey,
+                            color: isUnlocked 
+                                ? (themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263))
+                                : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
                           ),
                         ),
                         const Spacer(),
@@ -1076,8 +1153,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isUnlocked
-                                  ? Color(0xFF0891B2).withOpacity(0.15)
-                                  : Colors.grey.withOpacity(0.2),
+                                  ? (themeManager.isDarkMode 
+                                      ? Color(0xFFD23232).withOpacity(0.15)
+                                      : Color(0xFF0891B2).withOpacity(0.15))
+                                  : (themeManager.isDarkMode 
+                                      ? Color(0xFF636366).withOpacity(0.2)
+                                      : Colors.grey.withOpacity(0.2)),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -1086,8 +1167,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: isUnlocked
-                                    ? Color(0xFF0891B2)
-                                    : Colors.grey,
+                                    ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
+                                    : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
                               ),
                             ),
                           ),
@@ -1111,23 +1192,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String label,
     required String value,
   }) {
+    final themeManager = Provider.of<ThemeManager>(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Color(0xFFCFFFF7).withOpacity(0.3)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: themeManager.isDarkMode
+            ? LinearGradient(
+                colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : LinearGradient(
+                colors: [Colors.white, Color(0xFFCFFFF7).withOpacity(0.3)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0891B2).withOpacity(0.1),
+            color: themeManager.isDarkMode 
+                ? Colors.black.withOpacity(0.3)
+                : Color(0xFF0891B2).withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        border: Border.all(
+          color: themeManager.isDarkMode 
+              ? Color(0xFF636366).withOpacity(0.3)
+              : Colors.white.withOpacity(0.5),
+        ),
       ),
       child: Row(
         children: [
@@ -1147,7 +1241,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label,
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
-                  color: Color(0xFF2D5263).withOpacity(0.7),
+                  color: themeManager.isDarkMode 
+                      ? Color(0xFF8E8E93) 
+                      : Color(0xFF2D5263).withOpacity(0.7),
                 ),
               ),
               Text(
@@ -1155,7 +1251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0891B2),
+                  color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                 ),
               ),
             ],
