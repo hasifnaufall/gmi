@@ -1,6 +1,7 @@
 // lib/alphabet_q.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'badges/badges_engine.dart';
 
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
@@ -246,6 +247,10 @@ class AlphabetQuizScreen extends StatefulWidget {
 
 class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     with SingleTickerProviderStateMixin {
+  int _answerChangesThisQuiz = 0;
+  bool _gotAnyUnder1sCorrect = false;
+  DateTime? _questionShownAt;
+
   // Session sizes
   static const int multipleChoiceSize = 5;
   static const int mixMatchSize = 6;
@@ -575,6 +580,32 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     }
 
     final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+
+    // ========= BADGES: update counters for this completed quiz =========
+    // Count this quiz
+    QuestStatus.quizzesCompleted++;
+
+    // Perfect run (all correct, no hints used here — you can add your own 'usedHints' flag if needed)
+    if (sessionScore == totalQuestions) {
+      QuestStatus.perfectQuizzes++;
+    }
+
+    // Mark modes completed
+    if (widget.quizType == QuizType.multipleChoice || widget.quizType == QuizType.both) {
+      QuestStatus.completedMC = true;
+    }
+    if (widget.quizType == QuizType.mixMatch || widget.quizType == QuizType.both) {
+      QuestStatus.completedMM = true;
+    }
+
+    // Mark category played
+    QuestStatus.playedAlphabet = true;
+
+    // Evaluate & show any newly unlocked badge popup
+    await BadgeEngine.checkAndToast(context);
+    // ========= END BADGES =========
+
+    // Your existing quest logic
     QuestStatus.alphabetRoundsCompleted += 1;
 
     if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {

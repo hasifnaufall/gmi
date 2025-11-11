@@ -15,17 +15,17 @@ import 'theme_manager.dart';
 
 // Learn + Quiz screens
 import 'alphabet_learn.dart';
-import 'alphabet_q.dart';
+import 'alphabet_q.dart'show showAlphabetQuizSelection;
 import 'number_learn.dart';
-import 'number_q.dart';
+import 'number_q.dart'show showNumberQuizSelection;
 import 'colour_learn.dart';
-import 'colour_q.dart';
+import 'colour_q.dart'show showColourQuizSelection;
 import 'fruits_learn.dart';
-import 'fruits_q.dart';
+import 'fruits_q.dart'show showFruitsQuizSelection;
 import 'animals_learn.dart';
-import 'animals_q.dart';
+import 'animals_q.dart'show showAnimalQuizSelection;
 import 'verb_learn.dart';
-import 'verb_q.dart';
+import 'verb_q.dart'show showVerbQuizSelection;
 
 /// ===================
 /// Candy Crush Path Painter
@@ -86,7 +86,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = true;
+  static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -1227,12 +1227,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                 await QuestStatus.autoSaveProgress();
                               },
                               onQuiz: () async {
-                                await Navigator.push(
-                                  context,
-                                  _buildImmersiveRoute(
-                                    const AlphabetQuizScreen(),
-                                  ),
-                                );
+                                await showAlphabetQuizSelection(context);
                                 await QuestStatus.autoSaveProgress();
                                 if (!mounted) return;
                                 setState(() {});
@@ -1264,12 +1259,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                     await QuestStatus.autoSaveProgress();
                                   },
                                   onQuiz: () async {
-                                    await Navigator.push(
-                                      context,
-                                      _buildImmersiveRoute(
-                                        const NumberQuizScreen(),
-                                      ),
-                                    );
+                                    await showNumberQuizSelection(context);
                                     await QuestStatus.autoSaveProgress();
                                     if (!mounted) return;
                                     setState(() {});
@@ -1303,12 +1293,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                     await QuestStatus.autoSaveProgress();
                                   },
                                   onQuiz: () async {
-                                    await Navigator.push(
-                                      context,
-                                      _buildImmersiveRoute(
-                                        const ColourQuizScreen(),
-                                      ),
-                                    );
+                                    await showColourQuizSelection(context);
                                     await QuestStatus.autoSaveProgress();
                                     if (!mounted) return;
                                     setState(() {});
@@ -1342,12 +1327,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                     await QuestStatus.autoSaveProgress();
                                   },
                                   onQuiz: () async {
-                                    await Navigator.push(
-                                      context,
-                                      _buildImmersiveRoute(
-                                        const FruitsQuizScreen(),
-                                      ),
-                                    );
+                                    await showFruitsQuizSelection(context);
                                     await QuestStatus.autoSaveProgress();
                                     if (!mounted) return;
                                     setState(() {});
@@ -1381,12 +1361,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                     await QuestStatus.autoSaveProgress();
                                   },
                                   onQuiz: () async {
-                                    await Navigator.push(
-                                      context,
-                                      _buildImmersiveRoute(
-                                        const AnimalQuizScreen(),
-                                      ),
-                                    );
+                                    await showAnimalQuizSelection(context);
                                     await QuestStatus.autoSaveProgress();
                                     if (!mounted) return;
                                     setState(() {});
@@ -1424,12 +1399,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                                     await QuestStatus.autoSaveProgress();
                                   },
                                   onQuiz: () async {
-                                    await Navigator.push(
-                                      context,
-                                      _buildImmersiveRoute(
-                                        const VerbQuizScreen(),
-                                      ),
-                                    );
+                                    await showVerbQuizSelection(context);
                                     await QuestStatus.autoSaveProgress();
                                     if (!mounted) return;
                                     setState(() {});

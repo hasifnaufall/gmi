@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
+import 'badges/badges_engine.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
@@ -602,6 +603,7 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   }
 
   // Session Completion
+  // Session Completion
   Future<void> _finishSession() async {
     if (!mounted) return;
 
@@ -612,15 +614,28 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       if (_sessionAnswers[i] == true) sessionScore++;
     }
 
-    // Count Mix&Match if present (all correct = 1 point)
-    if (mixMatchIndices.isNotEmpty && _mmCorrectRightIds.length == mixMatchIndices.length) {
-      sessionScore++;
+    // Count Mix&Match as 1 if all right targets were marked correct
+    final hasMixMatch = mixMatchIndices.isNotEmpty;
+    if (hasMixMatch) {
+      final allCorrect = _mmCorrectRightIds.length == mixMatchIndices.length;
+      if (allCorrect) sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final totalQuestions = activeIndices.length + (hasMixMatch ? 1 : 0);
+    final perfect = sessionScore == totalQuestions;
 
-    QuestStatus.markFirstQuizMedalEarned();
+    // ========= BADGES: record this run & toast if something unlocked =========
+    await BadgeEngine.recordRun(
+      category: 'fruits',                 // this screen
+      mode: widget.quizType.name,         // 'multipleChoice' | 'mixMatch' | 'both'
+      total: totalQuestions,
+      score: sessionScore,
+      perfect: perfect,
+    );
+    await BadgeEngine.checkAndToast(context);
+    // =============================== END BADGES ==============================
 
+    // Streak & SFX, then the result dialog
     final didIncrease = QuestStatus.addStreakForLevel();
     if (didIncrease) await Sfx().playStreak();
     await Sfx().playLevelComplete();
@@ -638,6 +653,7 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       ),
     );
   }
+
 
   // Back helpers
   Future<bool> _confirmExitQuiz() async {

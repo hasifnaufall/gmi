@@ -1,8 +1,12 @@
 //profile.dart
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart' hide Badge; // avoid clash with Material Badge
+import 'badges/badges.dart';
+import 'badges/badges_engine.dart';
+import 'badges/badges_widgets.dart';
+import 'badges/badges_screen.dart';
 
 import 'leaderboard.dart';
 import 'login.dart';
@@ -54,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
               if (raw.length < 2) {
                 setStateDialog(
-                  () => localError = 'Name must be at least 2 characters',
+                      () => localError = 'Name must be at least 2 characters',
                 );
                 return;
               }
@@ -153,13 +157,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: saving ? null : doSave,
                   icon: saving
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                       : const Icon(Icons.save_rounded, size: 18),
                   label: const Text('Save'),
                   style: ElevatedButton.styleFrom(
@@ -260,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
+            (route) => false,
       );
     }
   }
@@ -283,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
               if (message.length < 10) {
                 setStateDialog(
-                  () => localError = 'Feedback must be at least 10 characters',
+                      () => localError = 'Feedback must be at least 10 characters',
                 );
                 return;
               }
@@ -291,6 +295,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               setStateDialog(() => sending = true);
               try {
                 await _progressService.submitFeedback(message);
+                QuestStatus.feedbackSent = true;
+                await BadgeEngine.checkAndToast(context);
+
                 if (mounted) {
                   Navigator.of(ctx).pop(true);
                 }
@@ -389,19 +396,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: sending ? null : doSend,
                   icon: sending
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                       : const Icon(Icons.send_rounded, size: 18),
                   label: const Text('Send'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -439,7 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
-          color: themeManager.isDarkMode 
+          color: themeManager.isDarkMode
               ? Color(0xFFD23232).withOpacity(0.3)
               : Color(0xFF0891B2).withOpacity(0.3),
           width: 1.5,
@@ -450,7 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: themeManager.isDarkMode 
+            color: themeManager.isDarkMode
                 ? Color(0xFFD23232).withOpacity(0.15)
                 : Color(0xFF0891B2).withOpacity(0.15),
             blurRadius: 20,
@@ -509,9 +516,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? (themeManager.isDarkMode 
-                    ? Color(0xFFD23232).withOpacity(0.1)
-                    : Color(0xFF0891B2).withOpacity(0.1))
+                ? (themeManager.isDarkMode
+                ? Color(0xFFD23232).withOpacity(0.1)
+                : Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -527,9 +534,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
                       ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
-                      : (themeManager.isDarkMode 
-                          ? Color(0xFF8E8E93) 
-                          : Color(0xFF2D5263).withOpacity(0.6)),
+                      : (themeManager.isDarkMode
+                      ? Color(0xFF8E8E93)
+                      : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -589,8 +596,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: themeManager.isDarkMode 
-                            ? Color(0xFF2C2C2E) 
+                        color: themeManager.isDarkMode
+                            ? Color(0xFF2C2C2E)
                             : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
@@ -621,8 +628,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Spacer(),
                     Container(
                       decoration: BoxDecoration(
-                        color: themeManager.isDarkMode 
-                            ? Color(0xFF2C2C2E) 
+                        color: themeManager.isDarkMode
+                            ? Color(0xFF2C2C2E)
                             : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
@@ -646,25 +653,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     gradient: themeManager.isDarkMode
                         ? LinearGradient(
-                            colors: [
-                              Color(0xFF2C2C2E),
-                              Color(0xFF3C3C3E),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
+                      colors: [
+                        Color(0xFF2C2C2E),
+                        Color(0xFF3C3C3E),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
                         : LinearGradient(
-                            colors: [
-                              Color(0xFFCFFFF7),
-                              Color(0xFFA4A9FC).withOpacity(0.3),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                      colors: [
+                        Color(0xFFCFFFF7),
+                        Color(0xFFA4A9FC).withOpacity(0.3),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: themeManager.isDarkMode 
+                        color: themeManager.isDarkMode
                             ? Colors.black.withOpacity(0.3)
                             : Color(0xFF0891B2).withOpacity(0.15),
                         blurRadius: 15,
@@ -684,15 +691,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               gradient: themeManager.isDarkMode
                                   ? LinearGradient(
-                                      colors: [Color(0xFFD23232), Color(0xFF8B1F1F)],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    )
+                                colors: [Color(0xFFD23232), Color(0xFF8B1F1F)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
                                   : LinearGradient(
-                                      colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
+                                colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -762,7 +769,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: themeManager.isDarkMode 
+                                color: themeManager.isDarkMode
                                     ? Color(0xFFD23232).withOpacity(0.1)
                                     : Color(0xFF0891B2).withOpacity(0.1),
                                 shape: BoxShape.circle,
@@ -781,8 +788,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         email,
                         style: GoogleFonts.montserrat(
                           fontSize: 14,
-                          color: themeManager.isDarkMode 
-                              ? Color(0xFF8E8E93) 
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF8E8E93)
                               : Color(0xFF2D5263).withOpacity(0.7),
                         ),
                       ),
@@ -799,25 +806,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     gradient: themeManager.isDarkMode
                         ? LinearGradient(
-                            colors: [
-                              Color(0xFF2C2C2E),
-                              Color(0xFF3C3C3E),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
+                      colors: [
+                        Color(0xFF2C2C2E),
+                        Color(0xFF3C3C3E),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
                         : LinearGradient(
-                            colors: [
-                              Color(0xFFCFFFF7),
-                              Color(0xFFA4A9FC).withOpacity(0.3),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                      colors: [
+                        Color(0xFFCFFFF7),
+                        Color(0xFFA4A9FC).withOpacity(0.3),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: themeManager.isDarkMode 
+                        color: themeManager.isDarkMode
                             ? Colors.black.withOpacity(0.3)
                             : Color(0xFF0891B2).withOpacity(0.15),
                         blurRadius: 15,
@@ -825,7 +832,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                     border: Border.all(
-                      color: themeManager.isDarkMode 
+                      color: themeManager.isDarkMode
                           ? Color(0xFF636366).withOpacity(0.3)
                           : Colors.white.withOpacity(0.3),
                     ),
@@ -850,7 +857,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: themeManager.isDarkMode 
+                              color: themeManager.isDarkMode
                                   ? Color(0xFFD23232).withOpacity(0.15)
                                   : Color(0xFF0891B2).withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
@@ -871,7 +878,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
                           value: xpProgress,
-                          backgroundColor: themeManager.isDarkMode 
+                          backgroundColor: themeManager.isDarkMode
                               ? Color(0xFF636366).withOpacity(0.3)
                               : Colors.white.withOpacity(0.5),
                           color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
@@ -886,8 +893,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             '${(xpProgress * 100).round()}%',
                             style: GoogleFonts.montserrat(
                               fontSize: 12,
-                              color: themeManager.isDarkMode 
-                                  ? Color(0xFF8E8E93) 
+                              color: themeManager.isDarkMode
+                                  ? Color(0xFF8E8E93)
                                   : Color(0xFF2D5263).withOpacity(0.7),
                               fontWeight: FontWeight.w600,
                             ),
@@ -941,85 +948,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 20),
 
-                // Achievements Section
+                // === Achievements Section (Featured) ===
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    'Your Medals',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Your Badges',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 18, fontWeight: FontWeight.w700,
+                          color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => BadgesScreen()));
+                        },
+                        child: Text('View all', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildAchievementsRow(),
 
-                const SizedBox(height: 24),
+                FutureBuilder<(List<Badge>, List<String>)>(
+                  future: BadgeEngine.evaluateAndSave(),
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return SizedBox(
+                        height: 160,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                          ),
+                        ),
+                      );
+                    }
+                    if (snap.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          'Failed to load badges: ${snap.error}',
+                          style: GoogleFonts.montserrat(
+                            color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey,
+                          ),
+                        ),
+                      );
+                    }
+                    if (!snap.hasData) {
+                      return const SizedBox();
+                    }
 
-                // Dark Mode Toggle
-                Consumer<ThemeManager>(
-                  builder: (context, themeManager, child) {
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: themeManager.isDarkMode
-                            ? Color(0xFF2C2C2E)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: themeManager.isDarkMode 
-                                ? Colors.black.withOpacity(0.3)
-                                : Colors.black.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        leading: Icon(
-                          themeManager.isDarkMode
-                              ? Icons.dark_mode
-                              : Icons.light_mode,
-                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                          size: 28,
-                        ),
-                        title: Text(
-                          'Dark Mode',
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: themeManager.isDarkMode
-                                ? Colors.white
-                                : const Color(0xFF2D5263),
-                          ),
-                        ),
-                        subtitle: Text(
-                          themeManager.isDarkMode ? 'Enabled' : 'Disabled',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 13,
-                            color: themeManager.isDarkMode
-                                ? Color(0xFF8E8E93)
-                                : Colors.grey[600],
-                          ),
-                        ),
-                        trailing: Transform.scale(
-                          scale: 0.9,
-                          child: Switch(
-                            value: themeManager.isDarkMode,
-                            onChanged: (_) => themeManager.toggleTheme(),
-                            activeColor: Color(0xFFD23232),
-                            activeTrackColor: Color(0xFFD23232).withOpacity(0.5),
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
+                    // Extract once
+                    final (badges, _) = snap.data!;
+                    final unlocked = badges.where((b) => b.state == BadgeState.unlocked).toList();
+                    final inProg   = badges.where((b) => b.state == BadgeState.inProgress).toList();
+                    final locked   = badges.where((b) => b.state == BadgeState.locked).toList();
+
+                    // Pick up to 5 "featured" badges (prefer unlocked, then inProgress)
+                    final featured = [
+                      ...unlocked.take(3),
+                      ...inProg.take(2),
+                      if (unlocked.length < 3) ...locked.take(5 - (unlocked.length + inProg.length).clamp(0, 5)),
+                    ].take(5).toList();
+
+                    if (featured.isEmpty) {
+                      return Text('No badges yet. Start a quiz to earn your first one!',
+                          style: GoogleFonts.montserrat(color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey));
+                    }
+
+                    return SizedBox(
+                      height: 160,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: featured.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, i) {
+                          final b = featured[i];
+                          return SizedBox(
+                            width: 120,
+                            child: BadgeTile(
+                              badge: b,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  backgroundColor: Colors.transparent,
+                                  isScrollControlled: true,
+                                  builder: (_) => BadgeDetailSheet(badge: b),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
@@ -1074,19 +1096,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final medal = medals[i];
           final isUnlocked = medal.unlocked;
           final bg = isUnlocked
-              ? (themeManager.isDarkMode 
-                  ? medal.color.withOpacity(0.2)
-                  : medal.color.withOpacity(0.12))
-              : (themeManager.isDarkMode 
-                  ? Color(0xFF3C3C3E)
-                  : Colors.grey.shade100);
+              ? (themeManager.isDarkMode
+              ? medal.color.withOpacity(0.2)
+              : medal.color.withOpacity(0.12))
+              : (themeManager.isDarkMode
+              ? Color(0xFF3C3C3E)
+              : Colors.grey.shade100);
           final border = isUnlocked
               ? medal.color.withOpacity(0.3)
-              : (themeManager.isDarkMode 
-                  ? Color(0xFF636366).withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.2));
-          final fg = isUnlocked 
-              ? medal.color 
+              : (themeManager.isDarkMode
+              ? Color(0xFF636366).withOpacity(0.2)
+              : Colors.grey.withOpacity(0.2));
+          final fg = isUnlocked
+              ? medal.color
               : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey);
 
           return GestureDetector(
@@ -1124,7 +1146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w800,
-                            color: isUnlocked 
+                            color: isUnlocked
                                 ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
                                 : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
                             fontSize: 16,
@@ -1138,7 +1160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 12,
                             height: 1.2,
-                            color: isUnlocked 
+                            color: isUnlocked
                                 ? (themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263))
                                 : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
                           ),
@@ -1153,12 +1175,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isUnlocked
-                                  ? (themeManager.isDarkMode 
-                                      ? Color(0xFFD23232).withOpacity(0.15)
-                                      : Color(0xFF0891B2).withOpacity(0.15))
-                                  : (themeManager.isDarkMode 
-                                      ? Color(0xFF636366).withOpacity(0.2)
-                                      : Colors.grey.withOpacity(0.2)),
+                                  ? (themeManager.isDarkMode
+                                  ? Color(0xFFD23232).withOpacity(0.15)
+                                  : Color(0xFF0891B2).withOpacity(0.15))
+                                  : (themeManager.isDarkMode
+                                  ? Color(0xFF636366).withOpacity(0.2)
+                                  : Colors.grey.withOpacity(0.2)),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -1198,19 +1220,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         gradient: themeManager.isDarkMode
             ? LinearGradient(
-                colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
+          colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
             : LinearGradient(
-                colors: [Colors.white, Color(0xFFCFFFF7).withOpacity(0.3)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+          colors: [Colors.white, Color(0xFFCFFFF7).withOpacity(0.3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: themeManager.isDarkMode 
+            color: themeManager.isDarkMode
                 ? Colors.black.withOpacity(0.3)
                 : Color(0xFF0891B2).withOpacity(0.1),
             blurRadius: 10,
@@ -1218,7 +1240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
         border: Border.all(
-          color: themeManager.isDarkMode 
+          color: themeManager.isDarkMode
               ? Color(0xFF636366).withOpacity(0.3)
               : Colors.white.withOpacity(0.5),
         ),
@@ -1241,8 +1263,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label,
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
-                  color: themeManager.isDarkMode 
-                      ? Color(0xFF8E8E93) 
+                  color: themeManager.isDarkMode
+                      ? Color(0xFF8E8E93)
                       : Color(0xFF2D5263).withOpacity(0.7),
                 ),
               ),

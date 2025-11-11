@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
+import 'badges/badges_engine.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
@@ -641,12 +642,15 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     if (!mounted) return;
 
     int sessionScore = 0;
+
+    // Count MC correct answers
     for (final i in activeIndices) {
       if (_sessionAnswers[i] == true) sessionScore++;
     }
 
-    // Check Mix&Match result
-    if (mixMatchIndices.isNotEmpty) {
+    // If Mix&Match present, count it as 1 question (perfect = +1)
+    final hasMixMatch = mixMatchIndices.isNotEmpty;
+    if (hasMixMatch) {
       bool mmCorrect = true;
       for (final idx in mixMatchIndices) {
         final answer = questions[idx]['correctAnswer'] as String;
@@ -660,8 +664,23 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
       if (mmCorrect) sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final totalQuestions = activeIndices.length + (hasMixMatch ? 1 : 0);
+    final perfect = sessionScore == totalQuestions;
 
+    // =========== BADGES: record this run and notify if anything unlocked ===========
+    await BadgeEngine.recordRun(
+      category: 'numbers',                   // THIS SCREEN
+      mode: widget.quizType.name,           // 'multipleChoice' | 'mixMatch' | 'both'
+      total: totalQuestions,
+      score: sessionScore,
+      perfect: perfect,
+    );
+
+    // Show a small toast/banner if a badge just unlocked
+    await BadgeEngine.checkAndToast(context);
+    // ================================ END BADGES ===================================
+
+    // Your existing streak / sfx / dialog
     final didIncrease = QuestStatus.addStreakForLevel();
     if (didIncrease) await Sfx().playStreak();
     await Sfx().playLevelComplete();

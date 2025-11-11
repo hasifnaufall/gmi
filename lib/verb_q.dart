@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
+import 'badges/badges_engine.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
@@ -572,11 +573,26 @@ class _VerbQuizScreenState extends State<VerbQuizScreen>
     }
 
     // Count Mix&Match if present (all correct = 1 point)
-    if (mixMatchIndices.isNotEmpty && _mmCorrectRightIds.length == mixMatchIndices.length) {
+    if (mixMatchIndices.isNotEmpty &&
+        _mmCorrectRightIds.length == mixMatchIndices.length) {
       sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final totalQuestions =
+        activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final perfect = sessionScore == totalQuestions;
+
+    // ================= BADGES (ADD THIS) =================
+    await BadgeEngine.recordRun(
+      category: 'verb',               // <-- category name for verb set
+      mode: widget.quizType.name,     // multipleChoice / mixMatch / both
+      total: totalQuestions,
+      score: sessionScore,
+      perfect: perfect,
+    );
+
+    await BadgeEngine.checkAndToast(context); // show popup if unlocked
+    // ================= END BADGES ========================
 
     QuestStatus.markFirstQuizMedalEarned();
 

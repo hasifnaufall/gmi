@@ -223,4 +223,11 @@ class UserProgressService {
 
     print('Feedback submitted by $displayName');
   }
+  Future<void> saveAchievements(List<String> ids) async {
+    // TODO: persist to local storage / cloud if you want
+  }
+
+  Future<void> saveCounters(Map<String, dynamic> counters) async {
+    // TODO: persist to local storage / cloud if you want
+  }
 }

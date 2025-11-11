@@ -1,8 +1,13 @@
+// lib/quest_status.dart
 import 'user_progress_service.dart';
 
 // In-memory only (no persistence). Everything resets when the app restarts.
-
 class QuestStatus {
+  // Progress / totals
+  static int level = 1;
+  static int streakDays = 0;
+  static int chestsOpened = 0;
+
   // Save coalescing to avoid excessive Firestore writes
   static bool _saving = false;
   static bool _saveQueued = false;
@@ -26,16 +31,14 @@ class QuestStatus {
   };
 
   static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
-  static bool meetsLevelRequirement(String key) =>
-      level >= requiredLevelFor(key);
+  static bool meetsLevelRequirement(String key) => level >= requiredLevelFor(key);
 
   // ================= Per-correct XP rule =================
   static const int xpPerCorrect = 25;
 
   // ================= Level 1 (Alphabet) =================
   static List<bool?> level1Answers = List<bool?>.filled(5, null);
-  static int get completedQuestions =>
-      level1Answers.where((e) => e != null).length;
+  static int get completedQuestions => level1Answers.where((e) => e != null).length;
   static bool get level1Completed => level1Answers.every((e) => e != null);
   static int get level1Score => level1Answers.where((e) => e == true).length;
 
@@ -105,8 +108,23 @@ class QuestStatus {
   static int verbsPerfectRounds = 0; // Q28
 
   // Misc tracker
-  static bool firstQuizMedalEarned =
-      false; // used by markFirstQuizMedalEarned()
+  static bool firstQuizMedalEarned = false; // used by markFirstQuizMedalEarned()
+
+  // ===== Counters & flags used by BadgeEngine and quiz screens =====
+  static int quizzesCompleted = 0;   // increment after each finished quiz
+  static int perfectQuizzes   = 0;   // increment when a quiz is 100% correct
+
+  // Track if the user has ever completed each mode at least once
+  static bool completedMC = false;
+  static bool completedMM = false;
+
+  // Track if user has ever played these categories at least once
+  static bool playedAlphabet = false;
+  static bool playedNumbers  = false;
+  static bool playedColours  = false;
+
+  // Set true in profile.dart when user sends feedback
+  static bool feedbackSent = false;
 
   // ---- Helper setters to be called from Learning/Quiz screens:
   // (Calls to _autoClaimAll() are now no-op; kept for compatibility)
@@ -234,14 +252,11 @@ class QuestStatus {
   }
 
   // ================= Chest Progress (goal grows +20 per chest) =================
-  static int claimedPoints =
-      0; // progress within current chest tier (your UI shows this)
+  static int claimedPoints = 0; // progress within current chest tier (your UI shows this)
   static int levelGoalPoints = 30; // starting chest goal (first bar length)
-  static int chestsOpened = 0;
 
-  static double get chestProgress => levelGoalPoints == 0
-      ? 0
-      : (claimedPoints / levelGoalPoints).clamp(0.0, 1.0);
+  static double get chestProgress =>
+      levelGoalPoints == 0 ? 0 : (claimedPoints / levelGoalPoints).clamp(0.0, 1.0);
 
   // Each chest opened raises the next goal by +20
   static void advanceChestTier() {
@@ -254,10 +269,6 @@ class QuestStatus {
     // Add progress ONLY. Do NOT auto-open chests here.
     // The chest will be opened manually via the UI button (_openChest).
     claimedPoints += progress;
-
-    // (Optional) You can clamp the progress shown on the bar to 1.0 in the getter,
-    // which you already do via chestProgress. So no extra math needed here.
-
     Future.microtask(() => autoSaveProgress());
   }
 
@@ -272,7 +283,6 @@ class QuestStatus {
 
   // ================= XP / Level (XP to next grows +50/level) =================
   static int xp = 0;
-  static int level = 1;
 
   // Level bar rule: base 100, +50 per level-up step
   static int xpForLevel(int lvl) => 100 + (lvl - 1) * 50;
@@ -323,7 +333,6 @@ class QuestStatus {
   }
 
   // ================= Quests (Q1 – Q28) with MANUAL claim =================
-
   // ---- Claimed flags
   static bool quest1Claimed = false; // Start Alphabet
   static bool quest2Claimed = false; // Learn ALL Alphabet
@@ -395,8 +404,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest5() =>
-      isContentUnlocked(levelNumbers) && !quest5Claimed;
+  static bool canClaimQuest5() => isContentUnlocked(levelNumbers) && !quest5Claimed;
   static int claimQuest5({int reward = 100, int progress = 15}) {
     if (!canClaimQuest5()) return 0;
     quest5Claimed = true;
@@ -436,8 +444,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest9() =>
-      isContentUnlocked(levelColour) && !quest9Claimed;
+  static bool canClaimQuest9() => isContentUnlocked(levelColour) && !quest9Claimed;
   static int claimQuest9({int reward = 100, int progress = 15}) {
     if (!canClaimQuest9()) return 0;
     quest9Claimed = true;
@@ -467,8 +474,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest12() =>
-      colourRoundsCompleted >= 2 && !quest12Claimed;
+  static bool canClaimQuest12() => colourRoundsCompleted >= 2 && !quest12Claimed;
   static int claimQuest12({int reward = 200, int progress = 20}) {
     if (!canClaimQuest12()) return 0;
     quest12Claimed = true;
@@ -478,8 +484,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest13() =>
-      isContentUnlocked(levelGreetings) && !quest13Claimed;
+  static bool canClaimQuest13() => isContentUnlocked(levelGreetings) && !quest13Claimed;
   static int claimQuest13({int reward = 100, int progress = 15}) {
     if (!canClaimQuest13()) return 0;
     quest13Claimed = true;
@@ -509,8 +514,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest16() =>
-      fruitsRoundsCompleted >= 2 && !quest16Claimed;
+  static bool canClaimQuest16() => fruitsRoundsCompleted >= 2 && !quest16Claimed;
   static int claimQuest16({int reward = 200, int progress = 20}) {
     if (!canClaimQuest16()) return 0;
     quest16Claimed = true;
@@ -520,8 +524,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest17() =>
-      isContentUnlocked(levelCommonVerb) && !quest17Claimed;
+  static bool canClaimQuest17() => isContentUnlocked(levelCommonVerb) && !quest17Claimed;
   static int claimQuest17({int reward = 100, int progress = 15}) {
     if (!canClaimQuest17()) return 0;
     quest17Claimed = true;
@@ -541,8 +544,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest19() =>
-      animalsRoundsCompleted >= 3 && !quest19Claimed;
+  static bool canClaimQuest19() => animalsRoundsCompleted >= 3 && !quest19Claimed;
   static int claimQuest19({int reward = 150, int progress = 20}) {
     if (!canClaimQuest19()) return 0;
     quest19Claimed = true;
@@ -584,11 +586,11 @@ class QuestStatus {
 
   static bool canClaimQuest23() =>
       isContentUnlocked(levelNumbers) &&
-      isContentUnlocked(levelColour) &&
-      isContentUnlocked(levelGreetings) &&
-      isContentUnlocked(levelCommonVerb) &&
-      isContentUnlocked(levelVerbs) &&
-      !quest23Claimed;
+          isContentUnlocked(levelColour) &&
+          isContentUnlocked(levelGreetings) &&
+          isContentUnlocked(levelCommonVerb) &&
+          isContentUnlocked(levelVerbs) &&
+          !quest23Claimed;
   static int claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
     quest23Claimed = true;
@@ -608,8 +610,7 @@ class QuestStatus {
     return reward;
   }
 
-  static bool canClaimQuest25() =>
-      isContentUnlocked(levelVerbs) && !quest25Claimed;
+  static bool canClaimQuest25() => isContentUnlocked(levelVerbs) && !quest25Claimed;
   static int claimQuest25({int reward = 100, int progress = 15}) {
     if (!canClaimQuest25()) return 0;
     quest25Claimed = true;
@@ -701,7 +702,6 @@ class QuestStatus {
   }
 
   // ================= Streak (24h window) =================
-  static int streakDays = 0;
   static int longestStreak = 0;
   static DateTime? lastStreakUtc;
 
@@ -791,6 +791,16 @@ class QuestStatus {
 
     // Reset level 1 answers
     level1Answers = List<bool?>.filled(5, null);
+
+    // Reset new badge-engine counters/flags
+    quizzesCompleted = 0;
+    perfectQuizzes   = 0;
+    completedMC = false;
+    completedMM = false;
+    playedAlphabet = false;
+    playedNumbers  = false;
+    playedColours  = false;
+    feedbackSent   = false;
   }
 
   static Future<void> loadProgressForUser(String userId) async {
@@ -801,9 +811,7 @@ class QuestStatus {
 
     try {
       if (_currentUserId != userId) {
-        print(
-          'Loading different user or after logout - resetting to defaults first',
-        );
+        print('Loading different user or after logout - resetting to defaults first');
         resetToDefaults();
       }
 
@@ -919,15 +927,23 @@ class QuestStatus {
 
     firstQuizMedalEarned = false;
 
+    // Reset new badge-engine counters/flags
+    quizzesCompleted = 0;
+    perfectQuizzes   = 0;
+    completedMC = false;
+    completedMM = false;
+    playedAlphabet = false;
+    playedNumbers  = false;
+    playedColours  = false;
+    feedbackSent   = false;
+
     Future.microtask(() => autoSaveProgress());
   }
 
   /// Save all progress to Firestore for the current user (coalesced)
   static Future<void> autoSaveProgress() async {
     if (_loadingProgress) {
-      print(
-        'autoSaveProgress: Currently loading progress - skipping save to avoid overwriting',
-      );
+      print('autoSaveProgress: Currently loading progress - skipping save to avoid overwriting');
       return;
     }
 
@@ -1026,18 +1042,13 @@ class QuestStatus {
         // Unlocked content
         unlockedContent: _unlockedContent.toList(),
         // Level 1 answers
-        level1Answers: level1Answers
-            .map((e) => e == null ? null : (e ? 1 : 0))
-            .toList(),
+        level1Answers: level1Answers.map((e) => e == null ? null : (e ? 1 : 0)).toList(),
       );
     } finally {
       _saving = false;
       if (_saveQueued) {
         _saveQueued = false;
-        Future.delayed(
-          const Duration(milliseconds: 200),
-          () => autoSaveProgress(),
-        );
+        Future.delayed(const Duration(milliseconds: 200), () => autoSaveProgress());
       }
     }
   }
@@ -1056,9 +1067,7 @@ class QuestStatus {
     longestStreak = data['longestStreak'] ?? 0;
 
     if (data['lastStreakUtc'] != null) {
-      lastStreakUtc = DateTime.fromMillisecondsSinceEpoch(
-        data['lastStreakUtc'],
-      );
+      lastStreakUtc = DateTime.fromMillisecondsSinceEpoch(data['lastStreakUtc']);
     }
 
     // Quest states
@@ -1093,8 +1102,7 @@ class QuestStatus {
     quest28Claimed = questStates['quest28Claimed'] ?? false;
 
     // Learning states
-    final learningStates =
-        data['learningStates'] as Map<String, dynamic>? ?? {};
+    final learningStates = data['learningStates'] as Map<String, dynamic>? ?? {};
     learnedAlphabetAll = learningStates['learnedAlphabetAll'] ?? false;
     alphabetQuizStarted = learningStates['alphabetQuizStarted'] ?? false;
     alphabetRoundsCompleted = learningStates['alphabetRoundsCompleted'] ?? 0;
@@ -1117,10 +1125,10 @@ class QuestStatus {
 
     // Watched items in learn mode
     watchedAlphabet = Set<String>.from(learningStates['watchedAlphabet'] ?? []);
-    watchedNumbers = Set<String>.from(learningStates['watchedNumbers'] ?? []);
-    watchedColours = Set<String>.from(learningStates['watchedColours'] ?? []);
-    watchedFruits = Set<String>.from(learningStates['watchedFruits'] ?? []);
-    watchedAnimals = Set<String>.from(learningStates['watchedAnimals'] ?? []);
+    watchedNumbers  = Set<String>.from(learningStates['watchedNumbers'] ?? []);
+    watchedColours  = Set<String>.from(learningStates['watchedColours'] ?? []);
+    watchedFruits   = Set<String>.from(learningStates['watchedFruits'] ?? []);
+    watchedAnimals  = Set<String>.from(learningStates['watchedAnimals'] ?? []);
 
     print(
       'loadFromProgress: Loaded watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}',

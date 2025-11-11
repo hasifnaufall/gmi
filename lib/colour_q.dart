@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
+import 'badges/badges_engine.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
@@ -316,29 +317,64 @@ class _ColourQuizScreenState extends State<ColourQuizScreen> with SingleTickerPr
 
   Future<void> _finishSession() async {
     if (!mounted) return;
-    int sessionScore = 0;
-    for (final i in activeIndices) { if (_sessionAnswers[i] == true) sessionScore++; }
-    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
-    if (QuestStatus.level1Answers.length > mmResultIndex && QuestStatus.level1Answers[mmResultIndex] == true) sessionScore++;
-    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
 
+    int sessionScore = 0;
+
+    // Count MC correct answers
+    for (final i in activeIndices) {
+      if (_sessionAnswers[i] == true) sessionScore++;
+    }
+
+    // Mix & Match contributes 1 point if all pairs were correct
+    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
+    if (QuestStatus.level1Answers.length > mmResultIndex &&
+        QuestStatus.level1Answers[mmResultIndex] == true) {
+      sessionScore++;
+    }
+
+    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final perfect = sessionScore == totalQuestions;
+
+    // ========== BADGES (ADDED) ==========
+    await BadgeEngine.recordRun(
+      category: 'colour',                // <-- this screen/category
+      mode: widget.quizType.name,        // 'multipleChoice' | 'mixMatch' | 'both'
+      total: totalQuestions,
+      score: sessionScore,
+      perfect: perfect,
+    );
+    await BadgeEngine.checkAndToast(context);
+    // ======== END BADGES (ADDED) ========
+
+    // Your existing quest logic
     QuestStatus.alphabetRoundsCompleted += 1;
-    if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) { if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5(); }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) { if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6(); }
+    if (QuestStatus.alphabetRoundsCompleted >= 3 && !QuestStatus.quest5Claimed) {
+      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
+    }
+    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
+      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+    }
 
     QuestStatus.markFirstQuizMedalEarned();
+
     final didIncrease = QuestStatus.addStreakForLevel();
     if (didIncrease) await Sfx().playStreak();
     await Sfx().playLevelComplete();
 
     await showDialog(
-      context: context, barrierDismissible: false,
+      context: context,
+      barrierDismissible: false,
       builder: (_) => _GreatWorkDialog(
-        score: sessionScore, total: totalQuestions,
-        onReturn: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+        score: sessionScore,
+        total: totalQuestions,
+        onReturn: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        },
       ),
     );
   }
+
 
   Future<bool> _confirmExitQuiz() async {
     final first = await showDialog<bool>(
