@@ -1,12 +1,243 @@
-// lib/number_q.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
 
+enum QuizType { multipleChoice, mixMatch, both }
+
+// NEW: Cute Bottom Sheet Quiz Type Selection
+Future<void> showNumberQuizSelection(BuildContext context) {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) => Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.quiz, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Select Quiz Mode',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1E1E1E),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Quiz Type Cards (Compact)
+          _CompactQuizCard(
+            icon: Icons.quiz_rounded,
+            title: 'Multiple Choice',
+            description: '5 questions',
+            gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NumberQuizScreen(quizType: QuizType.multipleChoice),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _CompactQuizCard(
+            icon: Icons.swap_horiz_rounded,
+            title: 'Mix & Match',
+            description: '6 pairs',
+            gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NumberQuizScreen(quizType: QuizType.mixMatch),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _CompactQuizCard(
+            icon: Icons.stars_rounded,
+            title: 'Both Modes',
+            description: '5 MC + 6 Mix&Match',
+            gradient: const [Color(0xFFFFD700), Color(0xFFFFA500)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NumberQuizScreen(quizType: QuizType.both),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Compact Quiz Type Card Widget for Bottom Sheet
+class _CompactQuizCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+
+  const _CompactQuizCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.grey.shade50, Colors.grey.shade100],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: gradient[0].withOpacity(0.3), width: 2),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradient[0].withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1E1E1E),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: const Color(0xFF6B7280),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: gradient[0].withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: gradient[0],
+                  size: 18,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class NumberQuizScreen extends StatefulWidget {
   final int? startIndex;
-  const NumberQuizScreen({super.key, this.startIndex});
+  final QuizType quizType;
+
+  const NumberQuizScreen({
+    super.key,
+    this.startIndex,
+    this.quizType = QuizType.both,
+  });
 
   @override
   State<NumberQuizScreen> createState() => _NumberQuizScreenState();
@@ -14,130 +245,166 @@ class NumberQuizScreen extends StatefulWidget {
 
 class _NumberQuizScreenState extends State<NumberQuizScreen>
     with SingleTickerProviderStateMixin {
-  static const int sessionSize = 5;
+  // Session sizes
+  static const int multipleChoiceSize = 5;
+  static const int mixMatchSize = 6;
 
+  // Mix & Match visual sizing
+  static const double mmRowGap = 10;
+  static const double mmImageHeight = 95;
+  static const double mmAnswerHeight = 70;
+
+  // Multiple choice state
   late List<int> activeIndices;
   late int currentSlot;
   bool isOptionSelected = false;
   int? _pendingIndex;
-
   final Map<int, bool> _sessionAnswers = {};
 
+  // Mix & Match state
+  late List<int> mixMatchIndices;
+  bool _isInMixMatchRound = false;
+  final Map<String, String> _currentMatches = {}; // leftId -> rightId
+  List<String> _mmAnswersOrder = [];
+  List<String> _mmImagesOrder = [];
+  Map<String, String> _imageForAnswer = {}; // answer -> imagePath
+  final ScrollController _mmScroll = ScrollController();
+
+  // NEW: Review mode (2 seconds)
+  bool _mmReviewMode = false;
+  final Set<String> _mmCorrectRightIds = {};
+  final Set<String> _mmWrongRightIds = {};
+
+  // Animations
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
+  // Questions with correctAnswer added for Mix & Match
   final List<Map<String, dynamic>> questions = [
     {
       "image": "assets/images/number/N1.jpg",
+      "correctAnswer": "1",
       "options": ["11", "7", "1", "10"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N2.jpg",
+      "correctAnswer": "2",
       "options": ["2", "5", "8", "3"],
       "correctIndex": 0,
     },
     {
       "image": "assets/images/number/N3.jpg",
+      "correctAnswer": "3",
       "options": ["9", "3", "6", "12"],
       "correctIndex": 1,
     },
     {
       "image": "assets/images/number/N4.jpg",
+      "correctAnswer": "4",
       "options": ["11", "14", "20", "4"],
       "correctIndex": 3,
     },
     {
       "image": "assets/images/number/N5.jpg",
+      "correctAnswer": "5",
       "options": ["6", "10", "5", "15"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N6.jpg",
+      "correctAnswer": "6",
       "options": ["3", "18", "6", "19"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N7.jpg",
+      "correctAnswer": "7",
       "options": ["14", "12", "10", "7"],
       "correctIndex": 3,
     },
     {
       "image": "assets/images/number/N8.jpg",
+      "correctAnswer": "8",
       "options": ["7", "12", "8", "20"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N9.jpg",
+      "correctAnswer": "9",
       "options": ["9", "19", "18", "8"],
       "correctIndex": 0,
     },
     {
       "image": "assets/images/number/N10.jpg",
+      "correctAnswer": "10",
       "options": ["6", "10", "15", "20"],
       "correctIndex": 1,
     },
     {
       "image": "assets/images/number/N11.jpg",
+      "correctAnswer": "11",
       "options": ["10", "16", "1", "11"],
       "correctIndex": 3,
     },
     {
       "image": "assets/images/number/N12.jpg",
+      "correctAnswer": "12",
       "options": ["14", "2", "12", "20"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N13.jpg",
+      "correctAnswer": "13",
       "options": ["18", "3", "13", "16"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N14.jpg",
+      "correctAnswer": "14",
       "options": ["4", "12", "7", "14"],
       "correctIndex": 3,
     },
     {
       "image": "assets/images/number/N15.jpg",
+      "correctAnswer": "15",
       "options": ["5", "10", "15", "20"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N16.jpg",
+      "correctAnswer": "16",
       "options": ["16", "4", "7", "19"],
       "correctIndex": 0,
     },
     {
       "image": "assets/images/number/N17.jpg",
+      "correctAnswer": "17",
       "options": ["11", "1", "17", "9"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N18.jpg",
+      "correctAnswer": "18",
       "options": ["8", "13", "6", "18"],
       "correctIndex": 3,
     },
     {
       "image": "assets/images/number/N19.jpg",
+      "correctAnswer": "19",
       "options": ["16", "20", "19", "7"],
       "correctIndex": 2,
     },
     {
       "image": "assets/images/number/N20.jpg",
+      "correctAnswer": "20",
       "options": ["15", "10", "20", "14"],
       "correctIndex": 2,
     },
   ];
 
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
-
-  int _firstUnansweredSlot() {
-    for (int s = 0; s < activeIndices.length; s++) {
-      if (!_isAnsweredInSession(activeIndices[s])) return s;
-    }
-    return 0;
-  }
 
   bool _allAnsweredInSession() {
     for (final i in activeIndices) {
@@ -156,17 +423,34 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
   @override
   void initState() {
     super.initState();
-
-    // Prepare sound effects (safe to call more than once)
     Sfx().init();
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    final take = all.length < sessionSize ? all.length : sessionSize;
-    activeIndices = all.take(take).toList();
 
-    int startSlot = widget.startIndex ?? _firstUnansweredSlot();
-    startSlot = startSlot.clamp(0, activeIndices.length - 1);
-    currentSlot = startSlot;
+    // Adjust based on quiz type
+    if (widget.quizType == QuizType.multipleChoice) {
+      activeIndices = all.take(multipleChoiceSize).toList();
+      mixMatchIndices = [];
+    } else if (widget.quizType == QuizType.mixMatch) {
+      activeIndices = [];
+      mixMatchIndices = all.take(mixMatchSize).toList();
+    } else { // QuizType.both
+      activeIndices = all.take(multipleChoiceSize).toList();
+      final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
+      mixMatchIndices = remaining.take(mixMatchSize).toList();
+    }
+
+    int startSlot = widget.startIndex ?? 0;
+    if (activeIndices.isNotEmpty) {
+      startSlot = startSlot.clamp(0, activeIndices.length - 1);
+      currentSlot = startSlot;
+    } else {
+      currentSlot = 0;
+    }
+
+    // Start directly in Mix&Match if that's the only mode
+    _isInMixMatchRound = widget.quizType == QuizType.mixMatch;
+    if (_isInMixMatchRound) _prepareMixMatchRound();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -186,9 +470,217 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
   @override
   void dispose() {
     _controller.dispose();
+    _mmScroll.dispose();
     super.dispose();
   }
 
+  // Prepare Mix&Match round
+  void _prepareMixMatchRound() {
+    _imageForAnswer.clear();
+    for (final idx in mixMatchIndices) {
+      final answer = questions[idx]['correctAnswer'] as String;
+      final image = questions[idx]['image'] as String;
+      _imageForAnswer[answer] = image;
+    }
+    final answers = mixMatchIndices.map((i) => questions[i]['correctAnswer'] as String).toList();
+    final images = mixMatchIndices.map((i) => questions[i]['image'] as String).toList();
+    _mmAnswersOrder = List<String>.from(answers)..shuffle();
+    _mmImagesOrder = List<String>.from(images)..shuffle();
+  }
+
+  // MULTIPLE CHOICE handler
+  Future<void> handleAnswer(int selectedIndex) async {
+    if (isOptionSelected) return;
+    final qIdx = activeIndices[currentSlot];
+    if (_sessionAnswers.containsKey(qIdx)) return;
+
+    setState(() {
+      isOptionSelected = true;
+      _pendingIndex = null;
+    });
+
+    final correctIndex = questions[qIdx]['correctIndex'] as int;
+    final isCorrect = selectedIndex == correctIndex;
+    _sessionAnswers[qIdx] = isCorrect;
+
+    if (isCorrect) {
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Correct!",
+        subtitle: "You earned 20 XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
+      QuestStatus.addXp(20);
+    } else {
+      final correctValue = (questions[qIdx]['options'] as List)[correctIndex].toString();
+      showAnimatedPopup(
+        icon: Icons.close,
+        title: "Incorrect",
+        subtitle: "Correct: $correctValue",
+        bgColor: const Color(0xFFFF4B4A),
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    if (_allAnsweredInSession()) {
+      if (!mounted) return;
+
+      // If "both" mode, transition to Mix&Match
+      if (widget.quizType == QuizType.both && mixMatchIndices.isNotEmpty) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _BonusRoundDialog(),
+        );
+        setState(() {
+          _prepareMixMatchRound();
+          _isInMixMatchRound = true;
+          currentSlot = 0;
+          _controller.reset();
+          _controller.forward();
+        });
+      } else {
+        // Multiple choice only mode
+        await Future.delayed(const Duration(milliseconds: 500));
+        _finishSession();
+      }
+      return;
+    }
+
+    final nextSlot = _nextUnansweredSlotAfter(currentSlot);
+    setState(() {
+      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+      isOptionSelected = false;
+      _pendingIndex = null;
+      _controller.reset();
+      _controller.forward();
+    });
+  }
+
+  // Undo match
+  void _undoMatch(String rightId) {
+    setState(() {
+      _currentMatches.removeWhere((key, value) => value == rightId);
+    });
+  }
+
+  // All pairs filled
+  void _onAllPairsFilled() async {
+    final submit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _CleanConfirmDialog(
+        icon: Icons.check_circle_rounded,
+        title: 'Submit answers?',
+        message: "You've matched all pairs. Submit now or reset all to try again.",
+        primaryLabel: 'Submit',
+        secondaryLabel: 'Reset',
+      ),
+    );
+
+    if (submit == true) {
+      _evaluateMixMatchAndReview();
+    } else {
+      setState(() => _currentMatches.clear());
+    }
+  }
+
+  // Evaluate + 2s review
+  void _evaluateMixMatchAndReview() {
+    _mmCorrectRightIds.clear();
+    _mmWrongRightIds.clear();
+
+    bool allCorrect = true;
+    for (final idx in mixMatchIndices) {
+      final answer = questions[idx]['correctAnswer'] as String;
+      final leftId = "left_$answer";
+      final rightId = "right_$answer";
+      if (_currentMatches[leftId] == rightId) {
+        _mmCorrectRightIds.add(rightId);
+      } else {
+        allCorrect = false;
+        _mmWrongRightIds.add(rightId);
+      }
+    }
+
+    // Enter review mode
+    setState(() => _mmReviewMode = true);
+
+    // After 2s → finish
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() => _mmReviewMode = false);
+      _completeMixMatch(allCorrect);
+    });
+  }
+
+  void _completeMixMatch(bool allCorrect) {
+    if (allCorrect) {
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Perfect Match!",
+        subtitle: "You earned 50 XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
+      QuestStatus.addXp(50);
+    } else {
+      showAnimatedPopup(
+        icon: Icons.close,
+        title: "Some Incorrect",
+        subtitle: "Try again next time!",
+        bgColor: const Color(0xFFFF4B4A),
+      );
+    }
+    Future.delayed(const Duration(milliseconds: 500), () => _finishSession());
+  }
+
+  // Finish session
+  Future<void> _finishSession() async {
+    if (!mounted) return;
+
+    int sessionScore = 0;
+    for (final i in activeIndices) {
+      if (_sessionAnswers[i] == true) sessionScore++;
+    }
+
+    // Check Mix&Match result
+    if (mixMatchIndices.isNotEmpty) {
+      bool mmCorrect = true;
+      for (final idx in mixMatchIndices) {
+        final answer = questions[idx]['correctAnswer'] as String;
+        final leftId = "left_$answer";
+        final rightId = "right_$answer";
+        if (_currentMatches[leftId] != rightId) {
+          mmCorrect = false;
+          break;
+        }
+      }
+      if (mmCorrect) sessionScore++;
+    }
+
+    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+
+    final didIncrease = QuestStatus.addStreakForLevel();
+    if (didIncrease) await Sfx().playStreak();
+    await Sfx().playLevelComplete();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _GreatWorkDialog(
+        score: sessionScore,
+        total: totalQuestions,
+        onReturn: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
+  // Back handlers
   Future<bool> _confirmExitQuiz() async {
     final first = await showDialog<bool>(
       context: context,
@@ -209,8 +701,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message:
-            "This action can't be undone and your progress this round will be lost.",
+        message: "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -218,159 +709,12 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     return second == true;
   }
 
-  Future<void> handleAnswer(int selectedIndex) async {
-    if (isOptionSelected) return;
-    final qIdx = activeIndices[currentSlot];
-    if (_sessionAnswers.containsKey(qIdx)) return;
-
-    setState(() {
-      isOptionSelected = true;
-      _pendingIndex = null;
-    });
-
-    final correctIndex = questions[qIdx]['correctIndex'] as int;
-    final isCorrect = selectedIndex == correctIndex;
-    _sessionAnswers[qIdx] = isCorrect;
-
-    if (isCorrect) {
-      final oldLvl = QuestStatus.level;
-      final levels = QuestStatus.addXp(20);
-      _showToast(
-        icon: Icons.star,
-        title: "Correct!",
-        subtitle: "You earned 20 XP${levels > 0 ? " & leveled up!" : ""}",
-        bgColor: const Color(0xFF2C5CB0),
-      );
-
-      if (levels > 0) {
-        final newlyUnlocked = QuestStatus.unlockedBetween(
-          oldLvl,
-          QuestStatus.level,
-        );
-        for (final key in newlyUnlocked) {
-          _showToast(
-            icon: Icons.lock_open,
-            title: "New Level Unlocked!",
-            subtitle: QuestStatus.titleFor(key),
-            bgColor: const Color(0xFFFF4B4A),
-          );
-          await Future.delayed(const Duration(milliseconds: 300));
-        }
-      }
-    } else {
-      final correctValue =
-          (questions[qIdx]['options'] as List<dynamic>)[correctIndex]
-              .toString();
-      _showToast(
-        icon: Icons.close,
-        title: "Incorrect",
-        subtitle: "Correct: $correctValue",
-        bgColor: const Color(0xFFFF4B4A),
-      );
-    }
-
-    await Future.delayed(const Duration(milliseconds: 250));
-
-    if (_allAnsweredInSession()) {
-      if (!mounted) return;
-
-      final sessionScore = activeIndices
-          .where((i) => _sessionAnswers[i] == true)
-          .length;
-      _showToast(
-        icon: Icons.emoji_events,
-        title: "Quiz Complete!",
-        subtitle: "Score: $sessionScore/${activeIndices.length}",
-        bgColor: const Color(0xFF2C5CB0),
-      );
-
-      // Play "level complete" SFX
-      await Sfx().playLevelComplete();
-
-      final total = activeIndices.length;
-      final isPerfect = sessionScore == total;
-      QuestStatus.numbersRoundsCompleted += 1;
-
-      if (isPerfect) {
-        QuestStatus.numbersPerfectRounds += 1;
-        if (QuestStatus.canClaimQuest9()) {
-          QuestStatus.claimQuest9();
-          await Future.delayed(const Duration(milliseconds: 500));
-          _showToast(
-            icon: Icons.stars,
-            title: "Quest 9 Complete!",
-            subtitle: "Perfect round! +200 keys",
-            bgColor: const Color(0xFF2C5CB0),
-          );
-          await Future.delayed(const Duration(seconds: 2));
-        }
-      }
-
-      if (QuestStatus.numbersRoundsCompleted >= 3 &&
-          !QuestStatus.quest10Claimed) {
-        if (QuestStatus.canClaimQuest10()) {
-          QuestStatus.claimQuest10();
-          await Future.delayed(const Duration(milliseconds: 500));
-          _showToast(
-            icon: Icons.military_tech,
-            title: "Quest 10 Complete!",
-            subtitle: "3 rounds finished! +200 keys",
-            bgColor: const Color(0xFFFF4B4A),
-          );
-          await Future.delayed(const Duration(seconds: 2));
-        }
-      }
-
-      final justEarned = QuestStatus.markFirstQuizMedalEarned();
-      if (justEarned && mounted) {
-        _showToast(
-          icon: Icons.military_tech,
-          title: "Medal unlocked!",
-          subtitle: "Finish your first quiz",
-          bgColor: const Color(0xFF2C5CB0),
-        );
-        await Future.delayed(const Duration(seconds: 2));
-      }
-
-      final didIncrease = QuestStatus.addStreakForLevel();
-      if (didIncrease && mounted) {
-        _showToast(
-          icon: Icons.local_fire_department,
-          title: "Streak +1!",
-          subtitle: "Current streak: ${QuestStatus.streakDays}",
-          bgColor: const Color(0xFFFF4B4A),
-        );
-        await Sfx().playStreak();
-        await Future.delayed(const Duration(seconds: 2));
-      }
-
-      // === NEW: show "Great Work!" results popup with Return button ===
-      if (!mounted) return;
-      await _showGreatWorkDialog(
-        score: sessionScore,
-        total: activeIndices.length,
-        level: QuestStatus.level,
-        streakDays: QuestStatus.streakDays,
-      );
-
-      // After dialog’s Return button, user is already navigated back.
-      return;
-    } else {
-      final nextSlot = _nextUnansweredSlotAfter(currentSlot);
-      setState(() {
-        currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
-          0,
-          activeIndices.length - 1,
-        );
-        isOptionSelected = false;
-        _pendingIndex = null;
-        _controller.reset();
-        _controller.forward();
-      });
-    }
+  Future<void> _handleBackPressed() async {
+    final shouldExit = await _confirmExitQuiz();
+    if (shouldExit && mounted) Navigator.pop(context);
   }
 
-  void _showToast({
+  void showAnimatedPopup({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -381,56 +725,24 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _NumberSlideInPopup(
-          icon: icon,
-          title: title,
-          subtitle: subtitle,
-          bgColor: bgColor,
-        ),
+        child: _SlideInBadge(icon: icon, title: title, subtitle: subtitle, color: bgColor),
       ),
     );
     overlay.insert(entry);
     Future.delayed(const Duration(seconds: 2), () => entry.remove());
   }
 
-  // ---- Great Work Dialog launcher ----
-  Future<void> _showGreatWorkDialog({
-    required int score,
-    required int total,
-    required int level,
-    required int streakDays,
-  }) async {
-    if (_allAnsweredInSession()) {
-      if (!mounted) return;
-
-      final int sessionScore = activeIndices
-          .where((i) => _sessionAnswers[i] == true)
-          .length;
-
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _GreatWorkDialog(
-          score: sessionScore,
-          total: activeIndices.length,
-          onReturn: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-          },
-        ),
-      );
-
-      return; // optional
-    }
-  }
-
+  // BUILD
   @override
   Widget build(BuildContext context) {
+    return _isInMixMatchRound ? _buildMixMatchQuiz() : _buildMultipleChoiceQuiz();
+  }
+
+  // MULTIPLE CHOICE UI
+  Widget _buildMultipleChoiceQuiz() {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List)
-        .map((e) => e.toString())
-        .toList();
+    final options = (question['options'] as List).map((e) => e.toString()).toList();
 
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
@@ -445,7 +757,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    _buildHeader(),
+                    _buildHeader("Number Quiz"),
                     const SizedBox(height: 12),
                     _buildProgressBar(),
                     const SizedBox(height: 16),
@@ -464,65 +776,93 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     );
   }
 
-  Widget _buildHeader() {
+  // MIX & MATCH UI
+  Widget _buildMixMatchQuiz() {
+    if (_mmAnswersOrder.isEmpty || _mmImagesOrder.isEmpty) {
+      _prepareMixMatchRound();
+    }
+
+    final totalPairs = mixMatchIndices.length;
+
+    return WillPopScope(
+      onWillPop: () async => await _confirmExitQuiz(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFCFFFF7),
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _offsetAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    _buildHeader("Mix & Match"),
+                    const SizedBox(height: 8),
+                    _buildStableMixMatchProgress(totalPairs),
+                    const SizedBox(height: 12),
+                    _buildMixMatchInstruction(),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Scrollbar(
+                        controller: _mmScroll,
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          controller: _mmScroll,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: _buildMatchingAreaStable(
+                            answersOrder: _mmAnswersOrder,
+                            imagesOrder: _mmImagesOrder,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(String title) {
     return Row(
       children: [
         IconButton(
-          onPressed: () async {
-            final shouldExit = await _confirmExitQuiz();
-            if (shouldExit && mounted) Navigator.pop(context);
-          },
+          onPressed: _handleBackPressed,
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFF0FDFA), Color(0xFFFFFFFF)],
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: const Color(0xFF69D3E4).withOpacity(0.4),
-                width: 2,
-              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF69D3E4).withOpacity(0.2),
-                  blurRadius: 6,
+                  color: const Color(0xFF69D3E4).withOpacity(0.15),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
-                ),
+                )
               ],
             ),
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF69D3E4),
-              size: 20,
-            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF69D3E4), size: 20),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Number Level",
-                style: GoogleFonts.montserrat(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
-                  letterSpacing: -0.6,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "Question ${currentSlot + 1} of ${activeIndices.length}",
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
+          child: Text(
+            title,
+            style: GoogleFonts.montserrat(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF69D3E4),
+              letterSpacing: -0.5,
+            ),
           ),
         ),
         Container(
@@ -539,17 +879,17 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
                 color: const Color(0xFF69D3E4).withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
-              ),
+              )
             ],
           ),
           child: Row(
             children: [
-              const Icon(Icons.bolt_rounded, color: Colors.white, size: 18),
+              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
               const SizedBox(width: 4),
               Text(
                 "Lvl ${QuestStatus.level}",
                 style: GoogleFonts.montserrat(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
@@ -561,6 +901,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     );
   }
 
+  // Progress (MC)
   Widget _buildProgressBar() {
     final total = activeIndices.length;
     int correct = 0, wrong = 0;
@@ -572,80 +913,76 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({
-      required Color color,
-      required int flex,
-      required BorderRadius radius,
-    }) {
+    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
       if (flex <= 0) return const SizedBox.shrink();
       return Expanded(
         flex: flex,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           decoration: BoxDecoration(color: color, borderRadius: radius),
-          height: 10,
+          height: 12,
         ),
       );
     }
 
-    final hasCorrect = correct > 0;
-    final hasWrong = wrong > 0;
-    final hasRemaining = remaining > 0;
-
+    final hasCorrect = correct > 0, hasWrong = wrong > 0, hasRemaining = remaining > 0;
     final bars = <Widget>[];
     if (hasCorrect) {
-      bars.add(
-        segment(
-          color: const Color(0xFF44b427),
-          flex: correct,
-          radius: hasWrong || hasRemaining
-              ? const BorderRadius.horizontal(left: Radius.circular(8))
-              : BorderRadius.circular(8),
-        ),
-      );
+      bars.add(segment(
+        color: const Color(0xFF22C55E),
+        flex: correct,
+        radius: hasWrong || hasRemaining
+            ? const BorderRadius.horizontal(left: Radius.circular(10))
+            : BorderRadius.circular(10),
+      ));
     }
     if (hasWrong) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
-      bars.add(
-        segment(
-          color: const Color(0xFFFF4B4A),
-          flex: wrong,
-          radius: (!hasCorrect && !hasRemaining)
-              ? BorderRadius.circular(8)
-              : BorderRadius.zero,
-        ),
-      );
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
+      bars.add(segment(
+        color: const Color(0xFFFF4B4A),
+        flex: wrong,
+        radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(10) : BorderRadius.zero,
+      ));
     }
     if (hasRemaining) {
-      if (bars.isNotEmpty) bars.add(const SizedBox(width: 1));
-      bars.add(
-        segment(
-          color: const Color(0xFFE8EEF9),
-          flex: remaining,
-          radius: (hasCorrect || hasWrong)
-              ? const BorderRadius.horizontal(right: Radius.circular(8))
-              : BorderRadius.circular(8),
-        ),
-      );
+      if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
+      bars.add(segment(
+        color: const Color(0xFFE0F2F1),
+        flex: remaining,
+        radius: (hasCorrect || hasWrong)
+            ? const BorderRadius.horizontal(right: Radius.circular(10))
+            : BorderRadius.circular(10),
+      ));
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F6FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE3E6EE)),
+            gradient: const LinearGradient(
+              colors: [Colors.white, Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF69D3E4).withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ],
           ),
           child: Row(children: bars),
         ),
-        const SizedBox(height: 6),
-        const Row(
+        const SizedBox(height: 8),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _LegendDot(label: 'Correct', color: Color(0xFF44b427)),
+          children: const [
+            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
             _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
           ],
         ),
@@ -653,24 +990,252 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     );
   }
 
+  // Progress (Mix&Match)
+  Widget _buildStableMixMatchProgress(int total) {
+    final matched = _currentMatches.length;
+    final value = total == 0 ? 0.0 : matched / total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 10,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: value,
+              backgroundColor: const Color(0xFFE0F2F1),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF69D3E4)),
+              minHeight: 10,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "$matched / $total matched",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMixMatchInstruction() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Drag numbers to their matching signs",
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF69D3E4),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Matching area with undo button
+  Widget _buildMatchingAreaStable({
+    required List<String> answersOrder,
+    required List<String> imagesOrder,
+  }) {
+    assert(answersOrder.length == imagesOrder.length);
+
+    return Column(
+      children: List.generate(answersOrder.length, (i) {
+        final answer = answersOrder[i];
+        final leftId = "left_$answer";
+        final isLeftMatched = _currentMatches.containsKey(leftId);
+
+        final imagePath = imagesOrder[i];
+        final rightAnswer = _imageForAnswer.entries.firstWhere((e) => e.value == imagePath).key;
+        final rightId = "right_$rightAnswer";
+        final isRightMatched = _currentMatches.values.contains(rightId);
+
+        final showCorrect = _mmReviewMode && _mmCorrectRightIds.contains(rightId);
+        final showWrong = _mmReviewMode && _mmWrongRightIds.contains(rightId);
+
+        return Padding(
+          key: ValueKey('ROW_$i'),
+          padding: const EdgeInsets.only(bottom: mmRowGap),
+          child: SizedBox(
+            height: mmImageHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: draggable answer
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: SizedBox(
+                      height: mmAnswerHeight,
+                      child: Opacity(
+                        opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
+                        child: IgnorePointer(
+                          ignoring: isLeftMatched || _mmReviewMode,
+                          child: Draggable<String>(
+                            data: leftId,
+                            feedback: Material(
+                              elevation: 8,
+                              borderRadius: BorderRadius.circular(16),
+                              child: _AnswerCard(answer: answer, isFloating: true),
+                            ),
+                            childWhenDragging: Opacity(
+                              opacity: 0.3,
+                              child: _AnswerCard(answer: answer),
+                            ),
+                            child: _AnswerCard(answer: answer, isMatched: isLeftMatched),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Right: drag target with undo
+                Expanded(
+                  flex: 4,
+                  child: Stack(
+                    children: [
+                      DragTarget<String>(
+                        onWillAccept: (data) => !_mmReviewMode && data != null && !isRightMatched,
+                        onAccept: (draggedLeftId) {
+                          setState(() {
+                            _currentMatches[draggedLeftId] = rightId;
+                          });
+                          if (_currentMatches.length >= mixMatchIndices.length) {
+                            _onAllPairsFilled();
+                          }
+                        },
+                        builder: (context, candidate, rejected) {
+                          final isHovering = !_mmReviewMode && candidate.isNotEmpty && !isRightMatched;
+                          return SizedBox(
+                            height: mmImageHeight,
+                            child: _ImageCard(
+                              imagePath: imagePath,
+                              isMatched: isRightMatched,
+                              isHovering: isHovering,
+                              reviewCorrect: showCorrect,
+                              reviewWrong: showWrong,
+                            ),
+                          );
+                        },
+                      ),
+                      // Undo button
+                      if (isRightMatched && !_mmReviewMode)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _undoMatch(rightId),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFFF4B4A), width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: Color(0xFFFF4B4A),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // Question Card (MC)
   Widget _buildQuestionCard(Map<String, dynamic> question) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FBFF),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
+        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             "What number is shown?",
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF2C5CB0),
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF69D3E4),
               letterSpacing: -0.3,
             ),
           ),
@@ -680,7 +1245,14 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE3E6EE)),
+              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF69D3E4).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -688,28 +1260,12 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
                 question['image'],
                 fit: BoxFit.contain,
                 height: 140,
-                errorBuilder: (context, error, stack) {
-                  return const SizedBox(
-                    height: 140,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.broken_image_rounded,
-                            size: 36,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Image not found',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                errorBuilder: (context, error, stack) => const SizedBox(
+                  height: 140,
+                  child: Center(
+                    child: Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey),
+                  ),
+                ),
               ),
             ),
           ),
@@ -718,11 +1274,12 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     );
   }
 
+  // Options Grid (MC)
   Widget _buildOptionsGrid(
-    List<String> options,
-    int qIdx,
-    Map<String, dynamic> question,
-  ) {
+      List<String> options,
+      int qIdx,
+      Map<String, dynamic> question,
+      ) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -734,11 +1291,9 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
-          final isCorrect = index == question['correctIndex'];
-          final wasSelected =
-              alreadyAnswered &&
-              _sessionAnswers[qIdx] == isCorrect &&
-              isCorrect;
+          final correctIndex = question['correctIndex'] as int;
+          final isCorrect = index == correctIndex;
+          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -746,34 +1301,56 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
-            onTap: alreadyAnswered
-                ? null
-                : () => setState(() => _pendingIndex = index),
+            onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index),
           );
         },
       ),
     );
   }
 
+  // Confirm Bar (MC)
   Widget _buildConfirmBar(List<String> options) {
     final idx = _pendingIndex!;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE3E6EE)),
+        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF69D3E4).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.touch_app, size: 18, color: Color(0xFF2C5CB0)),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               'Selected: ${options[idx]}',
-              style: const TextStyle(
-                color: Color(0xFF2C5CB0),
-                fontWeight: FontWeight.w600,
+              style: GoogleFonts.montserrat(
+                color: const Color(0xFF69D3E4),
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -781,29 +1358,46 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
           const SizedBox(width: 8),
           TextButton(
             onPressed: () => setState(() => _pendingIndex = null),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.montserrat(color: Colors.grey.shade600),
+            ),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C5CB0),
+              backgroundColor: Colors.transparent,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ).copyWith(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
             },
-            child: const Text('Confirm'),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Text('Confirm', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// ---------- Small widgets ----------
 
 class OptionCard extends StatelessWidget {
   final String option;
@@ -826,14 +1420,32 @@ class OptionCard extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: isSelected || isPending
+            ? const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+            : const LinearGradient(
+          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF2C5CB0)
-              : (isPending ? const Color(0xFF311E76) : const Color(0xFFE3E6EE)),
-          width: isSelected || isPending ? 2 : 1,
+              ? const Color(0xFF69D3E4)
+              : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)),
+          width: isSelected || isPending ? 2.5 : 1.5,
         ),
+        boxShadow: [
+          if (isSelected || isPending)
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -845,14 +1457,32 @@ class OptionCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: const Color(0xFF2C5CB0),
-                  child: Text(
-                    number.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      )
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      number.toString(),
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),
@@ -870,7 +1500,18 @@ class OptionCard extends StatelessWidget {
                   ),
                 ),
                 if (isSelected)
-                  const Icon(Icons.check_circle, color: Color(0xFF2C5CB0)),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check, color: Colors.white, size: 18),
+                  ),
               ],
             ),
           ),
@@ -884,23 +1525,32 @@ class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
   const _LegendDot({required this.label, required this.color});
-
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              )
+            ],
+          ),
         ),
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.montserrat(
             fontSize: 12,
             color: Colors.black54,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -908,54 +1558,215 @@ class _LegendDot extends StatelessWidget {
   }
 }
 
-class _NumberSlideInPopup extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color bgColor;
+// ========== Mix & Match Widgets ==========
 
-  const _NumberSlideInPopup({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.bgColor,
+class _AnswerCard extends StatelessWidget {
+  final String answer;
+  final bool isMatched;
+  final bool isDragging;
+  final bool isFloating;
+
+  const _AnswerCard({
+    required this.answer,
+    this.isMatched = false,
+    this.isDragging = false,
+    this.isFloating = false,
   });
 
   @override
-  State<_NumberSlideInPopup> createState() => _NumberSlideInPopupState();
+  Widget build(BuildContext context) {
+    return Container(
+      width: isFloating ? 100 : double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isMatched
+              ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4)).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Center(
+        child: Text(
+          answer,
+          style: GoogleFonts.montserrat(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _NumberSlideInPopupState extends State<_NumberSlideInPopup>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController controller = AnimationController(
-    duration: const Duration(milliseconds: 280),
-    vsync: this,
-  )..forward();
-  late final Animation<Offset> offsetAnimation = Tween<Offset>(
-    begin: const Offset(1.1, 0),
-    end: Offset.zero,
-  ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOut));
+class _ImageCard extends StatelessWidget {
+  final String imagePath;
+  final bool isMatched;
+  final bool isHovering;
+  final bool reviewCorrect;
+  final bool reviewWrong;
+
+  const _ImageCard({
+    required this.imagePath,
+    this.isMatched = false,
+    this.isHovering = false,
+    this.reviewCorrect = false,
+    this.reviewWrong = false,
+  });
 
   @override
+  Widget build(BuildContext context) {
+    List<Color> colors;
+    if (reviewCorrect) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else if (reviewWrong) {
+      colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
+    } else if (isHovering) {
+      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+    } else if (isMatched) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else {
+      colors = const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF1B3C73), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: (reviewWrong
+                ? const Color(0xFFFF4B4A)
+                : reviewCorrect
+                ? const Color(0xFF22C55E)
+                : const Color(0xFF69D3E4))
+                .withOpacity(isHovering ? 0.3 : 0.15),
+            blurRadius: isHovering ? 12 : 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stack) => const Center(
+                    child: Icon(Icons.broken_image_rounded, size: 32, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+            if (reviewCorrect || reviewWrong)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    reviewCorrect ? Icons.check_rounded : Icons.close_rounded,
+                    size: 18,
+                    color: reviewCorrect ? const Color(0xFF16A34A) : const Color(0xFFD90416),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SlideInBadge extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
+  @override
+  State<_SlideInBadge> createState() => _SlideInBadgeState();
+}
+
+class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+  )..forward();
+  late final Animation<Offset> _a = Tween<Offset>(
+    begin: const Offset(1.1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+  @override
   void dispose() {
-    controller.dispose();
+    _c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: offsetAnimation,
+      position: _a,
       child: Material(
-        elevation: 6,
-        borderRadius: BorderRadius.circular(12),
-        color: widget.bgColor,
+        elevation: 8,
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.all(12),
-          width: 280,
+          width: 300,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.color == const Color(0xFF2C5CB0)
+                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
+                  : [widget.color, widget.color.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: (widget.color == const Color(0xFF2C5CB0)
+                    ? const Color(0xFF69D3E4)
+                    : widget.color)
+                    .withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
           child: Row(
             children: [
-              Icon(widget.icon, color: Colors.white, size: 28),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon, color: Colors.white, size: 24),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -963,17 +1774,17 @@ class _NumberSlideInPopupState extends State<_NumberSlideInPopup>
                   children: [
                     Text(
                       widget.title,
-                      style: const TextStyle(
+                      style: GoogleFonts.montserrat(
                         color: Colors.white,
+                        fontWeight: FontWeight.w800,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       widget.subtitle,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -987,6 +1798,7 @@ class _NumberSlideInPopupState extends State<_NumberSlideInPopup>
   }
 }
 
+// Clean Confirm Dialog
 class _CleanConfirmDialog extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -1014,16 +1826,13 @@ class _CleanConfirmDialog extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: const Color(0xFF69D3E4).withOpacity(0.3),
-            width: 1.5,
-          ),
+          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF69D3E4).withOpacity(0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
-            ),
+            )
           ],
         ),
         child: Padding(
@@ -1045,14 +1854,13 @@ class _CleanConfirmDialog extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.3),
+                      color: (icon == Icons.warning_amber_rounded
+                          ? const Color(0xFFFF4B4A)
+                          : const Color(0xFF69D3E4))
+                          .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
-                    ),
+                    )
                   ],
                 ),
                 child: Icon(icon, size: 56, color: Colors.white),
@@ -1090,10 +1898,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFF69D3E4).withOpacity(0.5),
-                          width: 2,
-                        ),
+                        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.5), width: 2),
                       ),
                       child: Material(
                         color: Colors.transparent,
@@ -1131,7 +1936,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                             color: const Color(0xFF69D3E4).withOpacity(0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
-                          ),
+                          )
                         ],
                       ),
                       child: Material(
@@ -1165,19 +1970,12 @@ class _CleanConfirmDialog extends StatelessWidget {
   }
 }
 
-// =======================
-// GREAT WORK! DIALOG (Simplified)
-// =======================
 class _GreatWorkDialog extends StatelessWidget {
   final int score;
   final int total;
   final VoidCallback onReturn;
 
-  const _GreatWorkDialog({
-    required this.score,
-    required this.total,
-    required this.onReturn,
-  });
+  const _GreatWorkDialog({required this.score, required this.total, required this.onReturn});
 
   bool get isPerfect => score == total;
 
@@ -1185,94 +1983,267 @@ class _GreatWorkDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: const Color(0xFFF9FBFF),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Trophy Icon
-            Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8EEFF),
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/gifs/trophy_quiz.gif',
-                  fit: BoxFit.cover,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF69D3E4).withOpacity(0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            )
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isPerfect
+                        ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isPerfect ? const Color(0xFFFFD700) : const Color(0xFF69D3E4))
+                          .withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    )
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset('assets/gifs/trophy_quiz.gif', fit: BoxFit.cover),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Title
-            Text(
-              isPerfect ? "Perfection!" : "Great Work!",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF2C5CB0),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Subtitle
-            Text(
-              isPerfect
-                  ? "You answered every question flawlessly."
-                  : "You completed this quiz successfully!",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF4B5563),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Score Display
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Center(
+              const SizedBox(height: 24),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: isPerfect
+                      ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                      : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                ).createShader(bounds),
                 child: Text(
-                  "$score / $total",
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
+                  isPerfect ? "Perfection!" : "Great Work!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 30),
+              const SizedBox(height: 12),
+              Text(
+                isPerfect
+                    ? "You answered every question flawlessly."
+                    : "You completed this quiz successfully!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  color: const Color(0xFF4B5563),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 26),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 28),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Center(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    ).createShader(bounds),
+                    child: Text(
+                      "$score / $total",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onReturn,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.arrow_back_rounded, size: 24, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Return',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                fontFamily: 'Montserrat',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            // Return button
+// Bonus Round Dialog
+class _BonusRoundDialog extends StatelessWidget {
+  const _BonusRoundDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
+              child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 40),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Bonus Round:\nMix & Match!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF1E1E1E),
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Great job! Now drag numbers to their matching signs.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 15,
+                color: const Color(0xFF6B7280),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onReturn,
-                icon: const Icon(Icons.arrow_back_rounded, size: 22),
-                label: const Text(
-                  'Return',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2C5CB0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Let\'s Go!',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

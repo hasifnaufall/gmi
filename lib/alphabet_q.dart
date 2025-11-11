@@ -7,129 +7,136 @@ import 'services/sfx_service.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
-// NEW: Quiz Type Selection Screen
-class AlphabetQuizSelectionScreen extends StatelessWidget {
-  const AlphabetQuizSelectionScreen({super.key});
+// NEW: Cute Bottom Sheet Quiz Type Selection
+Future<void> showAlphabetQuizSelection(BuildContext context) {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) => Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFCFFFF7),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
+          // Header
+          Row(
             children: [
-              // Header
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF69D3E4).withOpacity(0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
-                      ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF69D3E4), size: 20),
-                    ),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Select Quiz Mode',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF69D3E4),
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // Quiz Type Cards
-              Expanded(
-                child: ListView(
-                  children: [
-                    _QuizTypeCard(
-                      icon: Icons.quiz_rounded,
-                      title: 'Multiple Choice',
-                      description: '5 questions with 4 options each',
-                      gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                      onTap: () {
-                        Navigator.pushReplacement(  // ✅ FIXED
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.multipleChoice),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _QuizTypeCard(
-                      icon: Icons.swap_horiz_rounded,
-                      title: 'Mix & Match',
-                      description: '6 pairs - drag letters to signs',
-                      gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.mixMatch),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _QuizTypeCard(
-                      icon: Icons.stars_rounded,
-                      title: 'Both Modes',
-                      description: '5 multiple choice + 6 mix & match',
-                      gradient: const [Color(0xFFFFD700), Color(0xFFFFA500)],
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AlphabetQuizScreen(quizType: QuizType.both),
-                          ),
-                        );
-                      },
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
+                ),
+                child: const Icon(Icons.quiz, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Select Quiz Mode',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1E1E1E),
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 20),
+
+          // Quiz Type Cards (Compact)
+          _CompactQuizCard(
+            icon: Icons.quiz_rounded,
+            title: 'Multiple Choice',
+            description: '5 questions',
+            gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AlphabetQuizScreen(quizType: QuizType.multipleChoice),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _CompactQuizCard(
+            icon: Icons.swap_horiz_rounded,
+            title: 'Mix & Match',
+            description: '6 pairs',
+            gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AlphabetQuizScreen(quizType: QuizType.mixMatch),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _CompactQuizCard(
+            icon: Icons.stars_rounded,
+            title: 'Both Modes',
+            description: '5 MC + 6 Mix&Match',
+            gradient: const [Color(0xFFFFD700), Color(0xFFFFA500)],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AlphabetQuizScreen(quizType: QuizType.both),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
 
-// Quiz Type Card Widget
-class _QuizTypeCard extends StatelessWidget {
+// Compact Quiz Type Card Widget for Bottom Sheet
+class _CompactQuizCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
   final List<Color> gradient;
   final VoidCallback onTap;
 
-  const _QuizTypeCard({
+  const _CompactQuizCard({
     required this.icon,
     required this.title,
     required this.description,
@@ -139,89 +146,83 @@ class _QuizTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Color(0xFFF0FDFA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF69D3E4).withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: gradient[0].withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 40),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF1E1E1E),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          color: const Color(0xFF6B7280),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: gradient),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 24),
-                ),
-              ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.grey.shade50, Colors.grey.shade100],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: gradient[0].withOpacity(0.3), width: 2),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradient[0].withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1E1E1E),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: const Color(0xFF6B7280),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: gradient[0].withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: gradient[0],
+                  size: 18,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -537,7 +538,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     setState(() => _mmReviewMode = true);
 
     // After 7s → exit review, show popup + finish
-    Future.delayed(const Duration(seconds: 7), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() => _mmReviewMode = false);
       _completeMixMatch(allCorrect);
