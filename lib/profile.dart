@@ -1,8 +1,9 @@
-//profile.dart
+// profile.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart' hide Badge; // avoid clash with Material Badge
+
 import 'badges/badges.dart';
 import 'badges/badges_engine.dart';
 import 'badges/badges_widgets.dart';
@@ -57,9 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return;
               }
               if (raw.length < 2) {
-                setStateDialog(
-                      () => localError = 'Name must be at least 2 characters',
-                );
+                setStateDialog(() => localError = 'Name must be at least 2 characters');
                 return;
               }
               setStateDialog(() => saving = true);
@@ -69,9 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (user != null) {
                   await user.updateDisplayName(raw);
                 }
-                if (mounted) {
-                  setState(() => _displayName = raw);
-                }
+                if (mounted) setState(() => _displayName = raw);
                 Navigator.of(ctx).pop(true);
               } catch (e) {
                 setStateDialog(() => saving = false);
@@ -82,14 +79,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
-              backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              backgroundColor: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : const Color(0xFFFFFFFF),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Text(
                 'Edit Display Name',
                 style: GoogleFonts.montserrat(
-                  color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                  color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                   fontWeight: FontWeight.w700,
                   fontSize: 22,
                 ),
@@ -99,39 +94,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
+                      color: themeManager.isDarkMode ? const Color(0xFF3C3C3E) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: TextField(
                       controller: controller,
-                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : Color(0xFF2D5263)),
+                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : const Color(0xFF2D5263)),
                       decoration: InputDecoration(
                         labelText: 'Display name',
                         labelStyle: GoogleFonts.montserrat(
-                          color: themeManager.isDarkMode ? Color(0xFF8E8E93) : Color(0xFF2D5263),
+                          color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263),
                         ),
-                        prefixIcon: Icon(
-                          Icons.person_outline,
-                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                        ),
+                        prefixIcon: Icon(Icons.person_outline,
+                            color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)),
                         errorText: localError,
                         filled: true,
-                        fillColor: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
+                        fillColor: themeManager.isDarkMode ? const Color(0xFF3C3C3E) : Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                       ),
                       enabled: !saving,
                     ),
@@ -142,37 +123,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextButton(
                   onPressed: saving ? null : () => Navigator.of(ctx).pop(false),
                   style: TextButton.styleFrom(
-                    foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    foregroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.montserrat(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
+                  child: Text('Cancel', style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 15)),
                 ),
                 ElevatedButton.icon(
                   onPressed: saving ? null : doSave,
                   icon: saving
-                      ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.save_rounded, size: 18),
                   label: const Text('Save'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                    backgroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                 ),
@@ -186,16 +152,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Display name updated',
-            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+          content: Text('Display name updated', style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
+          backgroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
         ),
       );
     }
@@ -207,37 +168,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       barrierDismissible: true,
       builder: (_) => AlertDialog(
-        backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
+        backgroundColor: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : const Color(0xFFFFFFFF),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Log out?',
           style: GoogleFonts.montserrat(
-            color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+            color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
             fontWeight: FontWeight.w700,
             fontSize: 22,
           ),
         ),
         content: Text(
           'Are you sure you want to log out of your account?',
-          style: GoogleFonts.montserrat(
-            color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263),
-            fontSize: 16,
-          ),
+          style: GoogleFonts.montserrat(color: themeManager.isDarkMode ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263), fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              foregroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
+            child: Text('Cancel', style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 15)),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
@@ -246,10 +198,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF4B4A),
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
           ),
@@ -261,11 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       QuestStatus.clearCurrentUser();
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (route) => false,
-      );
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
     }
   }
 
@@ -286,9 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return;
               }
               if (message.length < 10) {
-                setStateDialog(
-                      () => localError = 'Feedback must be at least 10 characters',
-                );
+                setStateDialog(() => localError = 'Feedback must be at least 10 characters');
                 return;
               }
 
@@ -297,10 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await _progressService.submitFeedback(message);
                 QuestStatus.feedbackSent = true;
                 await BadgeEngine.checkAndToast(context);
-
-                if (mounted) {
-                  Navigator.of(ctx).pop(true);
-                }
+                if (mounted) Navigator.of(ctx).pop(true);
               } catch (e) {
                 setStateDialog(() {
                   sending = false;
@@ -310,63 +251,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return AlertDialog(
-              backgroundColor: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFFFFFFF),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              backgroundColor: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : const Color(0xFFFFFFFF),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Row(
                 children: [
-                  Icon(Icons.feedback_rounded, color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2)),
+                  Icon(Icons.feedback_rounded, color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)),
                   const SizedBox(width: 8),
-                  Text(
-                    'Send Feedback',
-                    style: GoogleFonts.montserrat(
-                      color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22,
-                    ),
-                  ),
+                  Text('Send Feedback',
+                      style: GoogleFonts.montserrat(
+                        color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                      )),
                 ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Share your thoughts, suggestions, or report issues.',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263),
-                    ),
-                  ),
+                  Text('Share your thoughts, suggestions, or report issues.',
+                      style: GoogleFonts.montserrat(fontSize: 14, color: themeManager.isDarkMode ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263))),
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
+                      color: themeManager.isDarkMode ? const Color(0xFF3C3C3E) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: TextField(
                       controller: controller,
                       maxLines: 5,
                       maxLength: 500,
-                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : Color(0xFF2D5263)),
+                      style: TextStyle(color: themeManager.isDarkMode ? Colors.white : const Color(0xFF2D5263)),
                       decoration: InputDecoration(
                         hintText: 'Type your message here...',
-                        hintStyle: TextStyle(color: themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey.shade400),
+                        hintStyle: TextStyle(color: themeManager.isDarkMode ? const Color(0xFF636366) : Colors.grey.shade400),
                         filled: true,
-                        fillColor: themeManager.isDarkMode ? Color(0xFF3C3C3E) : Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.all(16),
+                        fillColor: themeManager.isDarkMode ? const Color(0xFF3C3C3E) : Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.all(16),
                         errorText: localError,
                         errorMaxLines: 2,
                       ),
@@ -377,41 +300,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: sending
-                      ? null
-                      : () => Navigator.of(ctx).pop(false),
+                  onPressed: sending ? null : () => Navigator.of(ctx).pop(false),
                   style: TextButton.styleFrom(
-                    foregroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    foregroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.montserrat(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
+                  child: Text('Cancel', style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 15)),
                 ),
                 ElevatedButton.icon(
                   onPressed: sending ? null : doSend,
                   icon: sending
-                      ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.send_rounded, size: 18),
                   label: const Text('Send'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                    backgroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                 ),
@@ -425,16 +331,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Feedback sent! Thank you for your input.',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: Color(0xFF22C55E),
+          content: const Text('Feedback sent! Thank you for your input.', style: TextStyle(fontWeight: FontWeight.w600)),
+          backgroundColor: const Color(0xFF22C55E),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
         ),
       );
     }
@@ -444,26 +345,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeManager = Provider.of<ThemeManager>(context);
     return Container(
       decoration: BoxDecoration(
-        color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
+        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
-          color: themeManager.isDarkMode
-              ? Color(0xFFD23232).withOpacity(0.3)
-              : Color(0xFF0891B2).withOpacity(0.3),
+          color: themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.3) : const Color(0xFF0891B2).withOpacity(0.3),
           width: 1.5,
         ),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: themeManager.isDarkMode
-                ? Color(0xFFD23232).withOpacity(0.15)
-                : Color(0xFF0891B2).withOpacity(0.15),
-            blurRadius: 20,
-            offset: Offset(0, -5),
-          ),
-        ],
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        boxShadow: [BoxShadow(color: themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.15) : const Color(0xFF0891B2).withOpacity(0.15), blurRadius: 20, offset: const Offset(0, -5))],
       ),
       child: SafeArea(
         child: Padding(
@@ -471,30 +359,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
-                emoji: '🏠',
-                label: 'Home',
-                isSelected: false,
-                onTap: () => _onItemTapped(0),
-              ),
-              _buildNavItem(
-                emoji: '📚',
-                label: 'Quest',
-                isSelected: false,
-                onTap: () => _onItemTapped(1),
-              ),
-              _buildNavItem(
-                emoji: '🏆',
-                label: 'Ranking',
-                isSelected: false,
-                onTap: () => _onItemTapped(2),
-              ),
-              _buildNavItem(
-                emoji: '👤',
-                label: 'Profile',
-                isSelected: true,
-                onTap: () => _onItemTapped(3),
-              ),
+              _buildNavItem(emoji: '🏠', label: 'Home', isSelected: false, onTap: () => _onItemTapped(0)),
+              _buildNavItem(emoji: '📚', label: 'Quest', isSelected: false, onTap: () => _onItemTapped(1)),
+              _buildNavItem(emoji: '🏆', label: 'Ranking', isSelected: false, onTap: () => _onItemTapped(2)),
+              _buildNavItem(emoji: '👤', label: 'Profile', isSelected: true, onTap: () => _onItemTapped(3)),
             ],
           ),
         ),
@@ -513,12 +381,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? (themeManager.isDarkMode
-                ? Color(0xFFD23232).withOpacity(0.1)
-                : Color(0xFF0891B2).withOpacity(0.1))
+                ? (themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.1) : const Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -526,17 +392,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(emoji, style: TextStyle(fontSize: isSelected ? 28 : 24)),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: GoogleFonts.montserrat(
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
-                      : (themeManager.isDarkMode
-                      ? Color(0xFF8E8E93)
-                      : Color(0xFF2D5263).withOpacity(0.6)),
+                      ? (themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2))
+                      : (themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -548,20 +412,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _onItemTapped(int index) {
     if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => QuizCategoryScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => QuizCategoryScreen()));
     } else if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const QuestScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const QuestScreen()));
     } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const LeaderboardPage()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardPage()));
     }
   }
 
@@ -580,9 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final streakDays = QuestStatus.streakDays;
 
     return Container(
-      decoration: BoxDecoration(
-        color: themeManager.isDarkMode ? Color(0xFF1C1C1E) : Color(0xFFCFFFF7),
-      ),
+      decoration: BoxDecoration(color: themeManager.isDarkMode ? const Color(0xFF1C1C1E) : const Color(0xFFCFFFF7)),
       child: SafeArea(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -591,53 +444,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top bar with back button and title
+                // Top bar
                 Row(
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: themeManager.isDarkMode
-                            ? Color(0xFF2C2C2E)
-                            : Colors.white.withOpacity(0.8),
+                        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                        ),
+                        icon: Icon(Icons.arrow_back, color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)),
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => QuizCategoryScreen(),
-                            ),
-                          );
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => QuizCategoryScreen()));
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
-                    Text(
-                      'Profile',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                      ),
-                    ),
-                    Spacer(),
+                    const SizedBox(width: 16),
+                    Text('Profile',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                        )),
+                    const Spacer(),
                     Container(
                       decoration: BoxDecoration(
-                        color: themeManager.isDarkMode
-                            ? Color(0xFF2C2C2E)
-                            : Colors.white.withOpacity(0.8),
+                        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(
-                          Icons.logout,
-                          color: Color(0xFFFF4B4A),
-                        ),
+                        icon: const Icon(Icons.logout, color: Color(0xFFFF4B4A)),
                         onPressed: _confirmLogout,
                         tooltip: 'Log out',
                       ),
@@ -646,37 +482,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
 
                 const SizedBox(height: 24),
+
                 // Avatar Card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     gradient: themeManager.isDarkMode
-                        ? LinearGradient(
-                      colors: [
-                        Color(0xFF2C2C2E),
-                        Color(0xFF3C3C3E),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                        : LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                        ? const LinearGradient(colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                        : LinearGradient(colors: [const Color(0xFFCFFFF7), const Color(0xFFA4A9FC)].map((c) => c.withOpacity(0.3)).toList(),
+                        begin: Alignment.topLeft, end: Alignment.bottomRight),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: themeManager.isDarkMode
-                            ? Colors.black.withOpacity(0.3)
-                            : Color(0xFF0891B2).withOpacity(0.15),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
+                          color: themeManager.isDarkMode ? Colors.black.withOpacity(0.3) : const Color(0xFF0891B2).withOpacity(0.15),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5)),
                     ],
                   ),
                   child: Column(
@@ -684,63 +505,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Avatar with gradient background
                           Container(
                             width: 100,
                             height: 100,
                             decoration: BoxDecoration(
                               gradient: themeManager.isDarkMode
-                                  ? LinearGradient(
-                                colors: [Color(0xFFD23232), Color(0xFF8B1F1F)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                                  : LinearGradient(
-                                colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                                  ? const LinearGradient(colors: [Color(0xFFD23232), Color(0xFF8B1F1F)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                                  : const LinearGradient(colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: themeManager.isDarkMode
-                                      ? Color(0xFFD23232).withOpacity(0.3)
-                                      : Color(0xFF0891B2).withOpacity(0.3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
+                                    color: themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.3) : const Color(0xFF0891B2).withOpacity(0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8)),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.white,
-                            ),
+                            child: const Icon(Icons.person, size: 50, color: Colors.white),
                           ),
-                          // Level badge
                           Positioned(
                             bottom: 0,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                               decoration: BoxDecoration(
-                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                                color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
+                                border: Border.all(color: Colors.white, width: 2),
                               ),
-                              child: Text(
-                                'Lvl $level',
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                ),
-                              ),
+                              child: Text('Lvl $level',
+                                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
                             ),
                           ),
                         ],
@@ -751,16 +543,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
-                            child: Text(
-                              username,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                              ),
-                            ),
+                            child: Text(username,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                                )),
                           ),
                           const SizedBox(width: 8),
                           InkWell(
@@ -769,177 +559,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: themeManager.isDarkMode
-                                    ? Color(0xFFD23232).withOpacity(0.1)
-                                    : Color(0xFF0891B2).withOpacity(0.1),
+                                color: themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.1) : const Color(0xFF0891B2).withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                Icons.edit,
-                                size: 18,
-                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                              ),
+                              child: Icon(Icons.edit, size: 18, color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        email,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          color: themeManager.isDarkMode
-                              ? Color(0xFF8E8E93)
-                              : Color(0xFF2D5263).withOpacity(0.7),
-                        ),
-                      ),
+                      Text(email,
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263).withOpacity(0.7),
+                          )),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
-                // XP Progress Card
+                // XP Progress
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: themeManager.isDarkMode
-                        ? LinearGradient(
-                      colors: [
-                        Color(0xFF2C2C2E),
-                        Color(0xFF3C3C3E),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                        : LinearGradient(
-                      colors: [
-                        Color(0xFFCFFFF7),
-                        Color(0xFFA4A9FC).withOpacity(0.3),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                        ? const LinearGradient(colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                        : LinearGradient(colors: [const Color(0xFFCFFFF7), const Color(0xFFA4A9FC)].map((c) => c.withOpacity(0.3)).toList(),
+                        begin: Alignment.topLeft, end: Alignment.bottomRight),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: themeManager.isDarkMode
-                            ? Colors.black.withOpacity(0.3)
-                            : Color(0xFF0891B2).withOpacity(0.15),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
+                          color: themeManager.isDarkMode ? Colors.black.withOpacity(0.3) : const Color(0xFF0891B2).withOpacity(0.15),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5)),
                     ],
-                    border: Border.all(
-                      color: themeManager.isDarkMode
-                          ? Color(0xFF636366).withOpacity(0.3)
-                          : Colors.white.withOpacity(0.3),
-                    ),
+                    border: Border.all(color: themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.3) : Colors.white.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'XP $xp/$xpToNext',
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        Text('XP $xp/$xpToNext',
                             style: GoogleFonts.montserrat(
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
-                              color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                              color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                            )),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.15) : const Color(0xFF0891B2).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${(xpToNext - xp).clamp(0, xpToNext)} XP to level up',
+                            style: GoogleFonts.montserrat(
+                              color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: themeManager.isDarkMode
-                                  ? Color(0xFFD23232).withOpacity(0.15)
-                                  : Color(0xFF0891B2).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '${(xpToNext - xp).clamp(0, xpToNext)} XP to level up',
-                              style: GoogleFonts.montserrat(
-                                color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ]),
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
                           value: xpProgress,
-                          backgroundColor: themeManager.isDarkMode
-                              ? Color(0xFF636366).withOpacity(0.3)
-                              : Colors.white.withOpacity(0.5),
-                          color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                          backgroundColor:
+                          themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.3) : Colors.white.withOpacity(0.5),
+                          color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                           minHeight: 8,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${(xpProgress * 100).round()}%',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 12,
-                              color: themeManager.isDarkMode
-                                  ? Color(0xFF8E8E93)
-                                  : Color(0xFF2D5263).withOpacity(0.7),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      Text('${(xpProgress * 100).round()}%',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263).withOpacity(0.7),
+                            fontWeight: FontWeight.w600,
+                          )),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 12),
 
-                // Stat cards: Level, Keys
+                // Stats
                 Row(
                   children: [
                     Expanded(
                       child: _buildStatCard(
-                        icon: Icons.emoji_events,
-                        iconColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                        label: 'Level',
-                        value: level.toString(),
-                      ),
+                          icon: Icons.emoji_events,
+                          iconColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                          label: 'Level',
+                          value: level.toString()),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.key_rounded,
-                        iconColor: Color(0xFFFFEB99),
-                        label: 'Keys',
-                        value: points.toString(),
-                      ),
+                      child: _buildStatCard(icon: Icons.key_rounded, iconColor: const Color(0xFFFFEB99), label: 'Keys', value: points.toString()),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Streak card
                 Row(
                   children: [
                     Expanded(
                       child: _buildStatCard(
-                        icon: Icons.local_fire_department,
-                        iconColor: themeManager.isDarkMode ? Color(0xFF8B1F1F) : Color(0xFF7C7FCC),
-                        label: 'Streak',
-                        value: '$streakDays days',
-                      ),
+                          icon: Icons.local_fire_department,
+                          iconColor: themeManager.isDarkMode ? const Color(0xFF8B1F1F) : const Color(0xFF7C7FCC),
+                          label: 'Streak',
+                          value: '$streakDays days'),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(child: SizedBox.shrink()),
@@ -948,28 +680,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 20),
 
-                // === Achievements Section (Featured) ===
+                // ===== Achievements (horizontal) + Badges (images-only) =====
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Your Badges',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 18, fontWeight: FontWeight.w700,
-                          color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => BadgesScreen()));
-                        },
-                        child: Text('View all', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
-                      ),
-                    ],
-                  ),
+                  child: Text('Your Achievement',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                      )),
                 ),
                 const SizedBox(height: 12),
 
@@ -978,95 +698,246 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   builder: (ctx, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
                       return SizedBox(
-                        height: 160,
+                        height: 140,
                         child: Center(
-                          child: CircularProgressIndicator(
-                            color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
-                          ),
+                          child: CircularProgressIndicator(color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)),
                         ),
                       );
                     }
                     if (snap.hasError) {
                       return Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Text(
-                          'Failed to load badges: ${snap.error}',
-                          style: GoogleFonts.montserrat(
-                            color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey,
+                        child: Text('Failed to load badges: ${snap.error}',
+                            style: GoogleFonts.montserrat(color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey)),
+                      );
+                    }
+                    if (!snap.hasData) return const SizedBox();
+
+                    final (badges, _) = snap.data!;
+                    final unlocked = badges.where((b) => b.state == BadgeState.unlocked).toList();
+                    final inProg = badges.where((b) => b.state == BadgeState.inProgress).toList();
+                    final locked = badges.where((b) => b.state == BadgeState.locked).toList();
+
+                    final featured = [
+                      ...unlocked.take(3),
+                      ...inProg.take(2),
+                      if (unlocked.length + inProg.length < 5) ...locked.take(5 - (unlocked.length + inProg.length)),
+                    ].take(5).toList();
+
+                    if (featured.isEmpty) {
+                      return Text('No achievements yet. Start a quiz to earn your first one!',
+                          style: GoogleFonts.montserrat(color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey));
+                    }
+
+                    // ---- achievement card (horizontal) ----
+                    Widget achievementCard(Badge b) {
+                      final isUnlocked = b.state == BadgeState.unlocked;
+                      final isProgress = b.state == BadgeState.inProgress;
+
+                      final chipBg = isUnlocked
+                          ? (themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.15) : const Color(0xFF0891B2).withOpacity(0.15))
+                          : isProgress
+                          ? const Color(0xFFEAB308).withOpacity(0.15)
+                          : (themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.2) : Colors.grey.withOpacity(0.2));
+
+                      final chipFg = isUnlocked
+                          ? (themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2))
+                          : isProgress
+                          ? const Color(0xFFEAB308)
+                          : (themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey);
+
+                      final IconData stateIcon = isUnlocked ? Icons.emoji_events : (isProgress ? Icons.hourglass_bottom : Icons.lock_outline);
+
+                      final cardBorder = themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.3) : Colors.white.withOpacity(0.5);
+
+                      return GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            isScrollControlled: true,
+                            builder: (_) => BadgeDetailSheet(badge: b),
+                          );
+                        },
+                        child: SizedBox(
+                          width: 290,
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: themeManager.isDarkMode
+                                  ? const LinearGradient(colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                                  : const LinearGradient(colors: [Colors.white, Color(0xFFCFFFF7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: cardBorder),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: themeManager.isDarkMode ? Colors.black.withOpacity(0.25) : const Color(0xFF0891B2).withOpacity(0.08),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4)),
+                              ],
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(radius: 22, backgroundColor: chipBg, child: Icon(stateIcon, color: chipFg, size: 22)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(b.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 16,
+                                            color: themeManager.isDarkMode ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
+                                          )),
+                                      const SizedBox(height: 4),
+                                      Text(b.description,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 12,
+                                            height: 1.28,
+                                            color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263),
+                                          )),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(color: chipBg, borderRadius: BorderRadius.circular(999)),
+                                        child: Text(isUnlocked ? 'Unlocked' : (isProgress ? 'In progress' : 'Locked'),
+                                            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w700, color: chipFg)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
                     }
-                    if (!snap.hasData) {
-                      return const SizedBox();
-                    }
 
-                    // Extract once
-                    final (badges, _) = snap.data!;
-                    final unlocked = badges.where((b) => b.state == BadgeState.unlocked).toList();
-                    final inProg   = badges.where((b) => b.state == BadgeState.inProgress).toList();
-                    final locked   = badges.where((b) => b.state == BadgeState.locked).toList();
+                    // ---- badges-only circle using REAL IMAGES ----
+                    Widget badgeDot(Badge b, int index) {
+                      final isUnlocked = b.state == BadgeState.unlocked;
 
-                    // Pick up to 5 "featured" badges (prefer unlocked, then inProgress)
-                    final featured = [
-                      ...unlocked.take(3),
-                      ...inProg.take(2),
-                      if (unlocked.length < 3) ...locked.take(5 - (unlocked.length + inProg.length).clamp(0, 5)),
-                    ].take(5).toList();
+                      // Map index -> asset path (cycle if more badges than images)
+                      const badgeImages = [
+                        'assets/images/module1.png',
+                        'assets/images/module2.png',
+                        'assets/images/module3.png',
+                        'assets/images/module4.png',
+                        'assets/images/module5.png',
+                        'assets/images/module6.png',
+                        'assets/images/module7.png',
+                        'assets/images/module8.png',
+                        'assets/images/module9.png',
+                        'assets/images/module10.png',
+                        'assets/images/module11.png',
+                        'assets/images/module12.png',
+                      ];
+                      final imgPath = badgeImages[index % badgeImages.length];
 
-                    if (featured.isEmpty) {
-                      return Text('No badges yet. Start a quiz to earn your first one!',
-                          style: GoogleFonts.montserrat(color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : Colors.grey));
-                    }
-
-                    return SizedBox(
-                      height: 160,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: featured.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (_, i) {
-                          final b = featured[i];
-                          return SizedBox(
-                            width: 120,
-                            child: BadgeTile(
-                              badge: b,
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  backgroundColor: Colors.transparent,
-                                  isScrollControlled: true,
-                                  builder: (_) => BadgeDetailSheet(badge: b),
-                                );
-                              },
-                            ),
+                      return GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            isScrollControlled: true,
+                            builder: (_) => BadgeDetailSheet(badge: b),
                           );
                         },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: const BoxDecoration(shape: BoxShape.circle),
+                              child: ClipOval(child: Image.asset(imgPath, fit: BoxFit.cover)),
+                            ),
+                            if (!isUnlocked)
+                              Container(
+                                width: 70,
+                                height: 70,
+                                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black.withOpacity(0.5)),
+                                child: const Icon(Icons.lock, color: Colors.white, size: 28),
+                              ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Achievements horizontal list
+                    final achievementsList = SizedBox(
+                      height: 140,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: featured.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, i) => achievementCard(featured[i]),
                       ),
+                    );
+
+                    // Build section
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        achievementsList,
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Your Badges',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                                  )),
+                              TextButton(
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BadgesScreen())),
+                                child: Text('View all', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 78,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: featured.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 12),
+                            itemBuilder: (_, i) => badgeDot(featured[i], i),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
 
                 const SizedBox(height: 16),
 
-                // Feedback Button
+                // Feedback
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ElevatedButton.icon(
                     onPressed: _showFeedbackDialog,
                     icon: const Icon(Icons.feedback_outlined),
-                    label: Text(
-                      'Send Feedback',
-                      style: GoogleFonts.montserrat(),
-                    ),
+                    label: Text('Send Feedback', style: GoogleFonts.montserrat()),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
+                      backgroundColor: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 2,
                     ),
                   ),
@@ -1085,7 +956,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildAchievementsRow() {
     final themeManager = Provider.of<ThemeManager>(context);
     final medals = _allMedals();
-
     return SizedBox(
       height: 160,
       child: ListView.separated(
@@ -1096,103 +966,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final medal = medals[i];
           final isUnlocked = medal.unlocked;
           final bg = isUnlocked
-              ? (themeManager.isDarkMode
-              ? medal.color.withOpacity(0.2)
-              : medal.color.withOpacity(0.12))
-              : (themeManager.isDarkMode
-              ? Color(0xFF3C3C3E)
-              : Colors.grey.shade100);
+              ? (themeManager.isDarkMode ? medal.color.withOpacity(0.2) : medal.color.withOpacity(0.12))
+              : (themeManager.isDarkMode ? const Color(0xFF3C3C3E) : Colors.grey.shade100);
           final border = isUnlocked
               ? medal.color.withOpacity(0.3)
-              : (themeManager.isDarkMode
-              ? Color(0xFF636366).withOpacity(0.2)
-              : Colors.grey.withOpacity(0.2));
-          final fg = isUnlocked
-              ? medal.color
-              : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey);
+              : (themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.2) : Colors.grey.withOpacity(0.2));
+          final fg = isUnlocked ? medal.color : (themeManager.isDarkMode ? const Color(0xFF636366) : Colors.grey);
 
           return GestureDetector(
             onTap: () async {
-              await showAchievementPopup(
-                context,
-                title: medal.title,
-                description: medal.description,
-                unlocked: medal.unlocked,
-              );
+              await showAchievementPopup(context, title: medal.title, description: medal.description, unlocked: medal.unlocked);
             },
             child: Container(
               width: 260,
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: border, width: 1.5),
-              ),
+              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16), border: Border.all(color: border, width: 1.5)),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: fg.withOpacity(0.15),
-                    child: Icon(medal.icon, color: fg, size: 28),
-                  ),
+                  CircleAvatar(radius: 26, backgroundColor: fg.withOpacity(0.15), child: Icon(medal.icon, color: fg, size: 28)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          medal.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w800,
-                            color: isUnlocked
-                                ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
-                                : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text(medal.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(
+                              fontWeight: FontWeight.w800,
+                              color: isUnlocked ? (themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)) : (themeManager.isDarkMode ? const Color(0xFF636366) : Colors.grey),
+                              fontSize: 16,
+                            )),
                         const SizedBox(height: 4),
-                        Text(
-                          medal.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 12,
-                            height: 1.2,
-                            color: isUnlocked
-                                ? (themeManager.isDarkMode ? Color(0xFFE8E8E8) : Color(0xFF2D5263))
-                                : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
-                          ),
-                        ),
+                        Text(medal.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              height: 1.2,
+                              color: isUnlocked ? (themeManager.isDarkMode ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263)) : (themeManager.isDarkMode ? const Color(0xFF636366) : Colors.grey),
+                            )),
                         const Spacer(),
                         Align(
                           alignment: Alignment.bottomLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: isUnlocked
-                                  ? (themeManager.isDarkMode
-                                  ? Color(0xFFD23232).withOpacity(0.15)
-                                  : Color(0xFF0891B2).withOpacity(0.15))
-                                  : (themeManager.isDarkMode
-                                  ? Color(0xFF636366).withOpacity(0.2)
-                                  : Colors.grey.withOpacity(0.2)),
+                                  ? (themeManager.isDarkMode ? const Color(0xFFD23232).withOpacity(0.15) : const Color(0xFF0891B2).withOpacity(0.15))
+                                  : (themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.2) : Colors.grey.withOpacity(0.2)),
                               borderRadius: BorderRadius.circular(999),
                             ),
-                            child: Text(
-                              isUnlocked ? 'Unlocked' : 'Locked',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isUnlocked
-                                    ? (themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2))
-                                    : (themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey),
-                              ),
-                            ),
+                            child: Text(isUnlocked ? 'Unlocked' : 'Locked',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: isUnlocked ? (themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2)) : (themeManager.isDarkMode ? const Color(0xFF636366) : Colors.grey),
+                                )),
                           ),
                         ),
                       ],
@@ -1207,7 +1037,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Build stat card (Level/Keys/Streak) matching home style
   Widget _buildStatCard({
     required IconData icon,
     required Color iconColor,
@@ -1219,63 +1048,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: themeManager.isDarkMode
-            ? LinearGradient(
-          colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-            : LinearGradient(
-          colors: [Colors.white, Color(0xFFCFFFF7).withOpacity(0.3)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+            ? const LinearGradient(colors: [Color(0xFF2C2C2E), Color(0xFF3C3C3E)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+            : const LinearGradient(colors: [Colors.white, Color(0xFFCFFFF7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: themeManager.isDarkMode
-                ? Colors.black.withOpacity(0.3)
-                : Color(0xFF0891B2).withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(
-          color: themeManager.isDarkMode
-              ? Color(0xFF636366).withOpacity(0.3)
-              : Colors.white.withOpacity(0.5),
-        ),
+        boxShadow: [BoxShadow(color: themeManager.isDarkMode ? Colors.black.withOpacity(0.3) : const Color(0xFF0891B2).withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 3))],
+        border: Border.all(color: themeManager.isDarkMode ? const Color(0xFF636366).withOpacity(0.3) : Colors.white.withOpacity(0.5)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconColor.withOpacity(0.15), shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: GoogleFonts.montserrat(
-                  fontSize: 12,
-                  color: themeManager.isDarkMode
-                      ? Color(0xFF8E8E93)
-                      : Color(0xFF2D5263).withOpacity(0.7),
-                ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.montserrat(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2),
-                ),
-              ),
+              Text(label,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    color: themeManager.isDarkMode ? const Color(0xFF8E8E93) : const Color(0xFF2D5263).withOpacity(0.7),
+                  )),
+              Text(value,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: themeManager.isDarkMode ? const Color(0xFFD23232) : const Color(0xFF0891B2),
+                  )),
             ],
           ),
         ],
@@ -1290,7 +1090,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: 'Welcome',
         description: 'Unlocked a chest for the first time.',
         icon: Icons.emoji_emotions,
-        color: Color(0xFF7C7FCC),
+        color: const Color(0xFF7C7FCC),
         unlocked: QuestStatus.achievements.contains('Welcome'),
       ),
       _Medal(
@@ -1298,7 +1098,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: 'Quiz Novice',
         description: 'Finish your first quiz.',
         icon: Icons.school,
-        color: Color(0xFF0891B2),
+        color: const Color(0xFF0891B2),
         unlocked: QuestStatus.level1Completed,
       ),
       _Medal(
@@ -1306,7 +1106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: 'Treasure Hunter',
         description: 'Open 3 chests.',
         icon: Icons.card_giftcard,
-        color: Color(0xFFFFEB99),
+        color: const Color(0xFFFFEB99),
         unlocked: QuestStatus.chestsOpened >= 3,
       ),
     ];
