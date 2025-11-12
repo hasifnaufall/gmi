@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart' hide Badge; // avoid clash with Material Badge
+import 'package:provider/provider.dart';
 
 import 'badges/badges.dart';
 import 'badges/badges_engine.dart';
@@ -919,6 +920,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+                // Dark Mode Toggle
+                Consumer<ThemeManager>(
+                  builder: (context, themeManager, child) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: themeManager.isDarkMode
+                            ? const Color(0xFF1A1F26)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          themeManager.isDarkMode
+                              ? Icons.dark_mode
+                              : Icons.light_mode,
+                          color: const Color(0xFF0891B2),
+                          size: 28,
+                        ),
+                        title: Text(
+                          'Dark Mode',
+                          style: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: themeManager.isDarkMode
+                                ? Colors.white
+                                : const Color(0xFF2D5263),
+                          ),
+                        ),
+                        subtitle: Text(
+                          themeManager.isDarkMode ? 'Enabled' : 'Disabled',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            color: themeManager.isDarkMode
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                          ),
+                        ),
+                        trailing: Transform.scale(
+                          scale: 0.9,
+                          child: Switch(
+                            value: themeManager.isDarkMode,
+                            onChanged: (_) => themeManager.toggleTheme(),
+                            activeColor: const Color(0xFF0891B2),
+                            activeTrackColor: const Color(0xFF69D3E4),
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                      ),
                     );
                   },
                 ),
