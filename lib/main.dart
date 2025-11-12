@@ -1,5 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'utils/sound_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -103,68 +104,70 @@ class WaveActApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeManager>(
       builder: (context, themeManager, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'WaveAct',
-          theme: ThemeData(
-            brightness: Brightness.light,
-            primarySwatch: Colors.blue,
-            textTheme: GoogleFonts.montserratTextTheme(
-              Theme.of(context).textTheme,
+        return SoundWrapper(  // ← ADD THIS LINE
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'WaveAct',
+            theme: ThemeData(
+              brightness: Brightness.light,
+              primarySwatch: Colors.blue,
+              textTheme: GoogleFonts.montserratTextTheme(
+                Theme.of(context).textTheme,
+              ),
+              fontFamily: GoogleFonts.montserrat().fontFamily,
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: <TargetPlatform, PageTransitionsBuilder>{
+                  TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+                },
+              ),
             ),
-            fontFamily: GoogleFonts.montserrat().fontFamily,
-            pageTransitionsTheme: const PageTransitionsTheme(
-              builders: <TargetPlatform, PageTransitionsBuilder>{
-                TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
-              },
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              primarySwatch: Colors.blue,
+              textTheme: GoogleFonts.montserratTextTheme(
+                Theme.of(context).textTheme,
+              ),
+              fontFamily: GoogleFonts.montserrat().fontFamily,
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: <TargetPlatform, PageTransitionsBuilder>{
+                  TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
+                  TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
+                },
+              ),
             ),
+            themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            builder: (context, child) {
+              ErrorWidget.builder = (FlutterErrorDetails details) => Container();
+              return ResponsiveBreakpoints.builder(
+                child: child!,
+                breakpoints: const [
+                  Breakpoint(start: 0, end: 450, name: MOBILE),
+                  Breakpoint(start: 451, end: 800, name: TABLET),
+                  Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                  Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+                ],
+              );
+            },
+            home: const SplashScreen(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/profile': (context) => const ProfileScreen(),
+              '/quiz': (context) => const QuizScreen(),
+              '/quests': (context) => const QuestScreen(),
+              '/quest': (context) => const QuestScreen(),
+              '/leaderboard': (context) => const LeaderboardPage(),
+            },
           ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            primarySwatch: Colors.blue,
-            textTheme: GoogleFonts.montserratTextTheme(
-              Theme.of(context).textTheme,
-            ),
-            fontFamily: GoogleFonts.montserrat().fontFamily,
-            pageTransitionsTheme: const PageTransitionsTheme(
-              builders: <TargetPlatform, PageTransitionsBuilder>{
-                TargetPlatform.android: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.iOS: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.windows: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.macOS: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.linux: _SmoothFadeScaleTransitionsBuilder(),
-                TargetPlatform.fuchsia: _SmoothFadeScaleTransitionsBuilder(),
-              },
-            ),
-          ),
-          themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          builder: (context, child) {
-            ErrorWidget.builder = (FlutterErrorDetails details) => Container();
-            return ResponsiveBreakpoints.builder(
-              child: child!,
-              breakpoints: const [
-                Breakpoint(start: 0, end: 450, name: MOBILE),
-                Breakpoint(start: 451, end: 800, name: TABLET),
-                Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-              ],
-            );
-          },
-          home: const SplashScreen(),
-          routes: {
-            '/login': (context) => const LoginScreen(),
-            '/profile': (context) => const ProfileScreen(),
-            '/quiz': (context) => const QuizScreen(),
-            '/quests': (context) => const QuestScreen(),
-            '/quest': (context) => const QuestScreen(),
-            '/leaderboard': (context) => const LeaderboardPage(),
-          },
-        );
+        );  // ← ADD THIS CLOSING PARENTHESIS FOR SoundWrapper
       },
     );
   }

@@ -13,21 +13,23 @@ class QuestStatus {
   static bool _saveQueued = false;
 
   // ================= Content Keys & Level Thresholds =================
-  static const String levelAlphabet = 'alphabet';
-  static const String levelNumbers = 'numbers';
-  static const String levelGreetings = 'greetings'; // Fruits (UI)
-  static const String levelColour = 'colour';
-  static const String levelCommonVerb = 'commonVerb'; // Animals (UI)
-  static const String levelVerbs = 'verbs'; // Verbs (UI)
+  static const String levelAlphabet   = 'alphabet';
+  static const String levelNumbers    = 'numbers';
+  static const String levelGreetings  = 'greetings';   // Fruits (UI)
+  static const String levelColour     = 'colour';
+  static const String levelCommonVerb = 'commonVerb';  // Animals (UI)
+  static const String levelVerbs      = 'verbs';       // Verbs (UI)
+  static const String levelSpeech     = 'speech';      // ✅ NEW: Speech (Medium tab)
 
-  // Unlock requirements (Alphabet free, Numbers 5, Colour 10, Fruits 15, Animals 25, Verbs 30)
+  // Unlock requirements (Alphabet free, Numbers 5, Colour 10, Fruits 15, Animals 25, Verbs 30, Speech 35)
   static const Map<String, int> _unlockAtLevel = {
-    levelAlphabet: 1,
-    levelNumbers: 5,
-    levelColour: 10,
-    levelGreetings: 15,
+    levelAlphabet:   1,
+    levelNumbers:    5,
+    levelColour:     10,
+    levelGreetings:  15,
     levelCommonVerb: 25,
-    levelVerbs: 30,
+    levelVerbs:      30,
+    levelSpeech:     35, // ✅ NEW requirement
   };
 
   static int requiredLevelFor(String key) => _unlockAtLevel[key] ?? 1;
@@ -71,41 +73,45 @@ class QuestStatus {
 
   // ---- Watched items in learn mode (persistent storage)
   static Set<String> watchedAlphabet = {};
-  static Set<String> watchedNumbers = {};
-  static Set<String> watchedColours = {};
-  static Set<String> watchedFruits = {};
-  static Set<String> watchedAnimals = {};
+  static Set<String> watchedNumbers  = {};
+  static Set<String> watchedColours  = {};
+  static Set<String> watchedFruits   = {};
+  static Set<String> watchedAnimals  = {};
+  static Set<String> watchedSpeech   = {}; // ✅ NEW (safe even if unused)
 
   // ---- Learning/quiz state flags & counters (across categories)
   // Alphabet
   static bool learnedAlphabetAll = false; // Q2
   static bool alphabetQuizStarted = false; // Q3
-  static int alphabetRoundsCompleted = 0; // used by alphabet_q.dart / milestone
+  static int  alphabetRoundsCompleted = 0; // milestone
 
   // Numbers
   static bool learnedNumbersAll = false; // Q6
-  static int numbersRoundsCompleted = 0; // Q8
-  static int numbersPerfectRounds = 0; // Q7
+  static int  numbersRoundsCompleted = 0; // Q8
+  static int  numbersPerfectRounds  = 0; // Q7
 
   // Colour
   static bool learnedColoursAll = false; // Q10
-  static int colourRoundsCompleted = 0; // Q12
-  static int colourBestStreak = 0; // Q11
+  static int  colourRoundsCompleted = 0; // Q12
+  static int  colourBestStreak = 0;      // Q11
 
   // Fruits
   static bool learnedFruitsAll = false; // Q14
-  static int fruitsRoundsCompleted = 0; // Q16
-  static int fruitsBestStreak = 0; // Q15
+  static int  fruitsRoundsCompleted = 0; // Q16
+  static int  fruitsBestStreak = 0;      // Q15
 
   // Animals
   static bool learnedAnimalsAll = false; // Q18
-  static int animalsRoundsCompleted = 0; // Q19
-  static int animalsPerfectRounds = 0; // Q20
+  static int  animalsRoundsCompleted = 0; // Q19
+  static int  animalsPerfectRounds  = 0; // Q20
 
   // Verbs
   static bool learnedVerbsAll = false; // Q26
-  static int verbsRoundsCompleted = 0; // Q27
-  static int verbsPerfectRounds = 0; // Q28
+  static int  verbsRoundsCompleted = 0; // Q27
+  static int  verbsPerfectRounds  = 0; // Q28
+
+  // (Optional) Speech flags for future use
+  static bool playedSpeech = false; // ✅ NEW (prevents missing-member errors)
 
   // Misc tracker
   static bool firstQuizMedalEarned = false; // used by markFirstQuizMedalEarned()
@@ -334,15 +340,15 @@ class QuestStatus {
 
   // ================= Quests (Q1 – Q28) with MANUAL claim =================
   // ---- Claimed flags
-  static bool quest1Claimed = false; // Start Alphabet
-  static bool quest2Claimed = false; // Learn ALL Alphabet
-  static bool quest3Claimed = false; // Start Alphabet quiz
-  static bool quest4Claimed = false; // 3 correct in a row (Alphabet)
-  static bool quest5Claimed = false; // Start Numbers
-  static bool quest6Claimed = false; // Learn ALL Numbers
-  static bool quest7Claimed = false; // Numbers perfect round
-  static bool quest8Claimed = false; // Finish 3 rounds Numbers
-  static bool quest9Claimed = false; // Start Colour
+  static bool quest1Claimed = false;  // Start Alphabet
+  static bool quest2Claimed = false;  // Learn ALL Alphabet
+  static bool quest3Claimed = false;  // Start Alphabet quiz
+  static bool quest4Claimed = false;  // 3 correct in a row (Alphabet)
+  static bool quest5Claimed = false;  // Start Numbers
+  static bool quest6Claimed = false;  // Learn ALL Numbers
+  static bool quest7Claimed = false;  // Numbers perfect round
+  static bool quest8Claimed = false;  // Finish 3 rounds Numbers
+  static bool quest9Claimed = false;  // Start Colour
   static bool quest10Claimed = false; // Learn ALL Colour
   static bool quest11Claimed = false; // 5-correct streak Colour
   static bool quest12Claimed = false; // Finish 2 rounds Colour
@@ -356,7 +362,7 @@ class QuestStatus {
   static bool quest20Claimed = false; // 1 perfect round Animals
   static bool quest21Claimed = false; // Open 3 chests
   static bool quest22Claimed = false; // Reach Level 10
-  static bool quest23Claimed = false; // Unlock all categories
+  static bool quest23Claimed = false; // Unlock all categories (original 5)
   static bool quest24Claimed = false; // Reach Level 25
   static bool quest25Claimed = false; // Start Verbs
   static bool quest26Claimed = false; // Learn ALL Verbs
@@ -591,6 +597,8 @@ class QuestStatus {
           isContentUnlocked(levelCommonVerb) &&
           isContentUnlocked(levelVerbs) &&
           !quest23Claimed;
+  // (Note: Speech is not required for Q23 to keep your original quest tuning.)
+
   static int claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
     quest23Claimed = true;
@@ -688,6 +696,8 @@ class QuestStatus {
         return 'Animals Quest';
       case levelVerbs:
         return 'Verbs Quest';
+      case levelSpeech: // ✅ NEW
+        return 'Speech Quest';
       default:
         return key.replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
     }
@@ -764,16 +774,19 @@ class QuestStatus {
     animalsRoundsCompleted = 0;
     animalsPerfectRounds = 0;
 
+    learnedVerbsAll = false;
+    verbsRoundsCompleted = 0;
+    verbsPerfectRounds = 0;
+
     // Clear watched items in learn mode
     watchedAlphabet.clear();
     watchedNumbers.clear();
     watchedColours.clear();
     watchedFruits.clear();
     watchedAnimals.clear();
+    watchedSpeech.clear(); // ✅ NEW
 
-    learnedVerbsAll = false;
-    verbsRoundsCompleted = 0;
-    verbsPerfectRounds = 0;
+    playedSpeech = false;  // ✅ NEW
 
     userPoints = 0;
     achievements.clear();
@@ -937,6 +950,15 @@ class QuestStatus {
     playedColours  = false;
     feedbackSent   = false;
 
+    watchedAlphabet.clear();
+    watchedNumbers.clear();
+    watchedColours.clear();
+    watchedFruits.clear();
+    watchedAnimals.clear();
+    watchedSpeech.clear(); // ✅ NEW
+
+    playedSpeech = false;  // ✅ NEW
+
     Future.microtask(() => autoSaveProgress());
   }
 
@@ -967,7 +989,7 @@ class QuestStatus {
         'autoSaveProgress: Saving progress for user $_currentUserId - Level: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints',
       );
       print(
-        'autoSaveProgress: Watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}',
+        'autoSaveProgress: Watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Speech: ${watchedSpeech.length}',
       );
       await UserProgressService().saveProgress(
         level: level,
@@ -1034,10 +1056,13 @@ class QuestStatus {
           'firstQuizMedalEarned': firstQuizMedalEarned,
           // Watched items in learn mode
           'watchedAlphabet': watchedAlphabet.toList(),
-          'watchedNumbers': watchedNumbers.toList(),
-          'watchedColours': watchedColours.toList(),
-          'watchedFruits': watchedFruits.toList(),
-          'watchedAnimals': watchedAnimals.toList(),
+          'watchedNumbers':  watchedNumbers.toList(),
+          'watchedColours':  watchedColours.toList(),
+          'watchedFruits':   watchedFruits.toList(),
+          'watchedAnimals':  watchedAnimals.toList(),
+          'watchedSpeech':   watchedSpeech.toList(), // ✅ NEW
+          // Optional flags
+          'playedSpeech': playedSpeech, // ✅ NEW
         },
         // Unlocked content
         unlockedContent: _unlockedContent.toList(),
@@ -1072,15 +1097,15 @@ class QuestStatus {
 
     // Quest states
     final questStates = data['questStates'] as Map<String, dynamic>? ?? {};
-    quest1Claimed = questStates['quest1Claimed'] ?? false;
-    quest2Claimed = questStates['quest2Claimed'] ?? false;
-    quest3Claimed = questStates['quest3Claimed'] ?? false;
-    quest4Claimed = questStates['quest4Claimed'] ?? false;
-    quest5Claimed = questStates['quest5Claimed'] ?? false;
-    quest6Claimed = questStates['quest6Claimed'] ?? false;
-    quest7Claimed = questStates['quest7Claimed'] ?? false;
-    quest8Claimed = questStates['quest8Claimed'] ?? false;
-    quest9Claimed = questStates['quest9Claimed'] ?? false;
+    quest1Claimed  = questStates['quest1Claimed']  ?? false;
+    quest2Claimed  = questStates['quest2Claimed']  ?? false;
+    quest3Claimed  = questStates['quest3Claimed']  ?? false;
+    quest4Claimed  = questStates['quest4Claimed']  ?? false;
+    quest5Claimed  = questStates['quest5Claimed']  ?? false;
+    quest6Claimed  = questStates['quest6Claimed']  ?? false;
+    quest7Claimed  = questStates['quest7Claimed']  ?? false;
+    quest8Claimed  = questStates['quest8Claimed']  ?? false;
+    quest9Claimed  = questStates['quest9Claimed']  ?? false;
     quest10Claimed = questStates['quest10Claimed'] ?? false;
     quest11Claimed = questStates['quest11Claimed'] ?? false;
     quest12Claimed = questStates['quest12Claimed'] ?? false;
@@ -1103,35 +1128,39 @@ class QuestStatus {
 
     // Learning states
     final learningStates = data['learningStates'] as Map<String, dynamic>? ?? {};
-    learnedAlphabetAll = learningStates['learnedAlphabetAll'] ?? false;
-    alphabetQuizStarted = learningStates['alphabetQuizStarted'] ?? false;
-    alphabetRoundsCompleted = learningStates['alphabetRoundsCompleted'] ?? 0;
-    learnedNumbersAll = learningStates['learnedNumbersAll'] ?? false;
-    numbersRoundsCompleted = learningStates['numbersRoundsCompleted'] ?? 0;
-    numbersPerfectRounds = learningStates['numbersPerfectRounds'] ?? 0;
-    learnedColoursAll = learningStates['learnedColoursAll'] ?? false;
-    colourRoundsCompleted = learningStates['colourRoundsCompleted'] ?? 0;
-    colourBestStreak = learningStates['colourBestStreak'] ?? 0;
-    learnedFruitsAll = learningStates['learnedFruitsAll'] ?? false;
-    fruitsRoundsCompleted = learningStates['fruitsRoundsCompleted'] ?? 0;
-    fruitsBestStreak = learningStates['fruitsBestStreak'] ?? 0;
-    learnedAnimalsAll = learningStates['learnedAnimalsAll'] ?? false;
-    animalsRoundsCompleted = learningStates['animalsRoundsCompleted'] ?? 0;
-    animalsPerfectRounds = learningStates['animalsPerfectRounds'] ?? 0;
-    learnedVerbsAll = learningStates['learnedVerbsAll'] ?? false;
-    verbsRoundsCompleted = learningStates['verbsRoundsCompleted'] ?? 0;
-    verbsPerfectRounds = learningStates['verbsPerfectRounds'] ?? 0;
-    firstQuizMedalEarned = learningStates['firstQuizMedalEarned'] ?? false;
+    learnedAlphabetAll         = learningStates['learnedAlphabetAll'] ?? false;
+    alphabetQuizStarted        = learningStates['alphabetQuizStarted'] ?? false;
+    alphabetRoundsCompleted    = learningStates['alphabetRoundsCompleted'] ?? 0;
+    learnedNumbersAll          = learningStates['learnedNumbersAll'] ?? false;
+    numbersRoundsCompleted     = learningStates['numbersRoundsCompleted'] ?? 0;
+    numbersPerfectRounds       = learningStates['numbersPerfectRounds'] ?? 0;
+    learnedColoursAll          = learningStates['learnedColoursAll'] ?? false;
+    colourRoundsCompleted      = learningStates['colourRoundsCompleted'] ?? 0;
+    colourBestStreak           = learningStates['colourBestStreak'] ?? 0;
+    learnedFruitsAll           = learningStates['learnedFruitsAll'] ?? false;
+    fruitsRoundsCompleted      = learningStates['fruitsRoundsCompleted'] ?? 0;
+    fruitsBestStreak           = learningStates['fruitsBestStreak'] ?? 0;
+    learnedAnimalsAll          = learningStates['learnedAnimalsAll'] ?? false;
+    animalsRoundsCompleted     = learningStates['animalsRoundsCompleted'] ?? 0;
+    animalsPerfectRounds       = learningStates['animalsPerfectRounds'] ?? 0;
+    learnedVerbsAll            = learningStates['learnedVerbsAll'] ?? false;
+    verbsRoundsCompleted       = learningStates['verbsRoundsCompleted'] ?? 0;
+    verbsPerfectRounds         = learningStates['verbsPerfectRounds'] ?? 0;
+    firstQuizMedalEarned       = learningStates['firstQuizMedalEarned'] ?? false;
 
     // Watched items in learn mode
     watchedAlphabet = Set<String>.from(learningStates['watchedAlphabet'] ?? []);
-    watchedNumbers  = Set<String>.from(learningStates['watchedNumbers'] ?? []);
-    watchedColours  = Set<String>.from(learningStates['watchedColours'] ?? []);
-    watchedFruits   = Set<String>.from(learningStates['watchedFruits'] ?? []);
-    watchedAnimals  = Set<String>.from(learningStates['watchedAnimals'] ?? []);
+    watchedNumbers  = Set<String>.from(learningStates['watchedNumbers']  ?? []);
+    watchedColours  = Set<String>.from(learningStates['watchedColours']  ?? []);
+    watchedFruits   = Set<String>.from(learningStates['watchedFruits']   ?? []);
+    watchedAnimals  = Set<String>.from(learningStates['watchedAnimals']  ?? []);
+    watchedSpeech   = Set<String>.from(learningStates['watchedSpeech']   ?? []); // ✅ NEW
+
+    // Optional flags
+    playedSpeech = learningStates['playedSpeech'] ?? false; // ✅ NEW
 
     print(
-      'loadFromProgress: Loaded watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}',
+      'loadFromProgress: Loaded watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Speech: ${watchedSpeech.length}',
     );
 
     // Unlocked content
