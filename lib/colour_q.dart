@@ -304,6 +304,11 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
   final Set<String> _mmCorrectRightIds = {}; // e.g. right_A
   final Set<String> _mmWrongRightIds = {};
 
+  // NEW: MCQ Review state
+  bool _mcqReviewMode = false;
+  final Map<int, int> _userSelectedIndex = {}; // qIdx -> selectedIndex
+  int _mmCorrectCount = 0;
+
   // Animations
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
@@ -461,6 +466,7 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     setState(() {
       isOptionSelected = true;
       _pendingIndex = null;
+      _userSelectedIndex[qIdx] = selectedIndex; // Store user selection
     });
 
     final correctIndex = _questionCorrectIndex[qIdx]!;
@@ -492,9 +498,22 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     if (_allAnsweredInSession()) {
       if (!mounted) return;
 
+      // Enter MCQ review mode
+      await Future.delayed(const Duration(milliseconds: 300));
+      setState(() => _mcqReviewMode = true);
+
+      // Show review animation for 1 second
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (!mounted) return;
+
+      // Show review dialog
+      await _showMCQReviewDialog();
+      if (!mounted) return;
+
+      setState(() => _mcqReviewMode = false);
+
       // If "both" mode, transition to Mix&Match
       if (widget.quizType == QuizType.both && mixMatchIndices.isNotEmpty) {
-        await Future.delayed(const Duration(milliseconds: 500));
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -509,7 +528,6 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
         });
       } else {
         // Multiple choice only mode - finish session
-        await Future.delayed(const Duration(milliseconds: 500));
         _finishSession();
       }
       return;
@@ -535,75 +553,123 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     });
   }
 
-  // MIX & MATCH: After all pairs filled → confirm dialog
-  void _onAllPairsFilled() async {
-    final submit = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _CleanConfirmDialog(
-        icon: Icons.check_circle_rounded,
-        title: 'Submit answers?',
-        message:
-            "You've matched all pairs. Submit now or reset all to try again.",
-        primaryLabel: 'Submit',
-        secondaryLabel: 'Reset',
-      ),
-    );
-
-    if (submit == true) {
-      _evaluateMixMatchAndReview();
-    } else {
-      setState(() => _currentMatches.clear());
-    }
+  // MIX & MATCH: After all pairs filled → auto-proceed to evaluation
+  void _onAllPairsFilled() {
+    _evaluateMixMatchAndReview();
   }
 
-  // NEW: Evaluate + enter review mode (7s), then finish
+  // NEW: Evaluate + enter review mode, then show dialog
   void _evaluateMixMatchAndReview() {
     _mmCorrectRightIds.clear();
     _mmWrongRightIds.clear();
+    _mmCorrectCount = 0;
 
-    bool allCorrect = true;
     for (final idx in mixMatchIndices) {
       final color = questions[idx]['name'] as String;
       final leftId = "left_$color";
       final rightId = "right_$color";
       if (_currentMatches[leftId] == rightId) {
         _mmCorrectRightIds.add(rightId);
+        _mmCorrectCount++;
       } else {
-        allCorrect = false;
         _mmWrongRightIds.add(rightId);
       }
     }
 
-    // Save result - position depends on mode
-    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
-    QuestStatus.level1Answers[mmResultIndex] = allCorrect;
-
     // Enter review mode (disable dragging; show colors)
     setState(() => _mmReviewMode = true);
 
-    // After 7s → exit review, show popup + finish
-    Future.delayed(const Duration(seconds: 2), () {
+    // After 1s → show review dialog
+    Future.delayed(const Duration(milliseconds: 1000), () async {
+      if (!mounted) return;
+      await _showMixMatchReviewDialog();
       if (!mounted) return;
       setState(() => _mmReviewMode = false);
-      _completeMixMatch(allCorrect);
+      _completeMixMatch();
     });
   }
 
-  // Separate finisher (used after review)
-  void _completeMixMatch(bool allCorrect) {
-    if (allCorrect) {
+  // Show MCQ Review Dialog
+  Future<void> _showMCQReviewDialog() async {
+    final reviewData = <Map<String, dynamic>>[];
+    for (int i = 0; i < activeIndices.length; i++) {
+      final qIdx = activeIndices[i];
+      final options = _questionOptions[qIdx]!;
+      final correctIndex = _questionCorrectIndex[qIdx]!;
+      final userIndex = _userSelectedIndex[qIdx];
+      final isCorrect = userIndex == correctIndex;
+
+      reviewData.add({
+        'questionNumber': i + 1,
+        'imagePath': questions[qIdx]['image'],
+        'correctAnswer': options[correctIndex],
+        'userAnswer': userIndex != null ? options[userIndex] : 'No answer',
+        'isCorrect': isCorrect,
+      });
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _MCQReviewDialog(reviewData: reviewData),
+    );
+  }
+
+  // Show Mix & Match Review Dialog
+  Future<void> _showMixMatchReviewDialog() async {
+    final reviewData = <Map<String, dynamic>>[];
+    for (final idx in mixMatchIndices) {
+      final color = questions[idx]['name'] as String;
+      final leftId = "left_$color";
+      final rightId = "right_$color";
+      final userMatched = _currentMatches[leftId];
+      final isCorrect = userMatched == rightId;
+
+      reviewData.add({
+        'correctAnswer': color,
+        'imagePath': questions[idx]['image'],
+        'isCorrect': isCorrect,
+        'userAnswer': userMatched != null
+            ? userMatched.replaceFirst('right_', '')
+            : 'No match',
+      });
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _MixMatchReviewDialog(
+        reviewData: reviewData,
+        correctCount: _mmCorrectCount,
+        totalCount: mixMatchIndices.length,
+      ),
+    );
+  }
+
+  // Separate finisher (used after review) - proportional XP
+  void _completeMixMatch() {
+    final xpEarned = _mmCorrectCount * 10;
+
+    if (_mmCorrectCount == mixMatchIndices.length) {
       showAnimatedPopup(
         icon: Icons.star,
         title: "Perfect Match!",
-        subtitle: "You earned 50 XP",
+        subtitle: "You earned $xpEarned XP",
         bgColor: const Color(0xFF2C5CB0),
       );
-      QuestStatus.addXp(50);
+      QuestStatus.addXp(xpEarned);
+    } else if (_mmCorrectCount > 0) {
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Good Try!",
+        subtitle: "You earned $xpEarned XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
+      QuestStatus.addXp(xpEarned);
     } else {
       showAnimatedPopup(
         icon: Icons.close,
-        title: "Some Incorrect",
+        title: "No Matches",
         subtitle: "Try again next time!",
         bgColor: const Color(0xFFFF4B4A),
       );
@@ -622,15 +688,12 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
       if (_sessionAnswers[i] == true) sessionScore++;
     }
 
-    // Count Mix&Match if present
-    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
-    if (QuestStatus.level1Answers.length > mmResultIndex &&
-        QuestStatus.level1Answers[mmResultIndex] == true) {
-      sessionScore++;
+    // Count each Mix&Match pair individually
+    if (mixMatchIndices.isNotEmpty) {
+      sessionScore += _mmCorrectCount;
     }
 
-    final totalQuestions =
-        activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    final totalQuestions = activeIndices.length + mixMatchIndices.length;
 
     // ========= BADGES: update counters for this completed quiz =========
     // Count this quiz
@@ -1167,32 +1230,29 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
               children: [
                 // Left: draggable letter (disabled in review)
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Center(
-                    child: SizedBox(
-                      height: mmLetterHeight,
-                      child: Opacity(
-                        opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
-                        child: IgnorePointer(
-                          ignoring: isLeftMatched || _mmReviewMode,
-                          child: Draggable<String>(
-                            data: leftId,
-                            feedback: Material(
-                              elevation: 8,
-                              borderRadius: BorderRadius.circular(16),
-                              child: _LetterCard(
-                                letter: letter,
-                                isFloating: true,
-                              ),
-                            ),
-                            childWhenDragging: Opacity(
-                              opacity: 0.3,
-                              child: _LetterCard(letter: letter),
-                            ),
+                    child: Opacity(
+                      opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
+                      child: IgnorePointer(
+                        ignoring: isLeftMatched || _mmReviewMode,
+                        child: Draggable<String>(
+                          data: leftId,
+                          feedback: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(16),
                             child: _LetterCard(
                               letter: letter,
-                              isMatched: isLeftMatched,
+                              isFloating: true,
                             ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
+                            child: _LetterCard(letter: letter),
+                          ),
+                          child: _LetterCard(
+                            letter: letter,
+                            isMatched: isLeftMatched,
                           ),
                         ),
                       ),
@@ -1204,7 +1264,7 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
 
                 // Right: drag target (disabled in review) with UNDO button
                 Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Stack(
                     children: [
                       DragTarget<String>(
@@ -1224,6 +1284,21 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
                               !_mmReviewMode &&
                               candidate.isNotEmpty &&
                               !isRightMatched;
+
+                          // Extract matched letter
+                          String? matchedLetter;
+                          if (isRightMatched) {
+                            final leftId = _currentMatches.entries
+                                .firstWhere(
+                                  (e) => e.value == rightId,
+                                  orElse: () => const MapEntry('', ''),
+                                )
+                                .key;
+                            if (leftId.isNotEmpty) {
+                              matchedLetter = leftId.replaceFirst('left_', '');
+                            }
+                          }
+
                           return SizedBox(
                             height: mmImageHeight,
                             child: _ImageCard(
@@ -1232,6 +1307,7 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
                               isHovering: isHovering,
                               reviewCorrect: showCorrect,
                               reviewWrong: showWrong,
+                              matchedLetter: matchedLetter,
                             ),
                           );
                         },
@@ -1264,7 +1340,7 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
                                   ],
                                 ),
                                 child: const Icon(
-                                  Icons.close_rounded,
+                                  Icons.refresh_rounded,
                                   size: 16,
                                   color: Color(0xFFFF4B4A),
                                 ),
@@ -1390,13 +1466,20 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
               isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
+          // Review mode: show correct/wrong
+          final showCorrect = _mcqReviewMode && isCorrect;
+          final showWrong =
+              _mcqReviewMode && !isCorrect && _userSelectedIndex[qIdx] == index;
+
           return OptionCard(
             option: options[index],
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
             themeManager: themeManager,
-            onTap: alreadyAnswered
+            reviewCorrect: showCorrect,
+            reviewWrong: showWrong,
+            onTap: alreadyAnswered || _mcqReviewMode
                 ? null
                 : () => setState(() => _pendingIndex = index),
           );
@@ -1519,6 +1602,8 @@ class OptionCard extends StatelessWidget {
   final int number;
   final bool isSelected;
   final bool isPending;
+  final bool reviewCorrect;
+  final bool reviewWrong;
   final VoidCallback? onTap;
   final ThemeManager themeManager;
 
@@ -1529,44 +1614,56 @@ class OptionCard extends StatelessWidget {
     required this.themeManager,
     this.isSelected = false,
     this.isPending = false,
+    this.reviewCorrect = false,
+    this.reviewWrong = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine color scheme
+    Color borderColor;
+    List<Color> gradientColors;
+
+    if (reviewCorrect) {
+      borderColor = const Color(0xFF22C55E);
+      gradientColors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else if (reviewWrong) {
+      borderColor = const Color(0xFFFF4B4A);
+      gradientColors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
+    } else if (isSelected || isPending) {
+      borderColor = isSelected ? themeManager.primary : themeManager.secondary;
+      gradientColors = themeManager.isDarkMode
+          ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+          : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)];
+    } else {
+      borderColor = themeManager.isDarkMode
+          ? const Color(0xFF636366)
+          : const Color(0xFFE3E6EE);
+      gradientColors = themeManager.isDarkMode
+          ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+          : [const Color(0xFFFFFFFF), const Color(0xFFFAFAFA)];
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        gradient: isSelected || isPending
-            ? LinearGradient(
-                colors: themeManager.isDarkMode
-                    ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
-                    : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : LinearGradient(
-                colors: themeManager.isDarkMode
-                    ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
-                    : [const Color(0xFFFFFFFF), const Color(0xFFFAFAFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected
-              ? themeManager.primary
-              : (isPending
-                    ? themeManager.secondary
-                    : (themeManager.isDarkMode
-                          ? const Color(0xFF636366)
-                          : const Color(0xFFE3E6EE))),
-          width: isSelected || isPending ? 2.5 : 1.5,
+          color: borderColor,
+          width: (isSelected || isPending || reviewCorrect || reviewWrong)
+              ? 2.5
+              : 1.5,
         ),
         boxShadow: [
-          if (isSelected || isPending)
+          if (isSelected || isPending || reviewCorrect || reviewWrong)
             BoxShadow(
-              color: themeManager.primary.withOpacity(0.25),
+              color: borderColor.withOpacity(0.25),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -1586,11 +1683,16 @@ class OptionCard extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    gradient: themeManager.primaryGradient,
+                    gradient: (reviewCorrect || reviewWrong)
+                        ? null
+                        : themeManager.primaryGradient,
+                    color: (reviewCorrect || reviewWrong) ? Colors.white : null,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: themeManager.primary.withOpacity(0.3),
+                        color: (reviewCorrect || reviewWrong)
+                            ? borderColor.withOpacity(0.3)
+                            : themeManager.primary.withOpacity(0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -1600,7 +1702,9 @@ class OptionCard extends StatelessWidget {
                     child: Text(
                       number.toString(),
                       style: GoogleFonts.montserrat(
-                        color: Colors.white,
+                        color: (reviewCorrect || reviewWrong)
+                            ? borderColor
+                            : Colors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -1614,9 +1718,11 @@ class OptionCard extends StatelessWidget {
                     style: GoogleFonts.montserrat(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: isSelected || isPending
-                          ? themeManager.primary
-                          : themeManager.textPrimary,
+                      color: (reviewCorrect || reviewWrong)
+                          ? Colors.white
+                          : (isSelected || isPending
+                                ? themeManager.primary
+                                : themeManager.textPrimary),
                     ),
                   ),
                 ),
@@ -1684,13 +1790,11 @@ class _LegendDot extends StatelessWidget {
 class _LetterCard extends StatelessWidget {
   final String letter;
   final bool isMatched;
-  final bool isDragging;
   final bool isFloating;
 
   const _LetterCard({
     required this.letter,
     this.isMatched = false,
-    this.isDragging = false,
     this.isFloating = false,
   });
 
@@ -1701,7 +1805,7 @@ class _LetterCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isMatched
-              ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+              ? [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1709,14 +1813,14 @@ class _LetterCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isMatched
-              ? const Color(0xFF22C55E)
+              ? const Color(0xFFFBBF24)
               : const Color(0xFF69D3E4).withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
             color:
-                (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4))
+                (isMatched ? const Color(0xFFFBBF24) : const Color(0xFF69D3E4))
                     .withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -1743,6 +1847,7 @@ class _ImageCard extends StatelessWidget {
   final bool isHovering;
   final bool reviewCorrect;
   final bool reviewWrong;
+  final String? matchedLetter;
 
   const _ImageCard({
     required this.imagePath,
@@ -1750,6 +1855,7 @@ class _ImageCard extends StatelessWidget {
     this.isHovering = false,
     this.reviewCorrect = false,
     this.reviewWrong = false,
+    this.matchedLetter,
   });
 
   @override
@@ -1762,7 +1868,7 @@ class _ImageCard extends StatelessWidget {
     } else if (isHovering) {
       colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
     } else if (isMatched) {
-      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+      colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
       colors = const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
     }
@@ -1811,6 +1917,44 @@ class _ImageCard extends StatelessWidget {
                 ),
               ),
             ),
+            if (matchedLetter != null &&
+                isMatched &&
+                !reviewCorrect &&
+                !reviewWrong)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFBBF24).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      matchedLetter!,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             if (reviewCorrect || reviewWrong)
               Positioned(
                 right: 8,
@@ -2125,6 +2269,432 @@ class _CleanConfirmDialog extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// MCQ Review Dialog
+class _MCQReviewDialog extends StatelessWidget {
+  final List<Map<String, dynamic>> reviewData;
+
+  const _MCQReviewDialog({required this.reviewData});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
+    final correctCount = reviewData.where((d) => d['isCorrect'] == true).length;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? const [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
+                : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: themeManager.primary.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: themeManager.primaryGradient.colors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(26),
+                  topRight: Radius.circular(26),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.quiz, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Review Your Answers',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$correctCount/${reviewData.length}',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Review List
+            Flexible(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                shrinkWrap: true,
+                itemCount: reviewData.length,
+                itemBuilder: (context, index) {
+                  final data = reviewData[index];
+                  final isCorrect = data['isCorrect'] as bool;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFF3C3C3E)
+                          : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isCorrect
+                            ? const Color(0xFF22C55E)
+                            : const Color(0xFFFF4B4A),
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        // Question image
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: themeManager.primary.withOpacity(0.2),
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              data['imagePath'],
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Answer info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Q${data['questionNumber']}',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: themeManager.isDarkMode
+                                      ? const Color(0xFF8E8E93)
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                data['correctAnswer'],
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: themeManager.textPrimary,
+                                ),
+                              ),
+                              if (!isCorrect) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'You: ${data['userAnswer']}',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFFFF4B4A),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        // Status icon
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isCorrect
+                                ? const Color(0xFF22C55E)
+                                : const Color(0xFFFF4B4A),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCorrect
+                                ? Icons.check_rounded
+                                : Icons.close_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Continue button
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeManager.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Continue',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward_rounded, size: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Mix & Match Review Dialog
+class _MixMatchReviewDialog extends StatelessWidget {
+  final List<Map<String, dynamic>> reviewData;
+  final int correctCount;
+  final int totalCount;
+
+  const _MixMatchReviewDialog({
+    required this.reviewData,
+    required this.correctCount,
+    required this.totalCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? const [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
+                : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: themeManager.primary.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: themeManager.primaryGradient.colors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(26),
+                  topRight: Radius.circular(26),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Match Results',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$correctCount/$totalCount',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Review Grid
+            Flexible(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(16),
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.0,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                ),
+                itemCount: reviewData.length,
+                itemBuilder: (context, index) {
+                  final data = reviewData[index];
+                  final isCorrect = data['isCorrect'] as bool;
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFF3C3C3E)
+                          : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isCorrect
+                            ? const Color(0xFF22C55E)
+                            : const Color(0xFFFF4B4A),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Image
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                data['imagePath'],
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Answer
+                        Text(
+                          data['correctAnswer'],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: isCorrect
+                                ? const Color(0xFF22C55E)
+                                : const Color(0xFFFF4B4A),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        // Status icon
+                        Icon(
+                          isCorrect ? Icons.check_circle : Icons.cancel,
+                          color: isCorrect
+                              ? const Color(0xFF22C55E)
+                              : const Color(0xFFFF4B4A),
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Continue button
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeManager.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Continue',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward_rounded, size: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
