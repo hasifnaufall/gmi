@@ -1784,7 +1784,7 @@ class _LetterCard extends StatelessWidget {
         child: Text(
           letter,
           style: GoogleFonts.montserrat(
-            fontSize: 32,
+            fontSize: 13,
             fontWeight: FontWeight.w900,
             color: isMatched ? Colors.white : const Color(0xFF69D3E4),
           ),

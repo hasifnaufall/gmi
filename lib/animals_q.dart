@@ -59,10 +59,10 @@ Future<void> showAnimalQuizSelection(BuildContext context) {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (themeManager.isDarkMode
-                                  ? const Color(0xFFD23232)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.3),
+                      (themeManager.isDarkMode
+                          ? const Color(0xFFD23232)
+                          : const Color(0xFF69D3E4))
+                          .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -100,7 +100,7 @@ Future<void> showAnimalQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const AnimalQuizScreen(quizType: QuizType.multipleChoice),
+                  const AnimalQuizScreen(quizType: QuizType.multipleChoice),
                 ),
               );
             },
@@ -117,7 +117,7 @@ Future<void> showAnimalQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const AnimalQuizScreen(quizType: QuizType.mixMatch),
+                  const AnimalQuizScreen(quizType: QuizType.mixMatch),
                 ),
               );
             },
@@ -134,7 +134,7 @@ Future<void> showAnimalQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const AnimalQuizScreen(quizType: QuizType.both),
+                  const AnimalQuizScreen(quizType: QuizType.both),
                 ),
               );
             },
@@ -281,7 +281,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   // Mix & Match visual sizing
   static const double mmRowGap = 10;
   static const double mmImageHeight = 95; // hand sign box
-  static const double mmLetterHeight = 70; // letter box
+  static const double mmAnimalHeight = 70; // animal name box
 
   // Multiple choice state
   late List<int> activeIndices;
@@ -294,14 +294,14 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   late List<int> mixMatchIndices;
   bool _isInMixMatchRound = false;
   final Map<String, String> _currentMatches = {}; // leftId -> rightId
-  List<String> _mmLettersOrder = [];
+  List<String> _mmAnimalsOrder = [];
   List<String> _mmImagesOrder = [];
-  Map<String, String> _imageForLetter = {}; // letter -> imagePath
+  Map<String, String> _imageForAnimal = {}; // animal -> imagePath
   final ScrollController _mmScroll = ScrollController();
 
-  // NEW: Review mode (show correct/wrong for 7s)
+  // NEW: Review mode (show correct/wrong for 2s)
   bool _mmReviewMode = false;
-  final Set<String> _mmCorrectRightIds = {}; // e.g. right_A
+  final Set<String> _mmCorrectRightIds = {}; // e.g. right_Cat
   final Set<String> _mmWrongRightIds = {};
 
   // Animations
@@ -309,34 +309,36 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Questions - NOW WITH RANDOMIZED OPTIONS
+  // ✅ CORRECTED: Animal Questions with proper data structure
   final List<Map<String, dynamic>> questions = [
-    {"image": "assets/images/alphabet/Q1.jpg", "correctLetter": "A"},
-    {"image": "assets/images/alphabet/Q2.jpg", "correctLetter": "B"},
-    {"image": "assets/images/alphabet/Q3.jpg", "correctLetter": "C"},
-    {"image": "assets/images/alphabet/Q4.jpg", "correctLetter": "D"},
-    {"image": "assets/images/alphabet/Q5.jpg", "correctLetter": "E"},
-    {"image": "assets/images/alphabet/Q6.jpg", "correctLetter": "F"},
-    {"image": "assets/images/alphabet/Q7.jpg", "correctLetter": "G"},
-    {"image": "assets/images/alphabet/Q8.jpg", "correctLetter": "H"},
-    {"image": "assets/images/alphabet/Q9.jpg", "correctLetter": "I"},
-    {"image": "assets/images/alphabet/Q10.jpg", "correctLetter": "J"},
-    {"image": "assets/images/alphabet/Q11.jpg", "correctLetter": "K"},
-    {"image": "assets/images/alphabet/Q12.jpg", "correctLetter": "L"},
-    {"image": "assets/images/alphabet/Q13.jpg", "correctLetter": "M"},
-    {"image": "assets/images/alphabet/Q14.jpg", "correctLetter": "N"},
-    {"image": "assets/images/alphabet/Q15.jpg", "correctLetter": "O"},
-    {"image": "assets/images/alphabet/Q16.jpg", "correctLetter": "P"},
-    {"image": "assets/images/alphabet/Q17.jpg", "correctLetter": "Q"},
-    {"image": "assets/images/alphabet/Q18.jpg", "correctLetter": "R"},
-    {"image": "assets/images/alphabet/Q19.jpg", "correctLetter": "S"},
-    {"image": "assets/images/alphabet/Q20.jpg", "correctLetter": "T"},
-    {"image": "assets/images/alphabet/Q21.jpg", "correctLetter": "U"},
-    {"image": "assets/images/alphabet/Q22.jpg", "correctLetter": "V"},
-    {"image": "assets/images/alphabet/Q23.jpg", "correctLetter": "W"},
-    {"image": "assets/images/alphabet/Q24.jpg", "correctLetter": "X"},
-    {"image": "assets/images/alphabet/Q25.jpg", "correctLetter": "Y"},
-    {"image": "assets/images/alphabet/Q26.jpg", "correctLetter": "Z"},
+    {"image": "assets/images/animal/anai.jpg", "correctAnimal": "Termite"},
+    {"image": "assets/images/animal/angsa.jpg", "correctAnimal": "Goose"},
+    {"image": "assets/images/animal/anjing.jpg", "correctAnimal": "Dog"},
+    {"image": "assets/images/animal/arnab.jpg", "correctAnimal": "Rabbit"},
+    {"image": "assets/images/animal/ayam.jpg", "correctAnimal": "Chicken"},
+    {"image": "assets/images/animal/babi.jpg", "correctAnimal": "Pig"},
+    {"image": "assets/images/animal/badak sumbu.jpg", "correctAnimal": "Rhinoceros"},
+    {"image": "assets/images/animal/belalang.jpg", "correctAnimal": "Grasshopper"},
+    {"image": "assets/images/animal/beruang.jpg", "correctAnimal": "Bear"},
+    {"image": "assets/images/animal/biawak.jpg", "correctAnimal": "Monitor Lizard"},
+    {"image": "assets/images/animal/biri.jpg", "correctAnimal": "Sheep"},
+    {"image": "assets/images/animal/buaya.jpg", "correctAnimal": "Crocodile"},
+    {"image": "assets/images/animal/burung.jpg", "correctAnimal": "Bird"},
+    {"image": "assets/images/animal/cicak.jpg", "correctAnimal": "Gecko"},
+    {"image": "assets/images/animal/gajah.jpg", "correctAnimal": "Elephant"},
+    {"image": "assets/images/animal/gorila.jpg", "correctAnimal": "Gorilla"},
+    {"image": "assets/images/animal/harimau.jpg", "correctAnimal": "Tiger"},
+    {"image": "assets/images/animal/helang.jpg", "correctAnimal": "Eagle"},
+    {"image": "assets/images/animal/ikan.jpg", "correctAnimal": "Fish"},
+    {"image": "assets/images/animal/itik.jpg", "correctAnimal": "Duck"},
+    {"image": "assets/images/animal/jengking.jpg", "correctAnimal": "Scorpion"},
+    {"image": "assets/images/animal/kambing.jpg", "correctAnimal": "Goat"},
+    {"image": "assets/images/animal/kancil.jpg", "correctAnimal": "Mouse Deer"},
+    {"image": "assets/images/animal/Labah.jpg", "correctAnimal": "Spider"},
+    {"image": "assets/images/animal/merak.jpg", "correctAnimal": "Peacock"},
+    {"image": "assets/images/animal/rama-rama.jpg", "correctAnimal": "Butterfly"},
+    {"image": "assets/images/animal/singa.jpg", "correctAnimal": "Lion"},
+    {"image": "assets/images/animal/zirafah.jpg", "correctAnimal": "Giraffe"},
   ];
 
   // Cache for generated options per question
@@ -358,25 +360,22 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     return null;
   }
 
-  // NEW: Generate randomized options for a question
+  // ✅ CORRECTED: Generate options using correct animal names
   List<String> _generateOptions(int qIdx) {
     if (_questionOptions.containsKey(qIdx)) {
       return _questionOptions[qIdx]!;
     }
 
-    final correctLetter = questions[qIdx]['correctLetter'] as String;
-    final allLetters = List<String>.generate(
-      26,
-      (i) => String.fromCharCode(65 + i),
-    );
-    allLetters.remove(correctLetter);
-    allLetters.shuffle();
+    final correctAnimal = questions[qIdx]['correctAnimal'] as String;
+    final allAnimals = questions.map((q) => q['correctAnimal'] as String).toList();
+    allAnimals.remove(correctAnimal);
+    allAnimals.shuffle();
 
-    final wrongOptions = allLetters.take(3).toList();
-    final options = [...wrongOptions, correctLetter]..shuffle();
+    final wrongOptions = allAnimals.take(3).toList();
+    final options = [...wrongOptions, correctAnimal]..shuffle();
 
     _questionOptions[qIdx] = options;
-    _questionCorrectIndex[qIdx] = options.indexOf(correctLetter);
+    _questionCorrectIndex[qIdx] = options.indexOf(correctAnimal);
 
     return options;
   }
@@ -452,21 +451,21 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     super.dispose();
   }
 
-  // Freeze orders for Mix&Match
+  // ✅ CORRECTED: Freeze orders for Mix&Match using animal names
   void _prepareMixMatchRound() {
-    _imageForLetter.clear();
+    _imageForAnimal.clear();
     for (final idx in mixMatchIndices) {
-      final letter = questions[idx]['correctLetter'] as String;
+      final animal = questions[idx]['correctAnimal'] as String;
       final image = questions[idx]['image'] as String;
-      _imageForLetter[letter] = image;
+      _imageForAnimal[animal] = image;
     }
-    final letters = mixMatchIndices
-        .map((i) => questions[i]['correctLetter'] as String)
+    final animals = mixMatchIndices
+        .map((i) => questions[i]['correctAnimal'] as String)
         .toList();
     final images = mixMatchIndices
         .map((i) => questions[i]['image'] as String)
         .toList();
-    _mmLettersOrder = List<String>.from(letters)..shuffle();
+    _mmAnimalsOrder = List<String>.from(animals)..shuffle();
     _mmImagesOrder = List<String>.from(images)..shuffle();
   }
 
@@ -496,11 +495,11 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       );
       QuestStatus.addXp(20);
     } else {
-      final correctLetter = _questionOptions[qIdx]![correctIndex];
+      final correctAnimal = _questionOptions[qIdx]![correctIndex];
       showAnimatedPopup(
         icon: Icons.close,
         title: "Incorrect",
-        subtitle: "Correct: $correctLetter",
+        subtitle: "Correct: $correctAnimal",
         bgColor: const Color(0xFFFF4B4A),
       );
     }
@@ -562,7 +561,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
         icon: Icons.check_circle_rounded,
         title: 'Submit answers?',
         message:
-            "You've matched all pairs. Submit now or reset all to try again.",
+        "You've matched all pairs. Submit now or reset all to try again.",
         primaryLabel: 'Submit',
         secondaryLabel: 'Reset',
       ),
@@ -575,16 +574,16 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     }
   }
 
-  // NEW: Evaluate + enter review mode (7s), then finish
+  // NEW: Evaluate + enter review mode (2s), then finish
   void _evaluateMixMatchAndReview() {
     _mmCorrectRightIds.clear();
     _mmWrongRightIds.clear();
 
     bool allCorrect = true;
     for (final idx in mixMatchIndices) {
-      final letter = questions[idx]['correctLetter'] as String;
-      final leftId = "left_$letter";
-      final rightId = "right_$letter";
+      final animal = questions[idx]['correctAnimal'] as String;
+      final leftId = "left_$animal";
+      final rightId = "right_$animal";
       if (_currentMatches[leftId] == rightId) {
         _mmCorrectRightIds.add(rightId);
       } else {
@@ -600,7 +599,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     // Enter review mode (disable dragging; show colors)
     setState(() => _mmReviewMode = true);
 
-    // After 7s → exit review, show popup + finish
+    // After 2s → exit review, show popup + finish
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() => _mmReviewMode = false);
@@ -729,7 +728,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-            "This action can't be undone and your progress this round will be lost.",
+        "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -818,7 +817,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
   // MIX & MATCH UI
   Widget _buildMixMatchQuiz() {
-    if (_mmLettersOrder.isEmpty || _mmImagesOrder.isEmpty) {
+    if (_mmAnimalsOrder.isEmpty || _mmImagesOrder.isEmpty) {
       _prepareMixMatchRound();
     }
 
@@ -853,7 +852,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                               controller: _mmScroll,
                               physics: const AlwaysScrollableScrollPhysics(),
                               child: _buildMatchingAreaStable(
-                                lettersOrder: _mmLettersOrder,
+                                animalsOrder: _mmAnimalsOrder,
                                 imagesOrder: _mmImagesOrder,
                                 themeManager: themeManager,
                               ),
@@ -1091,6 +1090,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     );
   }
 
+  // ✅ CORRECTED: Mix & Match instruction text for animals
   Widget _buildMixMatchInstruction(ThemeManager themeManager) {
     return Container(
       width: double.infinity,
@@ -1133,7 +1133,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              "Drag letters to their matching signs",
+              "Drag animals to their matching signs",
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -1146,28 +1146,28 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     );
   }
 
-  // Matching area (organized rows; right is bigger) - NOW WITH UNDO BUTTON
+  // ✅ CORRECTED: Matching area with animal names and proper parameters
   Widget _buildMatchingAreaStable({
-    required List<String> lettersOrder,
+    required List<String> animalsOrder,
     required List<String> imagesOrder,
     required ThemeManager themeManager,
   }) {
     assert(
-      lettersOrder.length == imagesOrder.length,
-      "lettersOrder and imagesOrder must be same length",
+    animalsOrder.length == imagesOrder.length,
+    "animalsOrder and imagesOrder must be same length",
     );
 
     return Column(
-      children: List.generate(lettersOrder.length, (i) {
-        final letter = lettersOrder[i];
-        final leftId = "left_$letter";
+      children: List.generate(animalsOrder.length, (i) {
+        final animal = animalsOrder[i];
+        final leftId = "left_$animal";
         final isLeftMatched = _currentMatches.containsKey(leftId);
 
         final imagePath = imagesOrder[i];
-        final rightLetter = _imageForLetter.entries
+        final rightAnimal = _imageForAnimal.entries
             .firstWhere((e) => e.value == imagePath)
             .key;
-        final rightId = "right_$rightLetter";
+        final rightId = "right_$rightAnimal";
         final isRightMatched = _currentMatches.values.contains(rightId);
 
         // During review, compute status for this right target
@@ -1183,12 +1183,12 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left: draggable letter (disabled in review)
+                // Left: draggable animal name (disabled in review)
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Center(
                     child: SizedBox(
-                      height: mmLetterHeight,
+                      height: mmAnimalHeight,
                       child: Opacity(
                         opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
                         child: IgnorePointer(
@@ -1198,18 +1198,23 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                             feedback: Material(
                               elevation: 8,
                               borderRadius: BorderRadius.circular(16),
-                              child: _LetterCard(
-                                letter: letter,
+                              child: _AnimalCard(
+                                animal: animal,
                                 isFloating: true,
+                                themeManager: themeManager,
                               ),
                             ),
                             childWhenDragging: Opacity(
                               opacity: 0.3,
-                              child: _LetterCard(letter: letter),
+                              child: _AnimalCard(
+                                animal: animal,
+                                themeManager: themeManager,
+                              ),
                             ),
-                            child: _LetterCard(
-                              letter: letter,
+                            child: _AnimalCard(
+                              animal: animal,
                               isMatched: isLeftMatched,
+                              themeManager: themeManager,
                             ),
                           ),
                         ),
@@ -1222,12 +1227,12 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
                 // Right: drag target (disabled in review) with UNDO button
                 Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Stack(
                     children: [
                       DragTarget<String>(
                         onWillAccept: (data) =>
-                            !_mmReviewMode && data != null && !isRightMatched,
+                        !_mmReviewMode && data != null && !isRightMatched,
                         onAccept: (draggedLeftId) {
                           setState(() {
                             _currentMatches[draggedLeftId] = rightId;
@@ -1240,8 +1245,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                         builder: (context, candidate, rejected) {
                           final isHovering =
                               !_mmReviewMode &&
-                              candidate.isNotEmpty &&
-                              !isRightMatched;
+                                  candidate.isNotEmpty &&
+                                  !isRightMatched;
                           return SizedBox(
                             height: mmImageHeight,
                             child: _ImageCard(
@@ -1250,6 +1255,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
                               isHovering: isHovering,
                               reviewCorrect: showCorrect,
                               reviewWrong: showWrong,
+                              themeManager: themeManager,
                             ),
                           );
                         },
@@ -1303,9 +1309,9 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
   // Question Card (MC)
   Widget _buildQuestionCard(
-    Map<String, dynamic> question,
-    ThemeManager themeManager,
-  ) {
+      Map<String, dynamic> question,
+      ThemeManager themeManager,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -1333,7 +1339,7 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
       child: Column(
         children: [
           Text(
-            "What sign is shown?",
+            "What animal is shown?",
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 18,
@@ -1385,10 +1391,10 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
 
   // Options Grid (MC)
   Widget _buildOptionsGrid(
-    List<String> options,
-    int qIdx,
-    ThemeManager themeManager,
-  ) {
+      List<String> options,
+      int qIdx,
+      ThemeManager themeManager,
+      ) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -1404,8 +1410,8 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           final isCorrect = index == correctIndex;
           final wasSelected =
               alreadyAnswered &&
-              _sessionAnswers[qIdx] == isCorrect &&
-              isCorrect;
+                  _sessionAnswers[qIdx] == isCorrect &&
+                  isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -1483,22 +1489,22 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
           const SizedBox(width: 8),
           ElevatedButton(
             style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.all(
-                    Colors.transparent,
-                  ),
-                ),
+            ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ).copyWith(
+              backgroundColor: MaterialStateProperty.all(
+                Colors.transparent,
+              ),
+            ),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
@@ -1557,28 +1563,28 @@ class OptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: isSelected || isPending
             ? LinearGradient(
-                colors: themeManager.isDarkMode
-                    ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
-                    : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
+          colors: themeManager.isDarkMode
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
             : LinearGradient(
-                colors: themeManager.isDarkMode
-                    ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
-                    : [const Color(0xFFFFFFFF), const Color(0xFFFAFAFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+          colors: themeManager.isDarkMode
+              ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFFAFAFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
               ? themeManager.primary
               : (isPending
-                    ? themeManager.secondary
-                    : (themeManager.isDarkMode
-                          ? const Color(0xFF636366)
-                          : const Color(0xFFE3E6EE))),
+              ? themeManager.secondary
+              : (themeManager.isDarkMode
+              ? const Color(0xFF636366)
+              : const Color(0xFFE3E6EE))),
           width: isSelected || isPending ? 2.5 : 1.5,
         ),
         boxShadow: [
@@ -1630,7 +1636,7 @@ class OptionCard extends StatelessWidget {
                   child: Text(
                     option,
                     style: GoogleFonts.montserrat(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: isSelected || isPending
                           ? themeManager.primary
@@ -1699,14 +1705,17 @@ class _LegendDot extends StatelessWidget {
 
 // ========== Mix & Match Widgets ==========
 
-class _LetterCard extends StatelessWidget {
-  final String letter;
+// ✅ CORRECTED: Animal card widget with matching text size (fontSize: 13)
+class _AnimalCard extends StatelessWidget {
+  final String animal;
   final bool isMatched;
   final bool isDragging;
   final bool isFloating;
+  final ThemeManager themeManager;
 
-  const _LetterCard({
-    required this.letter,
+  const _AnimalCard({
+    required this.animal,
+    required this.themeManager,
     this.isMatched = false,
     this.isDragging = false,
     this.isFloating = false,
@@ -1715,7 +1724,7 @@ class _LetterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isFloating ? 100 : double.infinity,
+      width: isFloating ? 140 : double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isMatched
@@ -1734,20 +1743,26 @@ class _LetterCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color:
-                (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4))
-                    .withOpacity(0.2),
+            (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4))
+                .withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Center(
-        child: Text(
-          letter,
-          style: GoogleFonts.montserrat(
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            animal,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 13,  // ✅ Matching speech_q.dart
+              fontWeight: FontWeight.w800,
+              color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -1761,9 +1776,11 @@ class _ImageCard extends StatelessWidget {
   final bool isHovering;
   final bool reviewCorrect;
   final bool reviewWrong;
+  final ThemeManager themeManager;
 
   const _ImageCard({
     required this.imagePath,
+    required this.themeManager,
     this.isMatched = false,
     this.isHovering = false,
     this.reviewCorrect = false,
@@ -1798,12 +1815,12 @@ class _ImageCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color:
-                (reviewWrong
-                        ? const Color(0xFFFF4B4A)
-                        : reviewCorrect
-                        ? const Color(0xFF22C55E)
-                        : const Color(0xFF69D3E4))
-                    .withOpacity(isHovering ? 0.3 : 0.15),
+            (reviewWrong
+                ? const Color(0xFFFF4B4A)
+                : reviewCorrect
+                ? const Color(0xFF22C55E)
+                : const Color(0xFF69D3E4))
+                .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
           ),
@@ -2022,10 +2039,10 @@ class _CleanConfirmDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : themeManager.primary)
-                              .withOpacity(0.3),
+                      (icon == Icons.warning_amber_rounded
+                          ? const Color(0xFFFF4B4A)
+                          : themeManager.primary)
+                          .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2065,13 +2082,13 @@ class _CleanConfirmDialog extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: themeManager.isDarkMode
                               ? [
-                                  const Color(0xFF3C3C3E),
-                                  const Color(0xFF2C2C2E),
-                                ]
+                            const Color(0xFF3C3C3E),
+                            const Color(0xFF2C2C2E),
+                          ]
                               : [
-                                  const Color(0xFFFAFAFA),
-                                  const Color(0xFFFFFFFF),
-                                ],
+                            const Color(0xFFFAFAFA),
+                            const Color(0xFFFFFFFF),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -2204,14 +2221,14 @@ class _GreatWorkDialog extends StatelessWidget {
                     colors: isPerfect
                         ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
                         : (themeManager.isDarkMode
-                              ? [
-                                  const Color(0xFF8B1F1F),
-                                  const Color(0xFFD23232),
-                                ]
-                              : [
-                                  const Color(0xFF69D3E4),
-                                  const Color(0xFF4FC3E4),
-                                ]),
+                        ? [
+                      const Color(0xFF8B1F1F),
+                      const Color(0xFFD23232),
+                    ]
+                        : [
+                      const Color(0xFF69D3E4),
+                      const Color(0xFF4FC3E4),
+                    ]),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2219,10 +2236,10 @@ class _GreatWorkDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (isPerfect
-                                  ? const Color(0xFFFFD700)
-                                  : themeManager.primary)
-                              .withOpacity(0.4),
+                      (isPerfect
+                          ? const Color(0xFFFFD700)
+                          : themeManager.primary)
+                          .withOpacity(0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -2241,11 +2258,11 @@ class _GreatWorkDialog extends StatelessWidget {
                   colors: isPerfect
                       ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
                       : (themeManager.isDarkMode
-                            ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                            : [
-                                const Color(0xFF69D3E4),
-                                const Color(0xFF4FC3E4),
-                              ]),
+                      ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                      : [
+                    const Color(0xFF69D3E4),
+                    const Color(0xFF4FC3E4),
+                  ]),
                 ).createShader(bounds),
                 child: Text(
                   isPerfect ? "Perfection!" : "Great Work!",
@@ -2423,7 +2440,7 @@ class _BonusRoundDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Great job! Now drag letters to their matching signs.',
+              'Great job! Now drag animals to their matching signs.',
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 fontSize: 15,

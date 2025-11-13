@@ -82,6 +82,21 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
     return _all.where((c) => c.name.toUpperCase().contains(q)).toList();
   }
 
+  void _checkIfAllColoursLearned() {
+    if (QuestStatus.watchedColours.length >= _all.length &&
+        !QuestStatus.learnedColoursAll) {
+      QuestStatus.markColoursLearnAll();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🎉 You learned all colours! Quest progress updated!'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   Future<void> _openVideo(_ColourItem item) async {
     final watched = await Navigator.push<bool>(
       context,
@@ -119,6 +134,8 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
 
       // Save progress to database
       await QuestStatus.autoSaveProgress();
+
+      _checkIfAllColoursLearned();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -455,47 +472,47 @@ class _ColourCardState extends State<_ColourCard>
           decoration: BoxDecoration(
             gradient: widget.themeManager.isDarkMode
                 ? (widget.watched
-                      ? const LinearGradient(
-                          colors: [Color(0xFF3C3C3E), Color(0xFF2C2C2E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : const LinearGradient(
-                          colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ))
+                ? const LinearGradient(
+              colors: [Color(0xFF3C3C3E), Color(0xFF2C2C2E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+                : const LinearGradient(
+              colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ))
                 : (widget.watched
-                      ? const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )),
+                ? const LinearGradient(
+              colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+                : const LinearGradient(
+              colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: widget.watched
                   ? (widget.themeManager.isDarkMode
-                        ? const Color(0xFFD23232)
-                        : const Color(0xFF0891B2))
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2))
                   : (widget.themeManager.isDarkMode
-                        ? const Color(0xFF636366)
-                        : Colors.grey.shade200),
+                  ? const Color(0xFF636366)
+                  : Colors.grey.shade200),
               width: widget.watched ? 2.5 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: widget.watched
                     ? (widget.themeManager.isDarkMode
-                          ? const Color(0xFFD23232).withOpacity(0.25)
-                          : const Color(0xFF0891B2).withOpacity(0.25))
+                    ? const Color(0xFFD23232).withOpacity(0.25)
+                    : const Color(0xFF0891B2).withOpacity(0.25))
                     : (widget.themeManager.isDarkMode
-                          ? Colors.black.withOpacity(0.3)
-                          : Colors.black.withOpacity(0.08)),
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.08)),
                 blurRadius: widget.watched ? 16 : 8,
                 offset: const Offset(0, 4),
               ),
@@ -512,15 +529,15 @@ class _ColourCardState extends State<_ColourCard>
                       gradient: RadialGradient(
                         colors: widget.themeManager.isDarkMode
                             ? [
-                                const Color(0xFFD23232).withOpacity(0.1),
-                                const Color(0xFF8B1F1F).withOpacity(0.05),
-                                Colors.transparent,
-                              ]
+                          const Color(0xFFD23232).withOpacity(0.1),
+                          const Color(0xFF8B1F1F).withOpacity(0.05),
+                          Colors.transparent,
+                        ]
                             : [
-                                const Color(0xFF06B6D4).withOpacity(0.1),
-                                const Color(0xFF0891B2).withOpacity(0.05),
-                                Colors.transparent,
-                              ],
+                          const Color(0xFF06B6D4).withOpacity(0.1),
+                          const Color(0xFF0891B2).withOpacity(0.05),
+                          Colors.transparent,
+                        ],
                         center: Alignment.topRight,
                         radius: 1.5,
                       ),
@@ -541,11 +558,11 @@ class _ColourCardState extends State<_ColourCard>
                         border: Border.all(
                           color: widget.themeManager.isDarkMode
                               ? (widget.watched
-                                    ? const Color(0xFFD23232).withOpacity(0.5)
-                                    : const Color(0xFF636366))
+                              ? const Color(0xFFD23232).withOpacity(0.5)
+                              : const Color(0xFF636366))
                               : (widget.watched
-                                    ? const Color(0xFF0891B2).withOpacity(0.5)
-                                    : Colors.grey.shade300),
+                              ? const Color(0xFF0891B2).withOpacity(0.5)
+                              : Colors.grey.shade300),
                           width: 2.5,
                         ),
                         boxShadow: [
@@ -567,11 +584,11 @@ class _ColourCardState extends State<_ColourCard>
                         fontWeight: FontWeight.w800,
                         color: widget.themeManager.isDarkMode
                             ? (widget.watched
-                                  ? const Color(0xFFD23232)
-                                  : const Color(0xFFE8E8E8))
+                            ? const Color(0xFFD23232)
+                            : const Color(0xFFE8E8E8))
                             : (widget.watched
-                                  ? const Color(0xFF0891B2)
-                                  : const Color(0xFF2D5263)),
+                            ? const Color(0xFF0891B2)
+                            : const Color(0xFF2D5263)),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -590,50 +607,50 @@ class _ColourCardState extends State<_ColourCard>
                   decoration: BoxDecoration(
                     gradient: widget.themeManager.isDarkMode
                         ? (widget.watched
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFFD23232),
-                                    Color(0xFF8B1F1F),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : const LinearGradient(
-                                  colors: [
-                                    Color(0xFF2C2C2E),
-                                    Color(0xFF1C1C1E),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ))
+                        ? const LinearGradient(
+                      colors: [
+                        Color(0xFFD23232),
+                        Color(0xFF8B1F1F),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                        : const LinearGradient(
+                      colors: [
+                        Color(0xFF2C2C2E),
+                        Color(0xFF1C1C1E),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ))
                         : (widget.watched
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFF0891B2),
-                                    Color(0xFF06B6D4),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : LinearGradient(
-                                  colors: [
-                                    Colors.grey.shade100,
-                                    Colors.grey.shade50,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )),
+                        ? const LinearGradient(
+                      colors: [
+                        Color(0xFF0891B2),
+                        Color(0xFF06B6D4),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                        : LinearGradient(
+                      colors: [
+                        Colors.grey.shade100,
+                        Colors.grey.shade50,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: widget.watched
                         ? [
-                            BoxShadow(
-                              color: widget.themeManager.isDarkMode
-                                  ? const Color(0xFFD23232).withOpacity(0.3)
-                                  : const Color(0xFF0891B2).withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
+                      BoxShadow(
+                        color: widget.themeManager.isDarkMode
+                            ? const Color(0xFFD23232).withOpacity(0.3)
+                            : const Color(0xFF0891B2).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
                         : null,
                   ),
                   child: Row(
@@ -646,11 +663,11 @@ class _ColourCardState extends State<_ColourCard>
                         size: 16,
                         color: widget.themeManager.isDarkMode
                             ? (widget.watched
-                                  ? Colors.white
-                                  : const Color(0xFF8E8E93))
+                            ? Colors.white
+                            : const Color(0xFF8E8E93))
                             : (widget.watched
-                                  ? Colors.white
-                                  : Colors.grey.shade600),
+                            ? Colors.white
+                            : Colors.grey.shade600),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -660,11 +677,11 @@ class _ColourCardState extends State<_ColourCard>
                           fontWeight: FontWeight.w700,
                           color: widget.themeManager.isDarkMode
                               ? (widget.watched
-                                    ? Colors.white
-                                    : const Color(0xFF8E8E93))
+                              ? Colors.white
+                              : const Color(0xFF8E8E93))
                               : (widget.watched
-                                    ? Colors.white
-                                    : Colors.grey.shade600),
+                              ? Colors.white
+                              : Colors.grey.shade600),
                         ),
                       ),
                     ],

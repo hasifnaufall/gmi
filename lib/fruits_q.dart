@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'badges/badges_engine.dart';
-
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
 import 'theme_manager.dart';
