@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme_manager.dart';
 
 // Call this when the user taps a medal in the Achievements tab
 Future<Object?> showAchievementPopup(
@@ -9,6 +11,7 @@ Future<Object?> showAchievementPopup(
   required bool unlocked,
 }) {
   HapticFeedback.selectionClick();
+  final themeManager = Provider.of<ThemeManager>(context, listen: false);
 
   return showGeneralDialog(
     context: context,
@@ -32,6 +35,7 @@ Future<Object?> showAchievementPopup(
                 title: title,
                 description: description,
                 unlocked: unlocked,
+                themeManager: themeManager,
               ),
             ),
           ),
@@ -47,17 +51,22 @@ class _AchievementCard extends StatelessWidget {
   final String title;
   final String description;
   final bool unlocked;
+  final ThemeManager themeManager;
 
   const _AchievementCard({
     required this.title,
     required this.description,
     required this.unlocked,
+    required this.themeManager,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = themeManager.isDarkMode;
     final icon = unlocked ? Icons.emoji_events : Icons.lock_outline;
-    final color = unlocked ? Colors.amber : Colors.grey;
+    final color = unlocked
+        ? (isDark ? const Color(0xFFD23232) : Colors.amber)
+        : (isDark ? const Color(0xFF636366) : Colors.grey);
 
     return Material(
       color: Colors.transparent,
@@ -65,13 +74,15 @@ class _AchievementCard extends StatelessWidget {
         width: 320,
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.96),
+          color: isDark
+              ? const Color(0xFF2C2C2E).withOpacity(0.96)
+              : Colors.white.withOpacity(0.96),
           borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Colors.black26,
+              color: isDark ? Colors.black.withOpacity(0.5) : Colors.black26,
               blurRadius: 22,
-              offset: Offset(0, 8),
+              offset: const Offset(0, 8),
             ),
           ],
           border: Border.all(color: color.withOpacity(0.25)),
@@ -87,13 +98,20 @@ class _AchievementCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: isDark ? const Color(0xFFE8E8E8) : Colors.black,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               description,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? const Color(0xFF8E8E93) : Colors.black54,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 14),
@@ -102,8 +120,10 @@ class _AchievementCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).maybePop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: unlocked ? Colors.amber : Colors.grey,
-                  foregroundColor: Colors.black,
+                  backgroundColor: color,
+                  foregroundColor: isDark && unlocked
+                      ? Colors.white
+                      : Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

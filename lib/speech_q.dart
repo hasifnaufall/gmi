@@ -3,23 +3,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'badges/badges_engine.dart';
 
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
+import 'theme_manager.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
 // NEW: Cute Bottom Sheet Quiz Type Selection
 Future<void> showSpeechQuizSelection(BuildContext context) {
+  final themeManager = ThemeManager.of(context, listen: false);
   return showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (_) => Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
@@ -33,7 +36,9 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: themeManager.isDarkMode
+                  ? const Color(0xFF8E8E93)
+                  : Colors.grey.shade300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -45,15 +50,21 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  gradient: LinearGradient(
+                    colors: themeManager.isDarkMode
+                        ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
+                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.3),
+                      color:
+                          (themeManager.isDarkMode
+                                  ? const Color(0xFFD23232)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -68,7 +79,9 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
                   style: GoogleFonts.montserrat(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFFE8E8E8)
+                        : const Color(0xFF1E1E1E),
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -82,14 +95,17 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
             icon: Icons.quiz_rounded,
             title: 'Multiple Choice',
             description: '10 questions',
-            gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            gradient: themeManager.isDarkMode
+                ? const [Color(0xFFD23232), Color(0xFF8B1F1F)]
+                : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            themeManager: themeManager,
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                  const SpeechQuizScreen(quizType: QuizType.multipleChoice),
+                      const SpeechQuizScreen(quizType: QuizType.multipleChoice),
                 ),
               );
             },
@@ -100,6 +116,7 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
             title: 'Mix & Match',
             description: 'Coming soon!',
             gradient: const [Colors.grey, Colors.grey],
+            themeManager: themeManager,
             onTap: () {
               // TODO: Implement Mix & Match for speech
               Navigator.pop(context);
@@ -124,6 +141,7 @@ class _CompactQuizCard extends StatelessWidget {
   final String description;
   final List<Color> gradient;
   final VoidCallback onTap;
+  final ThemeManager themeManager;
 
   const _CompactQuizCard({
     required this.icon,
@@ -131,10 +149,12 @@ class _CompactQuizCard extends StatelessWidget {
     required this.description,
     required this.gradient,
     required this.onTap,
+    required this.themeManager,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = themeManager.isDarkMode;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -144,13 +164,14 @@ class _CompactQuizCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.grey.shade50, Colors.grey.shade100],
+              colors: isDark
+                  ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                  : [Colors.grey.shade50, Colors.grey.shade100],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border:
-            Border.all(color: gradient[0].withOpacity(0.3), width: 2),
+            border: Border.all(color: gradient[0].withOpacity(0.3), width: 2),
           ),
           child: Row(
             children: [
@@ -184,7 +205,9 @@ class _CompactQuizCard extends StatelessWidget {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E1E1E),
+                        color: isDark
+                            ? const Color(0xFFE8E8E8)
+                            : const Color(0xFF1E1E1E),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -223,10 +246,7 @@ class _CompactQuizCard extends StatelessWidget {
 class SpeechQuizScreen extends StatefulWidget {
   final QuizType quizType;
 
-  const SpeechQuizScreen({
-    super.key,
-    this.quizType = QuizType.multipleChoice,
-  });
+  const SpeechQuizScreen({super.key, this.quizType = QuizType.multipleChoice});
 
   @override
   State<SpeechQuizScreen> createState() => _SpeechQuizScreenState();
@@ -327,12 +347,18 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
 
     currentSlot = 0;
 
-    _controller =
-        AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -386,8 +412,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
 
     final nextSlot = _nextUnansweredSlotAfter(currentSlot);
     setState(() {
-      currentSlot =
-          (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+        0,
+        activeIndices.length - 1,
+      );
       isOptionSelected = false;
       _pendingIndex = null;
       _controller.reset();
@@ -461,7 +489,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-        "This action can't be undone and your progress this round will be lost.",
+            "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -485,8 +513,12 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child:
-        _SlideInBadge(icon: icon, title: title, subtitle: subtitle, color: bgColor),
+        child: _SlideInBadge(
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          color: bgColor,
+        ),
       ),
     );
     overlay.insert(entry);
@@ -496,11 +528,15 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   // BUILD
   @override
   Widget build(BuildContext context) {
-    return _buildMultipleChoiceQuiz();
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return _buildMultipleChoiceQuiz(themeManager);
+      },
+    );
   }
 
   // MULTIPLE CHOICE UI
-  Widget _buildMultipleChoiceQuiz() {
+  Widget _buildMultipleChoiceQuiz(ThemeManager themeManager) {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
     final options = _questionOptions[qIdx]!;
@@ -508,7 +544,9 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     return WillPopScope(
       onWillPop: () async => await _confirmExitQuiz(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFCFFFF7),
+        backgroundColor: themeManager.isDarkMode
+            ? const Color(0xFF1C1C1E)
+            : const Color(0xFFCFFFF7),
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -518,15 +556,16 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    _buildHeader("Speech Quiz"),
+                    _buildHeader("Speech Quiz", themeManager),
                     const SizedBox(height: 12),
-                    _buildProgressBar(),
+                    _buildProgressBar(themeManager),
                     const SizedBox(height: 16),
-                    _buildQuestionCard(question),
+                    _buildQuestionCard(question, themeManager),
                     const SizedBox(height: 32),
-                    _buildOptionsGrid(options, qIdx),
+                    _buildOptionsGrid(options, qIdx, themeManager),
                     const SizedBox(height: 12),
-                    if (_pendingIndex != null) _buildConfirmBar(options),
+                    if (_pendingIndex != null)
+                      _buildConfirmBar(options, themeManager),
                   ],
                 ),
               ),
@@ -537,7 +576,8 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     );
   }
 
-  Widget _buildHeader(String title) {
+  Widget _buildHeader(String title, ThemeManager themeManager) {
+    final isDark = themeManager.isDarkMode;
     return Row(
       children: [
         IconButton(
@@ -545,26 +585,32 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                    : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF69D3E4).withOpacity(0.3),
+                color: isDark
+                    ? const Color(0xFFD23232).withOpacity(0.3)
+                    : const Color(0xFF69D3E4).withOpacity(0.3),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF69D3E4).withOpacity(0.15),
+                  color: isDark
+                      ? const Color(0xFFD23232).withOpacity(0.15)
+                      : const Color(0xFF69D3E4).withOpacity(0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF69D3E4),
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
               size: 20,
             ),
           ),
@@ -576,7 +622,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
             style: GoogleFonts.montserrat(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF69D3E4),
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
               letterSpacing: -0.5,
             ),
           ),
@@ -584,15 +630,19 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
+                  : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF69D3E4).withOpacity(0.3),
+                color: isDark
+                    ? const Color(0xFFD23232).withOpacity(0.3)
+                    : const Color(0xFF69D3E4).withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -618,7 +668,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   }
 
   // Progress
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(ThemeManager themeManager) {
     final total = activeIndices.length;
     int correct = 0, wrong = 0;
     for (final i in activeIndices) {
@@ -697,9 +747,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF69D3E4).withOpacity(0.3),
-            ),
+            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF69D3E4).withOpacity(0.1),
@@ -723,24 +771,34 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   }
 
   // Question Card
-  Widget _buildQuestionCard(Map<String, dynamic> question) {
+  Widget _buildQuestionCard(
+    Map<String, dynamic> question,
+    ThemeManager themeManager,
+  ) {
+    final isDark = themeManager.isDarkMode;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF69D3E4).withOpacity(0.3),
+          color: isDark
+              ? const Color(0xFFD23232).withOpacity(0.3)
+              : const Color(0xFF69D3E4).withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF69D3E4).withOpacity(0.15),
+            color: isDark
+                ? const Color(0xFFD23232).withOpacity(0.15)
+                : const Color(0xFF69D3E4).withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -754,7 +812,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF69D3E4),
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
               letterSpacing: -0.3,
             ),
           ),
@@ -762,13 +820,18 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border:
-              Border.all(color: const Color(0xFF69D3E4).withOpacity(0.2)),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFFD23232).withOpacity(0.2)
+                    : const Color(0xFF69D3E4).withOpacity(0.2),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF69D3E4).withOpacity(0.1),
+                  color: isDark
+                      ? const Color(0xFFD23232).withOpacity(0.1)
+                      : const Color(0xFF69D3E4).withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -799,7 +862,11 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   }
 
   // Options Grid
-  Widget _buildOptionsGrid(List<String> options, int qIdx) {
+  Widget _buildOptionsGrid(
+    List<String> options,
+    int qIdx,
+    ThemeManager themeManager,
+  ) {
     return Expanded(
       child: ListView.builder(
         itemCount: options.length,
@@ -808,7 +875,9 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           final correctIndex = _questionCorrectIndex[qIdx]!;
           final isCorrect = index == correctIndex;
           final wasSelected =
-              alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+              alreadyAnswered &&
+              _sessionAnswers[qIdx] == isCorrect &&
+              isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return Padding(
@@ -829,7 +898,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   }
 
   // Confirm Bar
-  Widget _buildConfirmBar(List<String> options) {
+  Widget _buildConfirmBar(List<String> options, ThemeManager themeManager) {
     final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(14),
@@ -887,8 +956,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           // Gradient confirm button
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
@@ -909,8 +977,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 child: Text(
                   'Confirm',
                   style: GoogleFonts.montserrat(
@@ -952,22 +1022,20 @@ class OptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: isSelected || isPending
             ? const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
+                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
             : const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+                colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
               ? const Color(0xFF69D3E4)
-              : (isPending
-              ? const Color(0xFF4FC3E4)
-              : const Color(0xFFE3E6EE)),
+              : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)),
           width: isSelected || isPending ? 2.5 : 1.5,
         ),
         boxShadow: [
@@ -1001,8 +1069,7 @@ class OptionCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color:
-                        const Color(0xFF69D3E4).withOpacity(0.3),
+                        color: const Color(0xFF69D3E4).withOpacity(0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -1043,7 +1110,11 @@ class OptionCard extends StatelessWidget {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
               ],
             ),
@@ -1060,32 +1131,34 @@ class _LegendDot extends StatelessWidget {
   const _LegendDot({required this.label, required this.color});
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        width: 12,
-        height: 12,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            )
-          ],
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(width: 6),
-      Text(
-        label,
-        style: GoogleFonts.montserrat(
-          fontSize: 12,
-          color: Colors.black54,
-          fontWeight: FontWeight.w700,
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -1106,9 +1179,10 @@ class _SlideInBadge extends StatefulWidget {
 
 class _SlideInBadgeState extends State<_SlideInBadge>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-  AnimationController(vsync: this, duration: const Duration(milliseconds: 280))
-    ..forward();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+  )..forward();
   late final Animation<Offset> _a = Tween<Offset>(
     begin: const Offset(1.1, 0),
     end: Offset.zero,
@@ -1146,42 +1220,44 @@ class _SlideInBadgeState extends State<_SlideInBadge>
                     : widget.color.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
-          child: Row(children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon, color: Colors.white, size: 24),
               ),
-              child: Icon(widget.icon, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  Text(
-                    widget.subtitle,
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 13,
+                    Text(
+                      widget.subtitle,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ),
       ),
     );
@@ -1247,10 +1323,11 @@ class _CleanConfirmDialog extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (icon == Icons.warning_amber_rounded
-                          ? const Color(0xFFFF4B4A)
-                          : const Color(0xFF69D3E4))
-                          .withOpacity(0.3),
+                      color:
+                          (icon == Icons.warning_amber_rounded
+                                  ? const Color(0xFFFF4B4A)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1280,82 +1357,84 @@ class _CleanConfirmDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 22),
-              Row(children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFF69D3E4).withOpacity(0.5),
-                        width: 2,
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Navigator.pop(context, false),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          alignment: Alignment.center,
-                          child: Text(
-                            secondaryLabel,
-                            style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: const Color(0xFF69D3E4),
+                        border: Border.all(
+                          color: const Color(0xFF69D3E4).withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: const Color(0xFF69D3E4),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF69D3E4).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Navigator.pop(context, true),
                         borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          alignment: Alignment.center,
-                          child: Text(
-                            primaryLabel,
-                            style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF69D3E4).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, true),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              primaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ],
           ),
         ),
@@ -1405,157 +1484,170 @@ class _GreatWorkDialog extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isPerfect
-                      ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                      : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: (isPerfect
-                        ? const Color(0xFFFFD700)
-                        : const Color(0xFF69D3E4))
-                        .withOpacity(0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isPerfect
+                        ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/gifs/trophy_quiz.gif',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.emoji_events, size: 60, color: Colors.white),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isPerfect
+                                  ? const Color(0xFFFFD700)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: isPerfect
-                    ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                    : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-              ).createShader(bounds),
-              child: Text(
-                isPerfect ? "Perfection!" : "Great Work!",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              isPerfect
-                  ? "You answered every question flawlessly."
-                  : "You completed this quiz successfully!",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                color: const Color(0xFF4B5563),
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 26),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 28),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: const Color(0xFF69D3E4).withOpacity(0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF69D3E4).withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  ).createShader(bounds),
-                  child: Text(
-                    "$score / $total",
-                    style: GoogleFonts.montserrat(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/gifs/trophy_quiz.gif',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.emoji_events,
+                      size: 60,
                       color: Colors.white,
-                      letterSpacing: -1,
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: Container(
+              const SizedBox(height: 24),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: isPerfect
+                      ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                      : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                ).createShader(bounds),
+                child: Text(
+                  isPerfect ? "Perfection!" : "Great Work!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isPerfect
+                    ? "You answered every question flawlessly."
+                    : "You completed this quiz successfully!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  color: const Color(0xFF4B5563),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 26),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 28,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.4),
+                      color: const Color(0xFF69D3E4).withOpacity(0.15),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onReturn,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.arrow_back_rounded,
-                              size: 24, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'Return',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              fontFamily: 'Montserrat',
-                            ),
-                          ),
-                        ],
+                child: Center(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    ).createShader(bounds),
+                    child: Text(
+                      "$score / $total",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -1,
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ]),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onReturn,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.arrow_back_rounded,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Return',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                fontFamily: 'Montserrat',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
