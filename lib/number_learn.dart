@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'theme_manager.dart';
 import 'sign_video_player.dart';
 import 'quest_status.dart';
 
@@ -105,231 +107,254 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
     final watchedCount = QuestStatus.watchedNumbers.length;
     final progress = watchedCount / _all.length;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFCFFFF7), // Light mint background
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        title: Text(
-          "Learn Number Signs",
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          IconButton(
-            tooltip: _columns == 3 ? "Bigger cards" : "More per row",
-            onPressed: () => setState(() => _columns = _columns == 3 ? 2 : 3),
-            icon: Icon(
-              _columns == 3 ? Icons.grid_view_rounded : Icons.view_comfy_alt,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Progress header
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0891B2).withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return Scaffold(
+          backgroundColor: themeManager.isDarkMode
+              ? const Color(0xFF1C1C1E)
+              : const Color(0xFFCFFFF7), // Light mint background
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: themeManager.isDarkMode
+                      ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
+                      : [const Color(0xFF0891B2), const Color(0xFF06B6D4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
+              ),
             ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            title: Text(
+              "Learn Number Signs",
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            actions: [
+              IconButton(
+                tooltip: _columns == 3 ? "Bigger cards" : "More per row",
+                onPressed: () =>
+                    setState(() => _columns = _columns == 3 ? 2 : 3),
+                icon: Icon(
+                  _columns == 3
+                      ? Icons.grid_view_rounded
+                      : Icons.view_comfy_alt,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              // Progress header
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0891B2).withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Your Progress",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Your Progress",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "$watchedCount / ${_all.length} Numbers",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 24,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "$watchedCount / ${_all.length} Numbers",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 24,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.2),
+                                  Colors.white.withOpacity(0.1),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  color: Color(0xFFFFEB99),
+                                  size: 28,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${(progress * 100).toInt()}%",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.2),
-                              Colors.white.withOpacity(0.1),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Column(
+                    ),
+                    // Progress bar
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Stack(
                           children: [
-                            const Icon(
-                              Icons.auto_awesome,
-                              color: Color(0xFFFFEB99),
-                              size: 28,
+                            Container(
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "${(progress * 100).toInt()}%",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                            FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFFEB99),
+                                      Color(0xFFFCD34D),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFFFFEB99,
+                                      ).withOpacity(0.5),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // Progress bar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: progress,
-                          child: Container(
-                            height: 8,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFFEB99), Color(0xFFFCD34D)],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFFFFEB99,
-                                  ).withOpacity(0.5),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+              ),
+              // Search bar
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (v) => setState(() => _query = v),
+                  style: GoogleFonts.montserrat(),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF0891B2),
+                    ),
+                    hintText: "Search 1–20",
+                    hintStyle: GoogleFonts.montserrat(
+                      color: Colors.grey.shade500,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF0891B2),
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              keyboardType: TextInputType.number,
-              onChanged: (v) => setState(() => _query = v),
-              style: GoogleFonts.montserrat(),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF0891B2)),
-                hintText: "Search 1–20",
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey.shade500),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF0891B2),
-                    width: 2,
+              ),
+
+              // Grid
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _columns,
+                    childAspectRatio: _columns == 3 ? 0.85 : 0.95,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
                   ),
+                  itemCount: _filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = _filtered[index];
+                    final label = item['label']!;
+                    final watched = QuestStatus.watchedNumbers.contains(label);
+
+                    return _NumberCard(
+                      label: label,
+                      watched: watched,
+                      onTap: () => _openVideo(item),
+                      themeManager: themeManager,
+                    );
+                  },
                 ),
               ),
-            ),
+            ],
           ),
-
-          // Grid
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _columns,
-                childAspectRatio: _columns == 3 ? 0.85 : 0.95,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: _filtered.length,
-              itemBuilder: (context, index) {
-                final item = _filtered[index];
-                final label = item['label']!;
-                final watched = QuestStatus.watchedNumbers.contains(label);
-
-                return _NumberCard(
-                  label: label,
-                  watched: watched,
-                  onTap: () => _openVideo(item),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -338,11 +363,13 @@ class _NumberCard extends StatefulWidget {
   final String label;
   final bool watched;
   final VoidCallback onTap;
+  final ThemeManager themeManager;
 
   const _NumberCard({
     required this.label,
     required this.watched,
     required this.onTap,
+    required this.themeManager,
   });
 
   @override
@@ -380,29 +407,49 @@ class _NumberCardState extends State<_NumberCard>
         scale: _scale,
         child: Container(
           decoration: BoxDecoration(
-            gradient: widget.watched
-                ? const LinearGradient(
-                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+            gradient: widget.themeManager.isDarkMode
+                ? (widget.watched
+                      ? const LinearGradient(
+                          colors: [Color(0xFF3C3C3E), Color(0xFF2C2C2E)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : const LinearGradient(
+                          colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ))
+                : (widget.watched
+                      ? const LinearGradient(
+                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : const LinearGradient(
+                          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: widget.watched
-                  ? const Color(0xFF0891B2)
-                  : Colors.grey.shade200,
+                  ? (widget.themeManager.isDarkMode
+                        ? const Color(0xFFD23232)
+                        : const Color(0xFF0891B2))
+                  : (widget.themeManager.isDarkMode
+                        ? const Color(0xFF636366)
+                        : Colors.grey.shade200),
               width: widget.watched ? 2.5 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: widget.watched
-                    ? const Color(0xFF0891B2).withOpacity(0.25)
-                    : Colors.black.withOpacity(0.08),
+                    ? (widget.themeManager.isDarkMode
+                          ? const Color(0xFFD23232).withOpacity(0.25)
+                          : const Color(0xFF0891B2).withOpacity(0.25))
+                    : (widget.themeManager.isDarkMode
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.black.withOpacity(0.08)),
                 blurRadius: widget.watched ? 16 : 8,
                 offset: const Offset(0, 4),
               ),

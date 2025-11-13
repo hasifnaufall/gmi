@@ -13,7 +13,15 @@ class ThemeManager extends ChangeNotifier {
 
   // Static helper to get theme manager from context
   static ThemeManager of(BuildContext context, {bool listen = true}) {
-    return Provider.of<ThemeManager>(context, listen: listen);
+    try {
+      return Provider.of<ThemeManager>(context, listen: listen);
+    } catch (e) {
+      // Fallback: return a new instance if Provider is not available
+      print(
+        'ThemeManager not found in widget tree, returning new instance: $e',
+      );
+      return ThemeManager();
+    }
   }
 
   ThemeManager() {
