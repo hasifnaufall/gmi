@@ -144,17 +144,30 @@ function App() {
   // Robust Firestore timestamp parser
   const formatDate = (ts) => {
     if (!ts) return 'Never';
-    // Firestore Timestamp object
-    if (typeof ts === 'object') {
-      if (ts.seconds) {
-        return new Date(ts.seconds * 1000).toLocaleString();
+    try {
+      // Firestore Timestamp object
+      if (typeof ts === 'object') {
+        if (ts.seconds) {
+          return new Date(ts.seconds * 1000).toLocaleString();
+        }
+        if (ts._seconds) {
+          return new Date(ts._seconds * 1000).toLocaleString();
+        }
+        // Firestore Timestamp with toDate method
+        if (typeof ts.toDate === 'function') {
+          return ts.toDate().toLocaleString();
+        }
       }
-      if (ts._seconds) {
-        return new Date(ts._seconds * 1000).toLocaleString();
+      // ISO string or number
+      const date = new Date(ts);
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
       }
+      return date.toLocaleString();
+    } catch (err) {
+      console.error('Error formatting date:', err, ts);
+      return 'Invalid Date';
     }
-    // ISO string or number
-    return new Date(ts).toLocaleString();
   };
 
   const OverviewTab = () => (
@@ -290,7 +303,7 @@ function App() {
               <div className="activity-type">{activity.type}</div>
               <div className="activity-details">{activity.details}</div>
               <div className="activity-user">User: {activity.userId}</div>
-              <div className="activity-time">{formatDate(activity.timestamp?.toDate?.())}</div>
+              <div className="activity-time">{formatDate(activity.timestamp)}</div>
             </div>
           ))
         ) : (

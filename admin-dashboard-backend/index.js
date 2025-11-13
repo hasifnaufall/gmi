@@ -125,13 +125,16 @@ app.get('/activities/recent', verifyAuth, requireAdmin, async (req, res) => {
 // If you prefer to restrict to authenticated users only, add verifyAuth here too.
 app.post('/feedback', async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    const { userId, message, userName, userEmail } = req.body;
     if (!userId || !message) {
       return res.status(400).send({ error: 'userId and message are required.' });
     }
     await db.collection('feedback').add({
       userId,
       message,
+      userName: userName || 'Anonymous',
+      userEmail: userEmail || '',
+      status: 'new',
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     });
     res.status(201).send({ success: true });

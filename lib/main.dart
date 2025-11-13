@@ -1,4 +1,5 @@
 // lib/main.dart
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'utils/sound_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -104,7 +105,8 @@ class WaveActApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeManager>(
       builder: (context, themeManager, child) {
-        return SoundWrapper(  // ← ADD THIS LINE
+        return SoundWrapper(
+          // ← ADD THIS LINE
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'WaveAct',
@@ -144,9 +146,12 @@ class WaveActApp extends StatelessWidget {
                 },
               ),
             ),
-            themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            themeMode: themeManager.isDarkMode
+                ? ThemeMode.dark
+                : ThemeMode.light,
             builder: (context, child) {
-              ErrorWidget.builder = (FlutterErrorDetails details) => Container();
+              ErrorWidget.builder = (FlutterErrorDetails details) =>
+                  Container();
               return ResponsiveBreakpoints.builder(
                 child: child!,
                 breakpoints: const [
@@ -167,7 +172,7 @@ class WaveActApp extends StatelessWidget {
               '/leaderboard': (context) => const LeaderboardPage(),
             },
           ),
-        );  // ← ADD THIS CLOSING PARENTHESIS FOR SoundWrapper
+        ); // ← ADD THIS CLOSING PARENTHESIS FOR SoundWrapper
       },
     );
   }
@@ -254,8 +259,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeApp() async {
-    // Reduced delay for faster startup
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Extended delay so users can see the splash screen and collaboration
+    await Future.delayed(const Duration(milliseconds: 2500));
 
     if (!mounted) return;
 
@@ -419,21 +424,96 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 60),
-                  // Loading indicator
+                  // Cool wave loading animation
                   FadeTransition(
                     opacity: _fadeAnimation,
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withOpacity(0.8),
-                        ),
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          duration: Duration(milliseconds: 800),
+                          curve: Curves.easeInOut,
+                          builder: (context, value, child) {
+                            final delay = index * 0.15;
+                            final animValue = ((value - delay).clamp(0.0, 1.0));
+                            final scale = 0.5 + (sin(animValue * pi * 2) * 0.5);
+
+                            return Transform.scale(
+                              scale: scale,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withOpacity(0.9),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.5),
+                                      blurRadius: 8,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          onEnd: () {
+                            // Loop animation
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          },
+                        );
+                      }),
                     ),
                   ),
                 ],
+              ),
+            ),
+            // Collaboration line at bottom
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'In collaboration with',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.85),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/mfd.jpg',
+                        width: 24,
+                        height: 24,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
