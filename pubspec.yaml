@@ -38,6 +38,7 @@ flutter:
     - assets/images/animal/
     - assets/images/fruit/
     - assets/images/verb/
+    - assets/images/speech/
     - assets/images/
     - assets/videos/alphabet/
     - assets/videos/numbers/
@@ -45,6 +46,7 @@ flutter:
     - assets/videos/fruits/
     - assets/videos/animals/
     - assets/videos/verbs/
+    - assets/videos/speechs/
     - assets/images/mfd.jpg
     - assets/images/logo.png
     - assets/images/google.png

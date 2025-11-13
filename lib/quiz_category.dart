@@ -92,7 +92,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = true;
+  static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -1205,7 +1205,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         _categoryTile(
           title: 'Verbs',
           questions: 15,
-          imageAsset: 'assets/images/verb/VERBS.jpg',
+          imageAsset: 'assets/images/verb/VERBS.png',
           imageWidth: 92,
           isUnlocked:
               kUnlocksDisabled ||
@@ -1613,7 +1613,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Easy',
-                            icon: Icons.sentiment_satisfied_alt,
+                            icon: Icons.sentiment_satisfied_alt, // Keep this or change to Icons.check_circle
                             color: Color(0xFF22C55E),
                             isSelected: _selectedDifficulty == 'Easy',
                             themeManager: themeManager,
@@ -1626,7 +1626,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Medium',
-                            icon: Icons.sentiment_neutral,
+                            icon: Icons.sentiment_neutral, // Keep this or change to Icons.flash_on
                             color: Color(0xFFFB923C),
                             isSelected: _selectedDifficulty == 'Medium',
                             themeManager: themeManager,
@@ -1639,7 +1639,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Hard',
-                            icon: Icons.sentiment_very_dissatisfied,
+                            icon: Icons.sentiment_very_dissatisfied, // Keep this or change to Icons.whatshot
                             color: Color(0xFFEF4444),
                             isSelected: _selectedDifficulty == 'Hard',
                             themeManager: themeManager,
@@ -1789,60 +1789,57 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [color.withOpacity(0.3), color.withOpacity(0.15)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : LinearGradient(
-                  colors: [color.withOpacity(0.08), color.withOpacity(0.05)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected
+              ? color
+              : (themeManager.isDarkMode
+              ? Color(0xFF2C2C2E)
+              : Colors.white),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : color.withOpacity(0.3),
-            width: isSelected ? 3 : 2,
+            color: isSelected
+                ? color
+                : (themeManager.isDarkMode
+                ? Color(0xFF3C3C3E)
+                : Color(0xFFE5E7EB)),
+            width: 2,
           ),
           boxShadow: isSelected
               ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: color.withOpacity(0.15),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? color : color.withOpacity(0.7),
-              size: isSelected ? 32 : 28,
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
-            SizedBox(height: 6),
-            Text(
-              label,
-              style: GoogleFonts.montserrat(
-                fontSize: isSelected ? 14 : 13,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
-                color: themeManager.isDarkMode
-                    ? (isSelected ? color : Color(0xFFE8E8E8).withOpacity(0.8))
-                    : (isSelected ? color : Color(0xFF2D5263).withOpacity(0.8)),
-              ),
+          ]
+              : [
+            BoxShadow(
+              color: themeManager.isDarkMode
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: Offset(0, 2),
             ),
           ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.montserrat(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: isSelected
+                  ? Colors.white
+                  : (themeManager.isDarkMode
+                  ? Color(0xFFE8E8E8)
+                  : Color(0xFF2D5263)),
+              letterSpacing: 0.5,
+            ),
+          ),
         ),
       ),
     );

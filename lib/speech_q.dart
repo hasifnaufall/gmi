@@ -61,10 +61,10 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (themeManager.isDarkMode
-                                  ? const Color(0xFFD23232)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.3),
+                      (themeManager.isDarkMode
+                          ? const Color(0xFFD23232)
+                          : const Color(0xFF69D3E4))
+                          .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -105,7 +105,7 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const SpeechQuizScreen(quizType: QuizType.multipleChoice),
+                  const SpeechQuizScreen(quizType: QuizType.multipleChoice),
                 ),
               );
             },
@@ -114,16 +114,34 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
           _CompactQuizCard(
             icon: Icons.swap_horiz_rounded,
             title: 'Mix & Match',
-            description: 'Coming soon!',
-            gradient: const [Colors.grey, Colors.grey],
+            description: '6 pairs',
+            gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
             themeManager: themeManager,
             onTap: () {
-              // TODO: Implement Mix & Match for speech
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mix & Match coming soon for Speech! 🎤'),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const SpeechQuizScreen(quizType: QuizType.mixMatch),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _CompactQuizCard(
+            icon: Icons.stars_rounded,
+            title: 'Both Modes',
+            description: '10 MC + 6 Mix&Match',
+            gradient: const [Color(0xFFFFD700), Color(0xFFFFA500)],
+            themeManager: themeManager,
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const SpeechQuizScreen(quizType: QuizType.both),
                 ),
               );
             },
@@ -246,7 +264,7 @@ class _CompactQuizCard extends StatelessWidget {
 class SpeechQuizScreen extends StatefulWidget {
   final QuizType quizType;
 
-  const SpeechQuizScreen({super.key, this.quizType = QuizType.multipleChoice});
+  const SpeechQuizScreen({super.key, this.quizType = QuizType.both});
 
   @override
   State<SpeechQuizScreen> createState() => _SpeechQuizScreenState();
@@ -256,6 +274,12 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     with SingleTickerProviderStateMixin {
   // Session sizes
   static const int multipleChoiceSize = 10;
+  static const int mixMatchSize = 6;
+
+  // Mix & Match visual sizing
+  static const double mmRowGap = 10;
+  static const double mmImageHeight = 95; // hand sign box
+  static const double mmPhraseHeight = 70; // phrase box
 
   // Multiple choice state
   late List<int> activeIndices;
@@ -263,6 +287,20 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   bool isOptionSelected = false;
   int? _pendingIndex;
   final Map<int, bool> _sessionAnswers = {};
+
+  // Mix & Match state
+  late List<int> mixMatchIndices;
+  bool _isInMixMatchRound = false;
+  final Map<String, String> _currentMatches = {}; // leftId -> rightId
+  List<String> _mmPhrasesOrder = [];
+  List<String> _mmImagesOrder = [];
+  Map<String, String> _imageForPhrase = {}; // phrase -> imagePath
+  final ScrollController _mmScroll = ScrollController();
+
+  // NEW: Review mode (show correct/wrong for 2s)
+  bool _mmReviewMode = false;
+  final Set<String> _mmCorrectRightIds = {}; // e.g. right_Hello
+  final Set<String> _mmWrongRightIds = {};
 
   // Animations
   late AnimationController _controller;
@@ -338,7 +376,20 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     Sfx().init();
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
-    activeIndices = all.take(multipleChoiceSize).toList();
+
+    // Adjust based on quiz type
+    if (widget.quizType == QuizType.multipleChoice) {
+      activeIndices = all.take(multipleChoiceSize).toList();
+      mixMatchIndices = [];
+    } else if (widget.quizType == QuizType.mixMatch) {
+      activeIndices = [];
+      mixMatchIndices = all.take(mixMatchSize).toList();
+    } else {
+      // QuizType.both
+      activeIndices = all.take(multipleChoiceSize).toList();
+      final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
+      mixMatchIndices = remaining.take(mixMatchSize).toList();
+    }
 
     // Pre-generate options for all active questions
     for (final idx in activeIndices) {
@@ -346,6 +397,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     }
 
     currentSlot = 0;
+
+    // Start directly in Mix&Match if that's the only mode
+    _isInMixMatchRound = widget.quizType == QuizType.mixMatch;
+    if (_isInMixMatchRound) _prepareMixMatchRound();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -365,7 +420,26 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   @override
   void dispose() {
     _controller.dispose();
+    _mmScroll.dispose();
     super.dispose();
+  }
+
+  // Freeze orders for Mix&Match
+  void _prepareMixMatchRound() {
+    _imageForPhrase.clear();
+    for (final idx in mixMatchIndices) {
+      final phrase = questions[idx]['phrase'] as String;
+      final image = questions[idx]['image'] as String;
+      _imageForPhrase[phrase] = image;
+    }
+    final phrases = mixMatchIndices
+        .map((i) => questions[i]['phrase'] as String)
+        .toList();
+    final images = mixMatchIndices
+        .map((i) => questions[i]['image'] as String)
+        .toList();
+    _mmPhrasesOrder = List<String>.from(phrases)..shuffle();
+    _mmImagesOrder = List<String>.from(images)..shuffle();
   }
 
   // MULTIPLE CHOICE handler
@@ -405,8 +479,28 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     await Future.delayed(const Duration(milliseconds: 250));
 
     if (_allAnsweredInSession()) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      _finishSession();
+      if (!mounted) return;
+
+      // If "both" mode, transition to Mix&Match
+      if (widget.quizType == QuizType.both && mixMatchIndices.isNotEmpty) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _BonusRoundDialog(),
+        );
+        setState(() {
+          _prepareMixMatchRound();
+          _isInMixMatchRound = true;
+          currentSlot = 0;
+          _controller.reset();
+          _controller.forward();
+        });
+      } else {
+        // Multiple choice only mode - finish session
+        await Future.delayed(const Duration(milliseconds: 500));
+        _finishSession();
+      }
       return;
     }
 
@@ -423,6 +517,85 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     });
   }
 
+  // NEW: Undo a specific match in Mix & Match
+  void _undoMatch(String rightId) {
+    setState(() {
+      _currentMatches.removeWhere((key, value) => value == rightId);
+    });
+  }
+
+  // MIX & MATCH: After all pairs filled → confirm dialog
+  void _onAllPairsFilled() async {
+    final submit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _CleanConfirmDialog(
+        icon: Icons.check_circle_rounded,
+        title: 'Submit answers?',
+        message:
+        "You've matched all pairs. Submit now or reset all to try again.",
+        primaryLabel: 'Submit',
+        secondaryLabel: 'Reset',
+      ),
+    );
+
+    if (submit == true) {
+      _evaluateMixMatchAndReview();
+    } else {
+      setState(() => _currentMatches.clear());
+    }
+  }
+
+  // NEW: Evaluate + enter review mode (2s), then finish
+  void _evaluateMixMatchAndReview() {
+    _mmCorrectRightIds.clear();
+    _mmWrongRightIds.clear();
+
+    bool allCorrect = true;
+    for (final idx in mixMatchIndices) {
+      final phrase = questions[idx]['phrase'] as String;
+      final leftId = "left_$phrase";
+      final rightId = "right_$phrase";
+      if (_currentMatches[leftId] == rightId) {
+        _mmCorrectRightIds.add(rightId);
+      } else {
+        allCorrect = false;
+        _mmWrongRightIds.add(rightId);
+      }
+    }
+
+    // Enter review mode (disable dragging; show colors)
+    setState(() => _mmReviewMode = true);
+
+    // After 2s → exit review, show popup + finish
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() => _mmReviewMode = false);
+      _completeMixMatch(allCorrect);
+    });
+  }
+
+  // Separate finisher (used after review)
+  void _completeMixMatch(bool allCorrect) {
+    if (allCorrect) {
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Perfect Match!",
+        subtitle: "You earned 50 XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
+      QuestStatus.addXp(50);
+    } else {
+      showAnimatedPopup(
+        icon: Icons.close,
+        title: "Some Incorrect",
+        subtitle: "Try again next time!",
+        bgColor: const Color(0xFFFF4B4A),
+      );
+    }
+    Future.delayed(const Duration(milliseconds: 500), () => _finishSession());
+  }
+
   // Session Completion
   Future<void> _finishSession() async {
     if (!mounted) return;
@@ -434,7 +607,12 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       if (_sessionAnswers[i] == true) sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length;
+    // Count Mix&Match if present
+    if (mixMatchIndices.isNotEmpty && _mmCorrectRightIds.length == mixMatchIndices.length) {
+      sessionScore++;
+    }
+
+    final totalQuestions = activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
 
     // BADGES: update counters
     QuestStatus.quizzesCompleted++;
@@ -443,8 +621,18 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       QuestStatus.perfectQuizzes++;
     }
 
-    QuestStatus.completedMC = true;
-    // REMOVED: QuestStatus.playedSpeech = true;  // This field doesn't exist
+    // Mark modes completed
+    if (widget.quizType == QuizType.multipleChoice ||
+        widget.quizType == QuizType.both) {
+      QuestStatus.completedMC = true;
+    }
+    if (widget.quizType == QuizType.mixMatch ||
+        widget.quizType == QuizType.both) {
+      QuestStatus.completedMM = true;
+    }
+
+    // Mark category played
+    QuestStatus.playedSpeech = true;
 
     // Evaluate & show any newly unlocked badge popup
     await BadgeEngine.checkAndToast(context);
@@ -489,7 +677,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-            "This action can't be undone and your progress this round will be lost.",
+        "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -528,51 +716,111 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
   // BUILD
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeManager>(
-      builder: (context, themeManager, child) {
-        return _buildMultipleChoiceQuiz(themeManager);
-      },
-    );
+    return _isInMixMatchRound
+        ? _buildMixMatchQuiz()
+        : _buildMultipleChoiceQuiz();
   }
 
   // MULTIPLE CHOICE UI
-  Widget _buildMultipleChoiceQuiz(ThemeManager themeManager) {
+  Widget _buildMultipleChoiceQuiz() {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
     final options = _questionOptions[qIdx]!;
 
-    return WillPopScope(
-      onWillPop: () async => await _confirmExitQuiz(),
-      child: Scaffold(
-        backgroundColor: themeManager.isDarkMode
-            ? const Color(0xFF1C1C1E)
-            : const Color(0xFFCFFFF7),
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _offsetAnimation,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    _buildHeader("Speech Quiz", themeManager),
-                    const SizedBox(height: 12),
-                    _buildProgressBar(themeManager),
-                    const SizedBox(height: 16),
-                    _buildQuestionCard(question, themeManager),
-                    const SizedBox(height: 32),
-                    _buildOptionsGrid(options, qIdx, themeManager),
-                    const SizedBox(height: 12),
-                    if (_pendingIndex != null)
-                      _buildConfirmBar(options, themeManager),
-                  ],
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return WillPopScope(
+          onWillPop: () async => await _confirmExitQuiz(),
+          child: Scaffold(
+            backgroundColor: themeManager.isDarkMode
+                ? const Color(0xFF1C1C1E)
+                : const Color(0xFFCFFFF7),
+            body: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _offsetAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        _buildHeader("Speech Quiz", themeManager),
+                        const SizedBox(height: 12),
+                        _buildProgressBar(themeManager),
+                        const SizedBox(height: 16),
+                        _buildQuestionCard(question, themeManager),
+                        const SizedBox(height: 32),
+                        _buildOptionsGrid(options, qIdx, themeManager),
+                        const SizedBox(height: 12),
+                        if (_pendingIndex != null)
+                          _buildConfirmBar(options, themeManager),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
+    );
+  }
+
+  // MIX & MATCH UI
+  Widget _buildMixMatchQuiz() {
+    if (_mmPhrasesOrder.isEmpty || _mmImagesOrder.isEmpty) {
+      _prepareMixMatchRound();
+    }
+
+    final totalPairs = mixMatchIndices.length;
+
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return WillPopScope(
+          onWillPop: () async => await _confirmExitQuiz(),
+          child: Scaffold(
+            backgroundColor: themeManager.isDarkMode
+                ? const Color(0xFF1C1C1E)
+                : const Color(0xFFCFFFF7),
+            body: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _offsetAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildHeader("Mix & Match", themeManager),
+                        const SizedBox(height: 8),
+                        _buildStableMixMatchProgress(totalPairs, themeManager),
+                        const SizedBox(height: 12),
+                        _buildMixMatchInstruction(themeManager),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: Scrollbar(
+                            controller: _mmScroll,
+                            thumbVisibility: true,
+                            child: SingleChildScrollView(
+                              controller: _mmScroll,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: _buildMatchingAreaStable(
+                                phrasesOrder: _mmPhrasesOrder,
+                                imagesOrder: _mmImagesOrder,
+                                themeManager: themeManager,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -770,11 +1018,281 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     );
   }
 
+  // Progress (Mix&Match)
+  Widget _buildStableMixMatchProgress(int total, ThemeManager themeManager) {
+    final matched = _currentMatches.length;
+    final value = total == 0 ? 0.0 : matched / total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 10,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: value,
+              backgroundColor: themeManager.isDarkMode
+                  ? const Color(0xFF636366)
+                  : const Color(0xFFE0F2F1),
+              valueColor: AlwaysStoppedAnimation(
+                themeManager.isDarkMode
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF69D3E4),
+              ),
+              minHeight: 10,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "$matched / $total matched",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            color: themeManager.isDarkMode
+                ? const Color(0xFF8E8E93)
+                : Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMixMatchInstruction(ThemeManager themeManager) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: themeManager.isDarkMode
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: themeManager.isDarkMode
+              ? const Color(0xFFD23232).withOpacity(0.3)
+              : const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: themeManager.isDarkMode
+                ? const Color(0xFFD23232).withOpacity(0.15)
+                : const Color(0xFF69D3E4).withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: themeManager.isDarkMode
+                    ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
+                    : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.swap_horiz_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Drag phrases to their matching signs",
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: themeManager.isDarkMode
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF69D3E4),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Matching area (organized rows; right is bigger) - NOW WITH UNDO BUTTON
+  Widget _buildMatchingAreaStable({
+    required List<String> phrasesOrder,
+    required List<String> imagesOrder,
+    required ThemeManager themeManager,
+  }) {
+    assert(
+    phrasesOrder.length == imagesOrder.length,
+    "phrasesOrder and imagesOrder must be same length",
+    );
+
+    return Column(
+      children: List.generate(phrasesOrder.length, (i) {
+        final phrase = phrasesOrder[i];
+        final leftId = "left_$phrase";
+        final isLeftMatched = _currentMatches.containsKey(leftId);
+
+        final imagePath = imagesOrder[i];
+        final rightPhrase = _imageForPhrase.entries
+            .firstWhere((e) => e.value == imagePath)
+            .key;
+        final rightId = "right_$rightPhrase";
+        final isRightMatched = _currentMatches.values.contains(rightId);
+
+        // During review, compute status for this right target
+        final showCorrect =
+            _mmReviewMode && _mmCorrectRightIds.contains(rightId);
+        final showWrong = _mmReviewMode && _mmWrongRightIds.contains(rightId);
+
+        return Padding(
+          key: ValueKey('ROW_$i'),
+          padding: const EdgeInsets.only(bottom: mmRowGap),
+          child: SizedBox(
+            height: mmImageHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: draggable phrase (disabled in review)
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: SizedBox(
+                      height: mmPhraseHeight,
+                      child: Opacity(
+                        opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
+                        child: IgnorePointer(
+                          ignoring: isLeftMatched || _mmReviewMode,
+                          child: Draggable<String>(
+                            data: leftId,
+                            feedback: Material(
+                              elevation: 8,
+                              borderRadius: BorderRadius.circular(16),
+                              child: _PhraseCard(
+                                phrase: phrase,
+                                isFloating: true,
+                                themeManager: themeManager,
+                              ),
+                            ),
+                            childWhenDragging: Opacity(
+                              opacity: 0.3,
+                              child: _PhraseCard(
+                                phrase: phrase,
+                                themeManager: themeManager,
+                              ),
+                            ),
+                            child: _PhraseCard(
+                              phrase: phrase,
+                              isMatched: isLeftMatched,
+                              themeManager: themeManager,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                // Right: drag target (disabled in review) with UNDO button
+                Expanded(
+                  flex: 3,
+                  child: Stack(
+                    children: [
+                      DragTarget<String>(
+                        onWillAccept: (data) =>
+                        !_mmReviewMode && data != null && !isRightMatched,
+                        onAccept: (draggedLeftId) {
+                          setState(() {
+                            _currentMatches[draggedLeftId] = rightId;
+                          });
+                          if (_currentMatches.length >=
+                              mixMatchIndices.length) {
+                            _onAllPairsFilled();
+                          }
+                        },
+                        builder: (context, candidate, rejected) {
+                          final isHovering =
+                              !_mmReviewMode &&
+                                  candidate.isNotEmpty &&
+                                  !isRightMatched;
+                          return SizedBox(
+                            height: mmImageHeight,
+                            child: _ImageCard(
+                              imagePath: imagePath,
+                              isMatched: isRightMatched,
+                              isHovering: isHovering,
+                              reviewCorrect: showCorrect,
+                              reviewWrong: showWrong,
+                              themeManager: themeManager,
+                            ),
+                          );
+                        },
+                      ),
+                      // NEW: Undo button (top-right corner) - only show when matched and NOT in review
+                      if (isRightMatched && !_mmReviewMode)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _undoMatch(rightId),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFFFF4B4A),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: Color(0xFFFF4B4A),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
   // Question Card
   Widget _buildQuestionCard(
-    Map<String, dynamic> question,
-    ThemeManager themeManager,
-  ) {
+      Map<String, dynamic> question,
+      ThemeManager themeManager,
+      ) {
     final isDark = themeManager.isDarkMode;
     return Container(
       width: double.infinity,
@@ -863,10 +1381,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
 
   // Options Grid
   Widget _buildOptionsGrid(
-    List<String> options,
-    int qIdx,
-    ThemeManager themeManager,
-  ) {
+      List<String> options,
+      int qIdx,
+      ThemeManager themeManager,
+      ) {
     return Expanded(
       child: ListView.builder(
         itemCount: options.length,
@@ -876,8 +1394,8 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           final isCorrect = index == correctIndex;
           final wasSelected =
               alreadyAnswered &&
-              _sessionAnswers[qIdx] == isCorrect &&
-              isCorrect;
+                  _sessionAnswers[qIdx] == isCorrect &&
+                  isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return Padding(
@@ -887,6 +1405,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               number: index + 1,
               isSelected: wasSelected,
               isPending: isPending,
+              themeManager: themeManager,
               onTap: alreadyAnswered
                   ? null
                   : () => setState(() => _pendingIndex = index),
@@ -1004,12 +1523,14 @@ class OptionCard extends StatelessWidget {
   final int number;
   final bool isSelected;
   final bool isPending;
+  final ThemeManager themeManager;
   final VoidCallback? onTap;
 
   const OptionCard({
     super.key,
     required this.option,
     required this.number,
+    required this.themeManager,
     this.isSelected = false,
     this.isPending = false,
     this.onTap,
@@ -1022,15 +1543,15 @@ class OptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: isSelected || isPending
             ? const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
+          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
             : const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
@@ -1158,6 +1679,174 @@ class _LegendDot extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ========== Mix & Match Widgets ==========
+
+class _PhraseCard extends StatelessWidget {
+  final String phrase;
+  final bool isMatched;
+  final bool isDragging;
+  final bool isFloating;
+  final ThemeManager themeManager;
+
+  const _PhraseCard({
+    required this.phrase,
+    required this.themeManager,
+    this.isMatched = false,
+    this.isDragging = false,
+    this.isFloating = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: isFloating ? 140 : double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isMatched
+              ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isMatched
+              ? const Color(0xFF22C55E)
+              : const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+            (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4))
+                .withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            phrase,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageCard extends StatelessWidget {
+  final String imagePath;
+  final bool isMatched;
+  final bool isHovering;
+  final bool reviewCorrect;
+  final bool reviewWrong;
+  final ThemeManager themeManager;
+
+  const _ImageCard({
+    required this.imagePath,
+    required this.themeManager,
+    this.isMatched = false,
+    this.isHovering = false,
+    this.reviewCorrect = false,
+    this.reviewWrong = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    List<Color> colors;
+    if (reviewCorrect) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else if (reviewWrong) {
+      colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
+    } else if (isHovering) {
+      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+    } else if (isMatched) {
+      colors = const [Color(0xFF22C55E), Color(0xFF16A34A)];
+    } else {
+      colors = const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF1B3C73), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color:
+            (reviewWrong
+                ? const Color(0xFFFF4B4A)
+                : reviewCorrect
+                ? const Color(0xFF22C55E)
+                : const Color(0xFF69D3E4))
+                .withOpacity(isHovering ? 0.3 : 0.15),
+            blurRadius: isHovering ? 12 : 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stack) => const Center(
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      size: 32,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (reviewCorrect || reviewWrong)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    reviewCorrect ? Icons.check_rounded : Icons.close_rounded,
+                    size: 18,
+                    color: reviewCorrect
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFD90416),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1324,10 +2013,10 @@ class _CleanConfirmDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.3),
+                      (icon == Icons.warning_amber_rounded
+                          ? const Color(0xFFFF4B4A)
+                          : const Color(0xFF69D3E4))
+                          .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1502,10 +2191,10 @@ class _GreatWorkDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (isPerfect
-                                  ? const Color(0xFFFFD700)
-                                  : const Color(0xFF69D3E4))
-                              .withOpacity(0.4),
+                      (isPerfect
+                          ? const Color(0xFFFFD700)
+                          : const Color(0xFF69D3E4))
+                          .withOpacity(0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -1648,6 +2337,112 @@ class _GreatWorkDialog extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ========== Bonus Round Dialog ==========
+class _BonusRoundDialog extends StatelessWidget {
+  const _BonusRoundDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.bolt_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Bonus Round:\nMix & Match!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF1E1E1E),
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Great job! Now drag phrases to their matching signs.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 15,
+                color: const Color(0xFF6B7280),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF69D3E4).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Let\'s Go!',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
