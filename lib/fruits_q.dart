@@ -1,22 +1,26 @@
 // lib/fruits_q.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'badges/badges_engine.dart';
+
 import 'quest_status.dart';
 import 'services/sfx_service.dart';
-import 'badges/badges_engine.dart';
+import 'theme_manager.dart';
 
 enum QuizType { multipleChoice, mixMatch, both }
 
 // NEW: Cute Bottom Sheet Quiz Type Selection
-Future<void> showFruitsQuizSelection(BuildContext context) {
+Future<void> showFruitQuizSelection(BuildContext context) {
+  final themeManager = ThemeManager.of(context, listen: false);
   return showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (_) => Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
@@ -30,7 +34,9 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: themeManager.isDarkMode
+                  ? const Color(0xFF8E8E93)
+                  : Colors.grey.shade300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -42,15 +48,21 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  gradient: LinearGradient(
+                    colors: themeManager.isDarkMode
+                        ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
+                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.3),
+                      color:
+                          (themeManager.isDarkMode
+                                  ? const Color(0xFFD23232)
+                                  : const Color(0xFF69D3E4))
+                              .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -65,7 +77,9 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
                   style: GoogleFonts.montserrat(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFFE8E8E8)
+                        : const Color(0xFF1E1E1E),
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -85,7 +99,8 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const FruitsQuizScreen(quizType: QuizType.multipleChoice),
+                  builder: (_) =>
+                      const FruitQuizScreen(quizType: QuizType.multipleChoice),
                 ),
               );
             },
@@ -101,7 +116,8 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const FruitsQuizScreen(quizType: QuizType.mixMatch),
+                  builder: (_) =>
+                      const FruitQuizScreen(quizType: QuizType.mixMatch),
                 ),
               );
             },
@@ -117,7 +133,8 @@ Future<void> showFruitsQuizSelection(BuildContext context) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const FruitsQuizScreen(quizType: QuizType.both),
+                  builder: (_) =>
+                      const FruitQuizScreen(quizType: QuizType.both),
                 ),
               );
             },
@@ -146,6 +163,7 @@ class _CompactQuizCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -155,7 +173,9 @@ class _CompactQuizCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.grey.shade50, Colors.grey.shade100],
+              colors: themeManager.isDarkMode
+                  ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                  : [Colors.grey.shade50, Colors.grey.shade100],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -194,7 +214,9 @@ class _CompactQuizCard extends StatelessWidget {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E1E1E),
+                        color: themeManager.isDarkMode
+                            ? const Color(0xFFE8E8E8)
+                            : const Color(0xFF1E1E1E),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -203,7 +225,9 @@ class _CompactQuizCard extends StatelessWidget {
                       description,
                       style: GoogleFonts.montserrat(
                         fontSize: 12,
-                        color: const Color(0xFF6B7280),
+                        color: themeManager.isDarkMode
+                            ? const Color(0xFF8E8E93)
+                            : const Color(0xFF6B7280),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -230,30 +254,34 @@ class _CompactQuizCard extends StatelessWidget {
   }
 }
 
-class FruitsQuizScreen extends StatefulWidget {
+class FruitQuizScreen extends StatefulWidget {
   final int? startIndex;
   final QuizType quizType;
 
-  const FruitsQuizScreen({
+  const FruitQuizScreen({
     super.key,
     this.startIndex,
     this.quizType = QuizType.both,
   });
 
   @override
-  State<FruitsQuizScreen> createState() => _FruitsQuizScreenState();
+  State<FruitQuizScreen> createState() => _FruitQuizScreenState();
 }
 
-class _FruitsQuizScreenState extends State<FruitsQuizScreen>
+class _FruitQuizScreenState extends State<FruitQuizScreen>
     with SingleTickerProviderStateMixin {
+  int _answerChangesThisQuiz = 0;
+  bool _gotAnyUnder1sCorrect = false;
+  DateTime? _questionShownAt;
+
   // Session sizes
   static const int multipleChoiceSize = 5;
   static const int mixMatchSize = 6;
 
   // Mix & Match visual sizing
   static const double mmRowGap = 10;
-  static const double mmImageHeight = 95;   // fruit image box
-  static const double mmTextHeight = 70;    // fruit name box
+  static const double mmImageHeight = 95; // hand sign box
+  static const double mmLetterHeight = 70; // letter box
 
   // Multiple choice state
   late List<int> activeIndices;
@@ -266,14 +294,14 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   late List<int> mixMatchIndices;
   bool _isInMixMatchRound = false;
   final Map<String, String> _currentMatches = {}; // leftId -> rightId
-  List<String> _mmFruitsOrder = [];
+  List<String> _mmLettersOrder = [];
   List<String> _mmImagesOrder = [];
-  Map<String, String> _imageForFruit = {}; // fruitName -> imagePath
+  Map<String, String> _imageForLetter = {}; // letter -> imagePath
   final ScrollController _mmScroll = ScrollController();
 
-  // NEW: Review mode (show correct/wrong for 2s)
+  // NEW: Review mode (show correct/wrong for 7s)
   bool _mmReviewMode = false;
-  final Set<String> _mmCorrectRightIds = {};
+  final Set<String> _mmCorrectRightIds = {}; // e.g. right_A
   final Set<String> _mmWrongRightIds = {};
 
   // Animations
@@ -400,6 +428,10 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     },
   ];
 
+  // Cache for generated options per question
+  final Map<int, List<String>> _questionOptions = {};
+  final Map<int, int> _questionCorrectIndex = {};
+
   bool _isAnsweredInSession(int qIdx) => _sessionAnswers.containsKey(qIdx);
   bool _allAnsweredInSession() {
     for (final i in activeIndices) {
@@ -407,6 +439,7 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     }
     return true;
   }
+
   int? _nextUnansweredSlotAfter(int fromSlot) {
     for (int s = fromSlot + 1; s < activeIndices.length; s++) {
       if (!_isAnsweredInSession(activeIndices[s])) return s;
@@ -414,10 +447,31 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     return null;
   }
 
+  // NEW: Generate randomized options for a question
+  List<String> _generateOptions(int qIdx) {
+    if (_questionOptions.containsKey(qIdx)) {
+      return _questionOptions[qIdx]!;
+    }
+
+    // For fruits, the options are already defined in the question data
+    final options = questions[qIdx]['options'] as List<String>;
+    final correctFruit = questions[qIdx]['correctFruit'] as String;
+
+    _questionOptions[qIdx] = options;
+    _questionCorrectIndex[qIdx] = options.indexOf(correctFruit);
+
+    return options;
+  }
+
   @override
   void initState() {
     super.initState();
     Sfx().init();
+
+    if (!QuestStatus.alphabetQuizStarted) {
+      QuestStatus.markAlphabetQuizStarted();
+      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
+    }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
 
@@ -428,11 +482,23 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     } else if (widget.quizType == QuizType.mixMatch) {
       activeIndices = [];
       mixMatchIndices = all.take(mixMatchSize).toList();
-    } else { // QuizType.both
+    } else {
+      // QuizType.both
       activeIndices = all.take(multipleChoiceSize).toList();
       final remaining = all.skip(multipleChoiceSize).toList()..shuffle();
       mixMatchIndices = remaining.take(mixMatchSize).toList();
     }
+
+    // Pre-generate options for all active questions
+    for (final idx in activeIndices) {
+      _generateOptions(idx);
+    }
+
+    // Adjust quest status length based on mode
+    final totalQuestions =
+        activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
+    QuestStatus.ensureLevel1Length(totalQuestions);
+    QuestStatus.resetLevel1Answers();
 
     int startSlot = widget.startIndex ?? 0;
     if (activeIndices.isNotEmpty) {
@@ -446,11 +512,18 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     _isInMixMatchRound = widget.quizType == QuizType.mixMatch;
     if (_isInMixMatchRound) _prepareMixMatchRound();
 
-    _controller = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -463,15 +536,19 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
 
   // Freeze orders for Mix&Match
   void _prepareMixMatchRound() {
-    _imageForFruit.clear();
+    _imageForLetter.clear();
     for (final idx in mixMatchIndices) {
       final fruit = questions[idx]['correctFruit'] as String;
       final image = questions[idx]['image'] as String;
-      _imageForFruit[fruit] = image;
+      _imageForLetter[fruit] = image;
     }
-    final fruits = mixMatchIndices.map((i) => questions[i]['correctFruit'] as String).toList();
-    final images = mixMatchIndices.map((i) => questions[i]['image'] as String).toList();
-    _mmFruitsOrder = List<String>.from(fruits)..shuffle();
+    final fruits = mixMatchIndices
+        .map((i) => questions[i]['correctFruit'] as String)
+        .toList();
+    final images = mixMatchIndices
+        .map((i) => questions[i]['image'] as String)
+        .toList();
+    _mmLettersOrder = List<String>.from(fruits)..shuffle();
     _mmImagesOrder = List<String>.from(images)..shuffle();
   }
 
@@ -486,18 +563,28 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       _pendingIndex = null;
     });
 
-    final options = questions[qIdx]['options'] as List<dynamic>;
-    final correctFruit = questions[qIdx]['correctFruit'] as String;
-    final selectedFruit = options[selectedIndex].toString();
-    final isCorrect = selectedFruit == correctFruit;
+    final correctIndex = _questionCorrectIndex[qIdx]!;
+    final isCorrect = selectedIndex == correctIndex;
 
     _sessionAnswers[qIdx] = isCorrect;
+    QuestStatus.level1Answers[currentSlot] = isCorrect;
 
     if (isCorrect) {
-      showAnimatedPopup(icon: Icons.star, title: "Correct!", subtitle: "You earned 20 XP", bgColor: const Color(0xFF2C5CB0));
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Correct!",
+        subtitle: "You earned 20 XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
       QuestStatus.addXp(20);
     } else {
-      showAnimatedPopup(icon: Icons.close, title: "Incorrect", subtitle: "Correct: $correctFruit", bgColor: const Color(0xFFFF4B4A));
+      final correctFruit = _questionOptions[qIdx]![correctIndex];
+      showAnimatedPopup(
+        icon: Icons.close,
+        title: "Incorrect",
+        subtitle: "Correct: $correctFruit",
+        bgColor: const Color(0xFFFF4B4A),
+      );
     }
 
     await Future.delayed(const Duration(milliseconds: 250));
@@ -508,7 +595,11 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       // If "both" mode, transition to Mix&Match
       if (widget.quizType == QuizType.both && mixMatchIndices.isNotEmpty) {
         await Future.delayed(const Duration(milliseconds: 500));
-        await showDialog(context: context, barrierDismissible: false, builder: (_) => const _BonusRoundDialog());
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _BonusRoundDialog(),
+        );
         setState(() {
           _prepareMixMatchRound();
           _isInMixMatchRound = true;
@@ -526,7 +617,10 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
 
     final nextSlot = _nextUnansweredSlotAfter(currentSlot);
     setState(() {
-      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(0, activeIndices.length - 1);
+      currentSlot = (nextSlot ?? (currentSlot + 1)).clamp(
+        0,
+        activeIndices.length - 1,
+      );
       isOptionSelected = false;
       _pendingIndex = null;
       _controller.reset();
@@ -549,7 +643,8 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       builder: (_) => _CleanConfirmDialog(
         icon: Icons.check_circle_rounded,
         title: 'Submit answers?',
-        message: "You've matched all pairs. Submit now or reset all to try again.",
+        message:
+            "You've matched all pairs. Submit now or reset all to try again.",
         primaryLabel: 'Submit',
         secondaryLabel: 'Reset',
       ),
@@ -562,7 +657,7 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     }
   }
 
-  // NEW: Evaluate + enter review mode (2s), then finish
+  // NEW: Evaluate + enter review mode (7s), then finish
   void _evaluateMixMatchAndReview() {
     _mmCorrectRightIds.clear();
     _mmWrongRightIds.clear();
@@ -580,10 +675,14 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       }
     }
 
+    // Save result - position depends on mode
+    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
+    QuestStatus.level1Answers[mmResultIndex] = allCorrect;
+
     // Enter review mode (disable dragging; show colors)
     setState(() => _mmReviewMode = true);
 
-    // After 2s → exit review, show popup + finish
+    // After 7s → exit review, show popup + finish
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() => _mmReviewMode = false);
@@ -594,15 +693,24 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   // Separate finisher (used after review)
   void _completeMixMatch(bool allCorrect) {
     if (allCorrect) {
-      showAnimatedPopup(icon: Icons.star, title: "Perfect Match!", subtitle: "You earned 50 XP", bgColor: const Color(0xFF2C5CB0));
+      showAnimatedPopup(
+        icon: Icons.star,
+        title: "Perfect Match!",
+        subtitle: "You earned 50 XP",
+        bgColor: const Color(0xFF2C5CB0),
+      );
       QuestStatus.addXp(50);
     } else {
-      showAnimatedPopup(icon: Icons.close, title: "Some Incorrect", subtitle: "Try again next time!", bgColor: const Color(0xFFFF4B4A));
+      showAnimatedPopup(
+        icon: Icons.close,
+        title: "Some Incorrect",
+        subtitle: "Try again next time!",
+        bgColor: const Color(0xFFFF4B4A),
+      );
     }
     Future.delayed(const Duration(milliseconds: 500), () => _finishSession());
   }
 
-  // Session Completion
   // Session Completion
   Future<void> _finishSession() async {
     if (!mounted) return;
@@ -614,28 +722,55 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       if (_sessionAnswers[i] == true) sessionScore++;
     }
 
-    // Count Mix&Match as 1 if all right targets were marked correct
-    final hasMixMatch = mixMatchIndices.isNotEmpty;
-    if (hasMixMatch) {
-      final allCorrect = _mmCorrectRightIds.length == mixMatchIndices.length;
-      if (allCorrect) sessionScore++;
+    // Count Mix&Match if present
+    final mmResultIndex = activeIndices.isEmpty ? 0 : activeIndices.length;
+    if (QuestStatus.level1Answers.length > mmResultIndex &&
+        QuestStatus.level1Answers[mmResultIndex] == true) {
+      sessionScore++;
     }
 
-    final totalQuestions = activeIndices.length + (hasMixMatch ? 1 : 0);
-    final perfect = sessionScore == totalQuestions;
+    final totalQuestions =
+        activeIndices.length + (mixMatchIndices.isEmpty ? 0 : 1);
 
-    // ========= BADGES: record this run & toast if something unlocked =========
-    await BadgeEngine.recordRun(
-      category: 'fruits',                 // this screen
-      mode: widget.quizType.name,         // 'multipleChoice' | 'mixMatch' | 'both'
-      total: totalQuestions,
-      score: sessionScore,
-      perfect: perfect,
-    );
+    // ========= BADGES: update counters for this completed quiz =========
+    // Count this quiz
+    QuestStatus.quizzesCompleted++;
+
+    // Perfect run (all correct, no hints used here — you can add your own 'usedHints' flag if needed)
+    if (sessionScore == totalQuestions) {
+      QuestStatus.perfectQuizzes++;
+    }
+
+    // Mark modes completed
+    if (widget.quizType == QuizType.multipleChoice ||
+        widget.quizType == QuizType.both) {
+      QuestStatus.completedMC = true;
+    }
+    if (widget.quizType == QuizType.mixMatch ||
+        widget.quizType == QuizType.both) {
+      QuestStatus.completedMM = true;
+    }
+
+    // Mark category played
+    QuestStatus.playedAlphabet = true;
+
+    // Evaluate & show any newly unlocked badge popup
     await BadgeEngine.checkAndToast(context);
-    // =============================== END BADGES ==============================
+    // ========= END BADGES =========
 
-    // Streak & SFX, then the result dialog
+    // Your existing quest logic
+    QuestStatus.alphabetRoundsCompleted += 1;
+
+    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
+        !QuestStatus.quest5Claimed) {
+      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
+    }
+    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
+      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+    }
+
+    QuestStatus.markFirstQuizMedalEarned();
+
     final didIncrease = QuestStatus.addStreakForLevel();
     if (didIncrease) await Sfx().playStreak();
     await Sfx().playLevelComplete();
@@ -653,7 +788,6 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       ),
     );
   }
-
 
   // Back helpers
   Future<bool> _confirmExitQuiz() async {
@@ -676,7 +810,8 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       builder: (_) => const _CleanConfirmDialog(
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
-        message: "This action can't be undone and your progress this round will be lost.",
+        message:
+            "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -700,7 +835,12 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
       builder: (_) => Positioned(
         top: 60,
         right: 16,
-        child: _SlideInBadge(icon: icon, title: title, subtitle: subtitle, color: bgColor),
+        child: _SlideInBadge(
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          color: bgColor,
+        ),
       ),
     );
     overlay.insert(entry);
@@ -710,101 +850,111 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   // BUILD
   @override
   Widget build(BuildContext context) {
-    return _isInMixMatchRound ? _buildMixMatchQuiz() : _buildMultipleChoiceQuiz();
+    return _isInMixMatchRound
+        ? _buildMixMatchQuiz()
+        : _buildMultipleChoiceQuiz();
   }
 
   // MULTIPLE CHOICE UI
   Widget _buildMultipleChoiceQuiz() {
     final qIdx = activeIndices[currentSlot];
     final question = questions[qIdx];
-    final options = (question['options'] as List<dynamic>)
-        .map((e) => e.toString())
-        .toList();
+    final options = _questionOptions[qIdx]!;
 
-    return WillPopScope(
-      onWillPop: () async => await _confirmExitQuiz(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFCFFFF7),
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _offsetAnimation,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    _buildHeader("Fruits Quiz"),
-                    const SizedBox(height: 12),
-                    _buildProgressBar(),
-                    const SizedBox(height: 16),
-                    _buildQuestionCard(question),
-                    const SizedBox(height: 32),
-                    _buildOptionsGrid(options, qIdx),
-                    const SizedBox(height: 12),
-                    if (_pendingIndex != null) _buildConfirmBar(options),
-                  ],
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return WillPopScope(
+          onWillPop: () async => await _confirmExitQuiz(),
+          child: Scaffold(
+            backgroundColor: themeManager.backgroundColor,
+            body: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _offsetAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        _buildHeader("Fruit Quiz", themeManager),
+                        const SizedBox(height: 12),
+                        _buildProgressBar(themeManager),
+                        const SizedBox(height: 16),
+                        _buildQuestionCard(question, themeManager),
+                        const SizedBox(height: 32),
+                        _buildOptionsGrid(options, qIdx, themeManager),
+                        const SizedBox(height: 12),
+                        if (_pendingIndex != null)
+                          _buildConfirmBar(options, themeManager),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   // MIX & MATCH UI
   Widget _buildMixMatchQuiz() {
-    if (_mmFruitsOrder.isEmpty || _mmImagesOrder.isEmpty) {
+    if (_mmLettersOrder.isEmpty || _mmImagesOrder.isEmpty) {
       _prepareMixMatchRound();
     }
 
     final totalPairs = mixMatchIndices.length;
 
-    return WillPopScope(
-      onWillPop: () async => await _confirmExitQuiz(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFCFFFF7),
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _offsetAnimation,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildHeader("Mix & Match"),
-                    const SizedBox(height: 8),
-                    _buildStableMixMatchProgress(totalPairs),
-                    const SizedBox(height: 12),
-                    _buildMixMatchInstruction(),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Scrollbar(
-                        controller: _mmScroll,
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          controller: _mmScroll,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: _buildMatchingAreaStable(
-                            fruitsOrder: _mmFruitsOrder,
-                            imagesOrder: _mmImagesOrder,
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return WillPopScope(
+          onWillPop: () async => await _confirmExitQuiz(),
+          child: Scaffold(
+            backgroundColor: themeManager.backgroundColor,
+            body: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _offsetAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildHeader("Mix & Match", themeManager),
+                        const SizedBox(height: 8),
+                        _buildStableMixMatchProgress(totalPairs, themeManager),
+                        const SizedBox(height: 12),
+                        _buildMixMatchInstruction(themeManager),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: Scrollbar(
+                            controller: _mmScroll,
+                            thumbVisibility: true,
+                            child: SingleChildScrollView(
+                              controller: _mmScroll,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: _buildMatchingAreaStable(
+                                lettersOrder: _mmLettersOrder,
+                                imagesOrder: _mmImagesOrder,
+                                themeManager: themeManager,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(String title) {
+  Widget _buildHeader(String title, ThemeManager themeManager) {
     return Row(
       children: [
         IconButton(
@@ -812,40 +962,76 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              gradient: LinearGradient(
+                colors: themeManager.isDarkMode
+                    ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                    : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
-              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
+              border: Border.all(color: themeManager.primary.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: themeManager.primary.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF69D3E4), size: 20),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: themeManager.primary,
+              size: 20,
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             title,
-            style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF69D3E4), letterSpacing: -0.5),
+            style: GoogleFonts.montserrat(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: themeManager.primary,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            gradient: themeManager.primaryGradient,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))],
+            boxShadow: [
+              BoxShadow(
+                color: themeManager.primary.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Row(children: [
-            const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
-            const SizedBox(width: 4),
-            Text("Lvl ${QuestStatus.level}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
-          ]),
+          child: Row(
+            children: [
+              const Icon(Icons.bolt_rounded, color: Colors.white, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                "Lvl ${QuestStatus.level}",
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
   // Progress (MC)
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(ThemeManager themeManager) {
     final total = activeIndices.length;
     int correct = 0, wrong = 0;
     for (final i in activeIndices) {
@@ -856,26 +1042,62 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
     }
     final remaining = (total - correct - wrong).clamp(0, total);
 
-    Widget segment({required Color color, required int flex, required BorderRadius radius}) {
+    Widget segment({
+      required Color color,
+      required int flex,
+      required BorderRadius radius,
+    }) {
       if (flex <= 0) return const SizedBox.shrink();
       return Expanded(
         flex: flex,
-        child: AnimatedContainer(duration: const Duration(milliseconds: 220), decoration: BoxDecoration(color: color, borderRadius: radius), height: 12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          decoration: BoxDecoration(color: color, borderRadius: radius),
+          height: 12,
+        ),
       );
     }
 
-    final hasCorrect = correct > 0, hasWrong = wrong > 0, hasRemaining = remaining > 0;
+    final hasCorrect = correct > 0,
+        hasWrong = wrong > 0,
+        hasRemaining = remaining > 0;
     final bars = <Widget>[];
     if (hasCorrect) {
-      bars.add(segment(color: const Color(0xFF22C55E), flex: correct, radius: hasWrong || hasRemaining ? const BorderRadius.horizontal(left: Radius.circular(10)) : BorderRadius.circular(10)));
+      bars.add(
+        segment(
+          color: const Color(0xFF22C55E),
+          flex: correct,
+          radius: hasWrong || hasRemaining
+              ? const BorderRadius.horizontal(left: Radius.circular(10))
+              : BorderRadius.circular(10),
+        ),
+      );
     }
     if (hasWrong) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
-      bars.add(segment(color: const Color(0xFFFF4B4A), flex: wrong, radius: (!hasCorrect && !hasRemaining) ? BorderRadius.circular(10) : BorderRadius.zero));
+      bars.add(
+        segment(
+          color: const Color(0xFFFF4B4A),
+          flex: wrong,
+          radius: (!hasCorrect && !hasRemaining)
+              ? BorderRadius.circular(10)
+              : BorderRadius.zero,
+        ),
+      );
     }
     if (hasRemaining) {
       if (bars.isNotEmpty) bars.add(const SizedBox(width: 2));
-      bars.add(segment(color: const Color(0xFFE0F2F1), flex: remaining, radius: (hasCorrect || hasWrong) ? const BorderRadius.horizontal(right: Radius.circular(10)) : BorderRadius.circular(10)));
+      bars.add(
+        segment(
+          color: themeManager.isDarkMode
+              ? const Color(0xFF636366)
+              : const Color(0xFFE0F2F1),
+          flex: remaining,
+          radius: (hasCorrect || hasWrong)
+              ? const BorderRadius.horizontal(right: Radius.circular(10))
+              : BorderRadius.circular(10),
+        ),
+      );
     }
 
     return Column(
@@ -884,24 +1106,39 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Colors.white, Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            gradient: LinearGradient(
+              colors: themeManager.isDarkMode
+                  ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                  : [Colors.white, const Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
-            boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+            border: Border.all(color: themeManager.primary.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: themeManager.primary.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(children: bars),
         ),
         const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: const [
-          _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
-          _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
-        ]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
+            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+          ],
+        ),
       ],
     );
   }
 
   // Progress (Mix&Match)
-  Widget _buildStableMixMatchProgress(int total) {
+  Widget _buildStableMixMatchProgress(int total, ThemeManager themeManager) {
     final matched = _currentMatches.length;
     final value = total == 0 ? 0.0 : matched / total;
 
@@ -914,66 +1151,110 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: value,
-              backgroundColor: const Color(0xFFE0F2F1),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFF69D3E4)),
+              backgroundColor: themeManager.isDarkMode
+                  ? const Color(0xFF636366)
+                  : const Color(0xFFE0F2F1),
+              valueColor: AlwaysStoppedAnimation(themeManager.primary),
               minHeight: 10,
             ),
           ),
         ),
         const SizedBox(height: 8),
-        Text("$matched / $total matched", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.w600)),
+        Text(
+          "$matched / $total matched",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildMixMatchInstruction() {
+  Widget _buildMixMatchInstruction(ThemeManager themeManager) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: themeManager.isDarkMode
+              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+              : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
-        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+        border: Border.all(
+          color: themeManager.primary.withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: themeManager.primary.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              gradient: themeManager.primaryGradient,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.swap_horiz_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text("Drag fruit names to their matching images", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF69D3E4))),
+            child: Text(
+              "Drag letters to their matching signs",
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: themeManager.primary,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // Matching area with UNDO button
+  // Matching area (organized rows; right is bigger) - NOW WITH UNDO BUTTON
   Widget _buildMatchingAreaStable({
-    required List<String> fruitsOrder,
+    required List<String> lettersOrder,
     required List<String> imagesOrder,
+    required ThemeManager themeManager,
   }) {
-    assert(fruitsOrder.length == imagesOrder.length, "fruitsOrder and imagesOrder must be same length");
+    assert(
+      lettersOrder.length == imagesOrder.length,
+      "lettersOrder and imagesOrder must be same length",
+    );
 
     return Column(
-      children: List.generate(fruitsOrder.length, (i) {
-        final fruit = fruitsOrder[i];
-        final leftId = "left_$fruit";
+      children: List.generate(lettersOrder.length, (i) {
+        final letter = lettersOrder[i];
+        final leftId = "left_$letter";
         final isLeftMatched = _currentMatches.containsKey(leftId);
 
         final imagePath = imagesOrder[i];
-        final rightFruit = _imageForFruit.entries.firstWhere((e) => e.value == imagePath).key;
-        final rightId = "right_$rightFruit";
+        final rightLetter = _imageForLetter.entries
+            .firstWhere((e) => e.value == imagePath)
+            .key;
+        final rightId = "right_$rightLetter";
         final isRightMatched = _currentMatches.values.contains(rightId);
 
-        final showCorrect = _mmReviewMode && _mmCorrectRightIds.contains(rightId);
+        // During review, compute status for this right target
+        final showCorrect =
+            _mmReviewMode && _mmCorrectRightIds.contains(rightId);
         final showWrong = _mmReviewMode && _mmWrongRightIds.contains(rightId);
 
         return Padding(
@@ -984,12 +1265,12 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left: draggable fruit name
+                // Left: draggable letter (disabled in review)
                 Expanded(
                   flex: 1,
                   child: Center(
                     child: SizedBox(
-                      height: mmTextHeight,
+                      height: mmLetterHeight,
                       child: Opacity(
                         opacity: (isLeftMatched || _mmReviewMode) ? 0.5 : 1.0,
                         child: IgnorePointer(
@@ -999,10 +1280,19 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
                             feedback: Material(
                               elevation: 8,
                               borderRadius: BorderRadius.circular(16),
-                              child: _FruitNameCard(fruitName: fruit, isFloating: true),
+                              child: _LetterCard(
+                                letter: letter,
+                                isFloating: true,
+                              ),
                             ),
-                            childWhenDragging: Opacity(opacity: 0.3, child: _FruitNameCard(fruitName: fruit)),
-                            child: _FruitNameCard(fruitName: fruit, isMatched: isLeftMatched),
+                            childWhenDragging: Opacity(
+                              opacity: 0.3,
+                              child: _LetterCard(letter: letter),
+                            ),
+                            child: _LetterCard(
+                              letter: letter,
+                              isMatched: isLeftMatched,
+                            ),
                           ),
                         ),
                       ),
@@ -1012,26 +1302,31 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
 
                 const SizedBox(width: 10),
 
-                // Right: drag target with UNDO button
+                // Right: drag target (disabled in review) with UNDO button
                 Expanded(
                   flex: 4,
                   child: Stack(
                     children: [
                       DragTarget<String>(
-                        onWillAccept: (data) => !_mmReviewMode && data != null && !isRightMatched,
+                        onWillAccept: (data) =>
+                            !_mmReviewMode && data != null && !isRightMatched,
                         onAccept: (draggedLeftId) {
                           setState(() {
                             _currentMatches[draggedLeftId] = rightId;
                           });
-                          if (_currentMatches.length >= mixMatchIndices.length) {
+                          if (_currentMatches.length >=
+                              mixMatchIndices.length) {
                             _onAllPairsFilled();
                           }
                         },
                         builder: (context, candidate, rejected) {
-                          final isHovering = !_mmReviewMode && candidate.isNotEmpty && !isRightMatched;
+                          final isHovering =
+                              !_mmReviewMode &&
+                              candidate.isNotEmpty &&
+                              !isRightMatched;
                           return SizedBox(
                             height: mmImageHeight,
-                            child: _FruitImageCard(
+                            child: _ImageCard(
                               imagePath: imagePath,
                               isMatched: isRightMatched,
                               isHovering: isHovering,
@@ -1041,7 +1336,7 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
                           );
                         },
                       ),
-                      // Undo button
+                      // NEW: Undo button (top-right corner) - only show when matched and NOT in review
                       if (isRightMatched && !_mmReviewMode)
                         Positioned(
                           top: 4,
@@ -1056,7 +1351,10 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.9),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFFF4B4A), width: 2),
+                                  border: Border.all(
+                                    color: const Color(0xFFFF4B4A),
+                                    width: 2,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.2),
@@ -1086,27 +1384,62 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   }
 
   // Question Card (MC)
-  Widget _buildQuestionCard(Map<String, dynamic> question) {
+  Widget _buildQuestionCard(
+    Map<String, dynamic> question,
+    ThemeManager themeManager,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: themeManager.isDarkMode
+              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+              : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
-        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
+        border: Border.all(
+          color: themeManager.primary.withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: themeManager.primary.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text("What fruit is shown?", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF69D3E4), letterSpacing: -0.3)),
+          Text(
+            "What sign is shown?",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: themeManager.primary,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: themeManager.isDarkMode
+                  ? const Color(0xFF636366)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.2)),
-              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+              border: Border.all(color: themeManager.primary.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: themeManager.primary.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -1116,7 +1449,13 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
                 height: 140,
                 errorBuilder: (context, error, stack) => const SizedBox(
                   height: 140,
-                  child: Center(child: Icon(Icons.broken_image_rounded, size: 36, color: Colors.grey)),
+                  child: Center(
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      size: 36,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1127,16 +1466,28 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   }
 
   // Options Grid (MC)
-  Widget _buildOptionsGrid(List<String> options, int qIdx) {
+  Widget _buildOptionsGrid(
+    List<String> options,
+    int qIdx,
+    ThemeManager themeManager,
+  ) {
     return Expanded(
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, mainAxisSpacing: 16, crossAxisSpacing: 16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 1.6,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
-          final correctFruit = questions[qIdx]['correctFruit'] as String;
-          final isCorrect = options[index] == correctFruit;
-          final wasSelected = alreadyAnswered && _sessionAnswers[qIdx] == isCorrect && isCorrect;
+          final correctIndex = _questionCorrectIndex[qIdx]!;
+          final isCorrect = index == correctIndex;
+          final wasSelected =
+              alreadyAnswered &&
+              _sessionAnswers[qIdx] == isCorrect &&
+              isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           return OptionCard(
@@ -1144,7 +1495,10 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
             number: index + 1,
             isSelected: wasSelected,
             isPending: isPending,
-            onTap: alreadyAnswered ? null : () => setState(() => _pendingIndex = index),
+            themeManager: themeManager,
+            onTap: alreadyAnswered
+                ? null
+                : () => setState(() => _pendingIndex = index),
           );
         },
       ),
@@ -1152,43 +1506,104 @@ class _FruitsQuizScreenState extends State<FruitsQuizScreen>
   }
 
   // Confirm Bar (MC)
-  Widget _buildConfirmBar(List<String> options) {
+  Widget _buildConfirmBar(List<String> options, ThemeManager themeManager) {
     final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: themeManager.isDarkMode
+              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+              : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
-        boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: themeManager.primary, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: themeManager.primary.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              gradient: themeManager.primaryGradient,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Selected: ${options[idx]}', style: GoogleFonts.montserrat(color: const Color(0xFF69D3E4), fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis),
+            child: Text(
+              'Selected: ${options[idx]}',
+              style: GoogleFonts.montserrat(
+                color: themeManager.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const SizedBox(width: 8),
-          TextButton(onPressed: () => setState(() => _pendingIndex = null), child: Text('Cancel', style: GoogleFonts.montserrat(color: Colors.grey.shade600))),
+          TextButton(
+            onPressed: () => setState(() => _pendingIndex = null),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.montserrat(
+                color: themeManager.isDarkMode
+                    ? const Color(0xFF8E8E93)
+                    : Colors.grey.shade600,
+              ),
+            ),
+          ),
           const SizedBox(width: 8),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))
-                .copyWith(backgroundColor: MaterialStateProperty.all(Colors.transparent)),
+            style:
+                ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ).copyWith(
+                  backgroundColor: MaterialStateProperty.all(
+                    Colors.transparent,
+                  ),
+                ),
             onPressed: () {
               final i = _pendingIndex;
               if (i != null) handleAnswer(i);
             },
             child: Ink(
-              decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(12)),
-              child: Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Text('Confirm', style: GoogleFonts.montserrat(fontWeight: FontWeight.w700))),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Text(
+                  'Confirm',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
+                ),
+              ),
             ),
           ),
         ],
@@ -1205,11 +1620,13 @@ class OptionCard extends StatelessWidget {
   final bool isSelected;
   final bool isPending;
   final VoidCallback? onTap;
+  final ThemeManager themeManager;
 
   const OptionCard({
     super.key,
     required this.option,
     required this.number,
+    required this.themeManager,
     this.isSelected = false,
     this.isPending = false,
     this.onTap,
@@ -1221,13 +1638,38 @@ class OptionCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         gradient: isSelected || isPending
-            ? const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight)
-            : const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            ? LinearGradient(
+                colors: themeManager.isDarkMode
+                    ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                    : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : LinearGradient(
+                colors: themeManager.isDarkMode
+                    ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                    : [const Color(0xFFFFFFFF), const Color(0xFFFAFAFA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isSelected ? const Color(0xFF69D3E4) : (isPending ? const Color(0xFF4FC3E4) : const Color(0xFFE3E6EE)), width: isSelected || isPending ? 2.5 : 1.5),
+        border: Border.all(
+          color: isSelected
+              ? themeManager.primary
+              : (isPending
+                    ? themeManager.secondary
+                    : (themeManager.isDarkMode
+                          ? const Color(0xFF636366)
+                          : const Color(0xFFE3E6EE))),
+          width: isSelected || isPending ? 2.5 : 1.5,
+        ),
         boxShadow: [
           if (isSelected || isPending)
-            BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: themeManager.primary.withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Material(
@@ -1241,29 +1683,55 @@ class OptionCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    gradient: themeManager.primaryGradient,
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeManager.primary.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Center(child: Text(number.toString(), style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15))),
+                  child: Center(
+                    child: Text(
+                      number.toString(),
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     option,
-                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w800, color: isSelected || isPending ? const Color(0xFF69D3E4) : const Color(0xFF2D5263)),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected || isPending
+                          ? themeManager.primary
+                          : themeManager.textPrimary,
+                    ),
                   ),
                 ),
                 if (isSelected)
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    decoration: BoxDecoration(
+                      gradient: themeManager.primaryGradient,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
               ],
             ),
@@ -1280,24 +1748,47 @@ class _LegendDot extends StatelessWidget {
   const _LegendDot({required this.label, required this.color});
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 1))])),
-      const SizedBox(width: 6),
-      Text(label, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w700)),
-    ]);
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(
+            fontSize: 12,
+            color: Colors.black54,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
   }
 }
 
 // ========== Mix & Match Widgets ==========
 
-class _FruitNameCard extends StatelessWidget {
-  final String fruitName;
+class _LetterCard extends StatelessWidget {
+  final String letter;
   final bool isMatched;
   final bool isDragging;
   final bool isFloating;
 
-  const _FruitNameCard({
-    required this.fruitName,
+  const _LetterCard({
+    required this.letter,
     this.isMatched = false,
     this.isDragging = false,
     this.isFloating = false,
@@ -1306,32 +1797,54 @@ class _FruitNameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isFloating ? 120 : double.infinity,
+      width: isFloating ? 100 : double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isMatched ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
+          colors: isMatched
+              ? [const Color(0xFF22C55E), const Color(0xFF16A34A)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4).withOpacity(0.3), width: 2),
-        boxShadow: [BoxShadow(color: (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4)).withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(
+          color: isMatched
+              ? const Color(0xFF22C55E)
+              : const Color(0xFF69D3E4).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                (isMatched ? const Color(0xFF22C55E) : const Color(0xFF69D3E4))
+                    .withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Center(
-        child: Text(fruitName, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: isMatched ? Colors.white : const Color(0xFF69D3E4))),
+        child: Text(
+          letter,
+          style: GoogleFonts.montserrat(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _FruitImageCard extends StatelessWidget {
+class _ImageCard extends StatelessWidget {
   final String imagePath;
   final bool isMatched;
   final bool isHovering;
   final bool reviewCorrect;
   final bool reviewWrong;
 
-  const _FruitImageCard({
+  const _ImageCard({
     required this.imagePath,
     this.isMatched = false,
     this.isHovering = false,
@@ -1357,15 +1870,22 @@ class _FruitImageCard extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF1B3C73), width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: (reviewWrong ? const Color(0xFFFF4B4A)
-                : reviewCorrect ? const Color(0xFF22C55E)
-                : const Color(0xFF69D3E4))
-                .withOpacity(isHovering ? 0.3 : 0.15),
+            color:
+                (reviewWrong
+                        ? const Color(0xFFFF4B4A)
+                        : reviewCorrect
+                        ? const Color(0xFF22C55E)
+                        : const Color(0xFF69D3E4))
+                    .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
           ),
@@ -1382,7 +1902,11 @@ class _FruitImageCard extends StatelessWidget {
                   imagePath,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stack) => const Center(
-                    child: Icon(Icons.broken_image_rounded, size: 32, color: Colors.grey),
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      size: 32,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ),
@@ -1400,7 +1924,9 @@ class _FruitImageCard extends StatelessWidget {
                   child: Icon(
                     reviewCorrect ? Icons.check_rounded : Icons.close_rounded,
                     size: 18,
-                    color: reviewCorrect ? const Color(0xFF16A34A) : const Color(0xFFD90416),
+                    color: reviewCorrect
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFD90416),
                   ),
                 ),
               ),
@@ -1416,40 +1942,97 @@ class _SlideInBadge extends StatefulWidget {
   final String title;
   final String subtitle;
   final Color color;
-  const _SlideInBadge({required this.icon, required this.title, required this.subtitle, required this.color});
+  const _SlideInBadge({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
   @override
   State<_SlideInBadge> createState() => _SlideInBadgeState();
 }
 
-class _SlideInBadgeState extends State<_SlideInBadge> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))..forward();
-  late final Animation<Offset> _a = Tween<Offset>(begin: const Offset(1.1, 0), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+class _SlideInBadgeState extends State<_SlideInBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+  )..forward();
+  late final Animation<Offset> _a = Tween<Offset>(
+    begin: const Offset(1.1, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
   @override
-  void dispose() { _c.dispose(); super.dispose(); }
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _a,
       child: Material(
-        elevation: 8, borderRadius: BorderRadius.circular(16), color: Colors.transparent,
+        elevation: 8,
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.transparent,
         child: Container(
-          width: 300, padding: const EdgeInsets.all(14),
+          width: 300,
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: widget.color == const Color(0xFF2C5CB0) ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)] : [widget.color, widget.color.withOpacity(0.8)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: widget.color == const Color(0xFF2C5CB0)
+                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
+                  : [widget.color, widget.color.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: widget.color == const Color(0xFF2C5CB0) ? const Color(0xFF69D3E4).withOpacity(0.4) : widget.color.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: widget.color == const Color(0xFF2C5CB0)
+                    ? const Color(0xFF69D3E4).withOpacity(0.4)
+                    : widget.color.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Row(children: [
-            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle), child: Icon(widget.icon, color: Colors.white, size: 24)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(widget.title, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
-              Text(widget.subtitle, style: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.9), fontSize: 13)),
-            ])),
-          ]),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1463,70 +2046,185 @@ class _CleanConfirmDialog extends StatelessWidget {
   final String message;
   final String primaryLabel;
   final String secondaryLabel;
-  const _CleanConfirmDialog({required this.icon, required this.title, required this.message, required this.primaryLabel, required this.secondaryLabel});
+  const _CleanConfirmDialog({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.primaryLabel,
+    required this.secondaryLabel,
+  });
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
-          boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 8))],
+          border: Border.all(
+            color: themeManager.primary.withOpacity(0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeManager.primary.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 110, height: 110,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: icon == Icons.warning_amber_rounded ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight),
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: (icon == Icons.warning_amber_rounded ? const Color(0xFFFF4B4A) : const Color(0xFF69D3E4)).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
-              ),
-              child: Icon(icon, size: 56, color: Colors.white),
-            ),
-            const SizedBox(height: 20),
-            Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF1E1E1E), letterSpacing: -0.3)),
-            const SizedBox(height: 10),
-            Text(message, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 15, color: const Color(0xFF6B7280), height: 1.4)),
-            const SizedBox(height: 22),
-            Row(children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.5), width: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: icon == Icons.warning_amber_rounded
+                        ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
+                        : themeManager.isDarkMode
+                        ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: Material(color: Colors.transparent, child: InkWell(
-                    onTap: () => Navigator.pop(context, false),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(padding: const EdgeInsets.symmetric(vertical: 14), alignment: Alignment.center, child: Text(secondaryLabel, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 15, color: const Color(0xFF69D3E4)))),
-                  )),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (icon == Icons.warning_amber_rounded
+                                  ? const Color(0xFFFF4B4A)
+                                  : themeManager.primary)
+                              .withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 56, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: themeManager.textPrimary,
+                  letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))],
-                  ),
-                  child: Material(color: Colors.transparent, child: InkWell(
-                    onTap: () => Navigator.pop(context, true),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(padding: const EdgeInsets.symmetric(vertical: 14), alignment: Alignment.center, child: Text(primaryLabel, style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white))),
-                  )),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFF6B7280),
+                  height: 1.4,
                 ),
               ),
-            ]),
-          ]),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: themeManager.isDarkMode
+                              ? [
+                                  const Color(0xFF3C3C3E),
+                                  const Color(0xFF2C2C2E),
+                                ]
+                              : [
+                                  const Color(0xFFFAFAFA),
+                                  const Color(0xFFFFFFFF),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: themeManager.isDarkMode
+                              ? const Color(0xFF636366)
+                              : themeManager.primary.withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: themeManager.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: themeManager.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeManager.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, true),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              primaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1538,85 +2236,219 @@ class _GreatWorkDialog extends StatelessWidget {
   final int total;
   final VoidCallback onReturn;
 
-  const _GreatWorkDialog({required this.score, required this.total, required this.onReturn});
+  const _GreatWorkDialog({
+    required this.score,
+    required this.total,
+    required this.onReturn,
+  });
 
   bool get isPerfect => score == total;
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
-          boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.25), blurRadius: 24, offset: const Offset(0, 10))],
+          border: Border.all(
+            color: themeManager.primary.withOpacity(0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeManager.primary.withOpacity(0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 120, height: 120,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: isPerfect ? const [Color(0xFFFFD700), Color(0xFFFFA500)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: (isPerfect ? const Color(0xFFFFD700) : const Color(0xFF69D3E4)).withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6))],
-              ),
-              child: ClipOval(child: Image.asset('assets/gifs/trophy_quiz.gif', fit: BoxFit.cover)),
-            ),
-            const SizedBox(height: 24),
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(colors: isPerfect ? const [Color(0xFFFFD700), Color(0xFFFFA500)] : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]).createShader(bounds),
-              child: Text(isPerfect ? "Perfection!" : "Great Work!", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 34, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5)),
-            ),
-            const SizedBox(height: 12),
-            Text(isPerfect ? "You answered every question flawlessly." : "You completed this quiz successfully!", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF4B5563), height: 1.5)),
-            const SizedBox(height: 26),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 28),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3), width: 1.5),
-                boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.15), blurRadius: 12, offset: const Offset(0, 4))],
-              ),
-              child: Center(
-                child: ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)]).createShader(bounds),
-                  child: Text("$score / $total", style: GoogleFonts.montserrat(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: Container(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
+                  gradient: LinearGradient(
+                    colors: isPerfect
+                        ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                        : (themeManager.isDarkMode
+                              ? [
+                                  const Color(0xFF8B1F1F),
+                                  const Color(0xFFD23232),
+                                ]
+                              : [
+                                  const Color(0xFF69D3E4),
+                                  const Color(0xFF4FC3E4),
+                                ]),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isPerfect
+                                  ? const Color(0xFFFFD700)
+                                  : themeManager.primary)
+                              .withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onReturn,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                        Icon(Icons.arrow_back_rounded, size: 24, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text('Return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Montserrat')),
-                      ]),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/gifs/trophy_quiz.gif',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: isPerfect
+                      ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                      : (themeManager.isDarkMode
+                            ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                            : [
+                                const Color(0xFF69D3E4),
+                                const Color(0xFF4FC3E4),
+                              ]),
+                ).createShader(bounds),
+                child: Text(
+                  isPerfect ? "Perfection!" : "Great Work!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isPerfect
+                    ? "You answered every question flawlessly."
+                    : "You completed this quiz successfully!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFF4B5563),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 26),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 28,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: themeManager.isDarkMode
+                        ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                        : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: themeManager.primary.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeManager.primary.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: themeManager.isDarkMode
+                          ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                          : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                    ).createShader(bounds),
+                    child: Text(
+                      "$score / $total",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -1,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ]),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: themeManager.primaryGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onReturn,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.arrow_back_rounded,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Return',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                fontFamily: 'Montserrat',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1629,49 +2461,98 @@ class _BonusRoundDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: themeManager.isDarkMode
+          ? const Color(0xFF2C2C2E)
+          : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 80, height: 80,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
-            ),
-            child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 40),
-          ),
-          const SizedBox(height: 24),
-          Text('Bonus Round:\nMix & Match!', textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFF1E1E1E), height: 1.3)),
-          const SizedBox(height: 12),
-          Text('Great job! Now drag fruit names to their matching images.', textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 15, color: const Color(0xFF6B7280), height: 1.5)),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: Container(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: const Color(0xFF69D3E4).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
+                gradient: themeManager.primaryGradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: themeManager.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => Navigator.pop(context),
+              child: const Icon(
+                Icons.bolt_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Bonus Round:\nMix & Match!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: themeManager.textPrimary,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Great job! Now drag letters to their matching signs.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 15,
+                color: themeManager.isDarkMode
+                    ? const Color(0xFF8E8E93)
+                    : const Color(0xFF6B7280),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: themeManager.primaryGradient,
                   borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    alignment: Alignment.center,
-                    child: Text('Let\'s Go!', style: GoogleFonts.montserrat(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: themeManager.primary.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Let\'s Go!',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }

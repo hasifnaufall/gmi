@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'quiz_category.dart';
 import 'signup.dart';
 import 'auth_service.dart';
 import 'quest_status.dart';
+import 'theme_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -120,30 +122,42 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void showError(String message) {
+    final themeManager = ThemeManager.of(context, listen: false);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: themeManager.isDarkMode
+            ? const Color(0xFF2C2C2E)
+            : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "Login Failed",
           style: GoogleFonts.montserrat(
-            color: Color(0xFF0891B2),
+            color: themeManager.isDarkMode
+                ? const Color(0xFFD23232)
+                : const Color(0xFF0891B2),
             fontWeight: FontWeight.w700,
             fontSize: 20,
           ),
         ),
         content: Text(
           message,
-          style: GoogleFonts.montserrat(color: Color(0xFF2D5263), fontSize: 15),
+          style: GoogleFonts.montserrat(
+            color: themeManager.isDarkMode
+                ? const Color(0xFFE8E8E8)
+                : const Color(0xFF2D5263),
+            fontSize: 15,
+          ),
         ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: themeManager.isDarkMode
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2),
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -164,378 +178,477 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background with decorative circles
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFCFFFF7), // Light mint
-                  Color(0xFFE0F2FE), // Very light cyan
-                ],
-              ),
-            ),
-          ),
-
-          // Decorative circles
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFF0891B2).withOpacity(0.1),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -150,
-            right: -150,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFF7C7FCC).withOpacity(0.1),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            left: 30,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFFFFEB99).withOpacity(0.3),
-              ),
-            ),
-          ),
-
-          // Main content
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
-
-                    // Welcome text
-                    Text(
-                      'Welcome Back,',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0891B2),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Login to Continue!',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D5263),
-                      ),
-                    ),
-
-                    const SizedBox(height: 50),
-
-                    // Login card
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFF0891B2).withOpacity(0.1),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // Logo
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFCFFFF7),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Color(0xFF0891B2).withOpacity(0.2),
-                                width: 2,
-                              ),
-                            ),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              height: 60,
-                            ),
-                          ),
-
-                          const SizedBox(height: 35),
-
-                          // Email Field
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xFFF8F9FA),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Color(0xFF0891B2).withOpacity(0.1),
-                                width: 1,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 15,
-                                color: Color(0xFF2D5263),
-                                fontWeight: FontWeight.w500,
-                              ),
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(
-                                  Icons.email_outlined,
-                                  color: Color(0xFF0891B2),
-                                  size: 22,
-                                ),
-                                hintText: "Email Address",
-                                hintStyle: GoogleFonts.montserrat(
-                                  color: Colors.grey.shade400,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                filled: true,
-                                fillColor: Colors.transparent,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                  horizontal: 20,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Password Field
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xFFF8F9FA),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Color(0xFF0891B2).withOpacity(0.1),
-                                width: 1,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: passwordController,
-                              obscureText: _obscurePassword,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 15,
-                                color: Color(0xFF2D5263),
-                                fontWeight: FontWeight.w500,
-                              ),
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: Color(0xFF0891B2),
-                                  size: 22,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: Color(0xFF0891B2),
-                                    size: 22,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                hintText: "Enter your password",
-                                hintStyle: GoogleFonts.montserrat(
-                                  color: Colors.grey.shade400,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                filled: true,
-                                fillColor: Colors.transparent,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                  horizontal: 20,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 28),
-
-                          // Login Button
-                          Container(
-                            width: double.infinity,
-                            height: 54,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0xFF0891B2).withOpacity(0.4),
-                                  blurRadius: 15,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Text(
-                                "Sign In",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Divider
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.grey.shade300,
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  'or continue with',
-                                  style: GoogleFonts.montserrat(
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.grey.shade300,
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Social login buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Google button
-                              InkWell(
-                                onTap: loginWithGoogle,
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(14),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/google.png',
-                                    height: 28,
-                                    width: 28,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // Sign up link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: GoogleFonts.montserrat(
-                            color: Color(0xFF2D5263),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SignUpScreen(),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            "Sign up here",
-                            style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0891B2),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-                  ],
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return Scaffold(
+          body: Stack(
+            children: [
+              // Background with decorative circles
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: themeManager.isDarkMode
+                        ? [const Color(0xFF1C1C1E), const Color(0xFF2C2C2E)]
+                        : [
+                            const Color(0xFFCFFFF7), // Light mint
+                            const Color(0xFFE0F2FE), // Very light cyan
+                          ],
+                  ),
                 ),
               ),
-            ),
+
+              // Decorative circles
+              Positioned(
+                top: -100,
+                left: -100,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFFD23232).withOpacity(0.1)
+                        : const Color(0xFF0891B2).withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -150,
+                right: -150,
+                child: Container(
+                  width: 400,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFF8B1F1F).withOpacity(0.1)
+                        : const Color(0xFF7C7FCC).withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 100,
+                left: 30,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFF636366).withOpacity(0.3)
+                        : const Color(0xFFFFEB99).withOpacity(0.3),
+                  ),
+                ),
+              ),
+
+              // Main content
+              SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+
+                        // Welcome text
+                        Text(
+                          'Welcome Back,',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            color: themeManager.isDarkMode
+                                ? const Color(0xFFD23232)
+                                : const Color(0xFF0891B2),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Login to Continue!',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: themeManager.isDarkMode
+                                ? const Color(0xFFE8E8E8)
+                                : const Color(0xFF2D5263),
+                          ),
+                        ),
+
+                        const SizedBox(height: 50),
+
+                        // Login card
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: themeManager.isDarkMode
+                                ? const Color(0xFF2C2C2E)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: themeManager.isDarkMode
+                                    ? const Color(0xFFD23232).withOpacity(0.1)
+                                    : const Color(0xFF0891B2).withOpacity(0.1),
+                                blurRadius: 30,
+                                offset: const Offset(0, 15),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // Logo
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: themeManager.isDarkMode
+                                      ? const Color(0xFF3C3C3E)
+                                      : const Color(0xFFCFFFF7),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: themeManager.isDarkMode
+                                        ? const Color(
+                                            0xFFD23232,
+                                          ).withOpacity(0.2)
+                                        : const Color(
+                                            0xFF0891B2,
+                                          ).withOpacity(0.2),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: themeManager.isDarkMode
+                                    ? ColorFiltered(
+                                        colorFilter: const ColorFilter.mode(
+                                          Colors.white,
+                                          BlendMode.srcIn,
+                                        ),
+                                        child: Image.asset(
+                                          'assets/images/logo.png',
+                                          height: 60,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        'assets/images/logo.png',
+                                        height: 60,
+                                      ),
+                              ),
+
+                              const SizedBox(height: 35),
+
+                              // Email Field
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: themeManager.isDarkMode
+                                      ? const Color(0xFF3C3C3E)
+                                      : const Color(0xFFF8F9FA),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: themeManager.isDarkMode
+                                        ? const Color(
+                                            0xFF636366,
+                                          ).withOpacity(0.1)
+                                        : const Color(
+                                            0xFF0891B2,
+                                          ).withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 15,
+                                    color: themeManager.isDarkMode
+                                        ? const Color(0xFFE8E8E8)
+                                        : const Color(0xFF2D5263),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(
+                                      Icons.email_outlined,
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFFD23232)
+                                          : const Color(0xFF0891B2),
+                                      size: 22,
+                                    ),
+                                    hintText: "Email Address",
+                                    hintStyle: GoogleFonts.montserrat(
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFF8E8E93)
+                                          : Colors.grey.shade400,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                      horizontal: 20,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Password Field
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: themeManager.isDarkMode
+                                      ? const Color(0xFF3C3C3E)
+                                      : const Color(0xFFF8F9FA),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: themeManager.isDarkMode
+                                        ? const Color(
+                                            0xFF636366,
+                                          ).withOpacity(0.1)
+                                        : const Color(
+                                            0xFF0891B2,
+                                          ).withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: passwordController,
+                                  obscureText: _obscurePassword,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 15,
+                                    color: themeManager.isDarkMode
+                                        ? const Color(0xFFE8E8E8)
+                                        : const Color(0xFF2D5263),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(
+                                      Icons.lock_outline_rounded,
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFFD23232)
+                                          : const Color(0xFF0891B2),
+                                      size: 22,
+                                    ),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        color: themeManager.isDarkMode
+                                            ? const Color(0xFFD23232)
+                                            : const Color(0xFF0891B2),
+                                        size: 22,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                    ),
+                                    hintText: "Enter your password",
+                                    hintStyle: GoogleFonts.montserrat(
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFF8E8E93)
+                                          : Colors.grey.shade400,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                      horizontal: 20,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 28),
+
+                              // Login Button
+                              Container(
+                                width: double.infinity,
+                                height: 54,
+                                decoration: BoxDecoration(
+                                  gradient: themeManager.isDarkMode
+                                      ? const LinearGradient(
+                                          colors: [
+                                            Color(0xFFD23232),
+                                            Color(0xFF8B1F1F),
+                                          ],
+                                        )
+                                      : const LinearGradient(
+                                          colors: [
+                                            Color(0xFF0891B2),
+                                            Color(0xFF06B6D4),
+                                          ],
+                                        ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: themeManager.isDarkMode
+                                          ? const Color(
+                                              0xFFD23232,
+                                            ).withOpacity(0.4)
+                                          : const Color(
+                                              0xFF0891B2,
+                                            ).withOpacity(0.4),
+                                      blurRadius: 15,
+                                      offset: Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: login,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "Sign In",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 24),
+
+                              // Divider
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFF636366)
+                                          : Colors.grey.shade300,
+                                      thickness: 1,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Text(
+                                      'or continue with',
+                                      style: GoogleFonts.montserrat(
+                                        color: themeManager.isDarkMode
+                                            ? const Color(0xFF8E8E93)
+                                            : Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: themeManager.isDarkMode
+                                          ? const Color(0xFF636366)
+                                          : Colors.grey.shade300,
+                                      thickness: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 24),
+
+                              // Social login buttons
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // Google button
+                                  InkWell(
+                                    onTap: loginWithGoogle,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        color: themeManager.isDarkMode
+                                            ? const Color(0xFF3C3C3E)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: themeManager.isDarkMode
+                                              ? const Color(0xFF636366)
+                                              : Colors.grey.shade300,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Image.asset(
+                                        'assets/images/google.png',
+                                        height: 28,
+                                        width: 28,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Sign up link
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: GoogleFonts.montserrat(
+                                color: themeManager.isDarkMode
+                                    ? const Color(0xFFE8E8E8)
+                                    : const Color(0xFF2D5263),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SignUpScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Sign up here",
+                                style: GoogleFonts.montserrat(
+                                  fontWeight: FontWeight.w700,
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFFD23232)
+                                      : Color(0xFF0891B2),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

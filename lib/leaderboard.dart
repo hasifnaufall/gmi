@@ -66,7 +66,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           .get()
           .timeout(const Duration(seconds: 5));
 
-      print('Leaderboard: Found ${snapshot.docs.length} users in progress collection');
+      print(
+        'Leaderboard: Found ${snapshot.docs.length} users in progress collection',
+      );
 
       final currentUser = _auth.currentUser;
       final currentUserDisplayName = currentUser?.displayName;
@@ -119,7 +121,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
       print('Leaderboard: Top 5 after sorting:');
       for (var i = 0; i < allUsers.length && i < 5; i++) {
-        print('  ${i + 1}. ${allUsers[i]['displayName']} - Level ${allUsers[i]['level']}, Score ${allUsers[i]['score']}');
+        print(
+          '  ${i + 1}. ${allUsers[i]['displayName']} - Level ${allUsers[i]['level']}, Score ${allUsers[i]['score']}',
+        );
       }
 
       List<Map<String, dynamic>> leaderboardData = [];
@@ -267,17 +271,25 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     if (rank == 1) {
       bgColor = themeManager.isDarkMode ? Color(0xFFD23232) : Color(0xFF0891B2);
       badgeColor = Color(0xFFFFD700);
-      avatarBgColor = themeManager.isDarkMode ? Color(0xFF3A3A3C) : Color(0xFFFFF7D1);
+      avatarBgColor = themeManager.isDarkMode
+          ? Color(0xFF3A3A3C)
+          : Color(0xFFFFF7D1);
       emoji = '🥇';
     } else if (rank == 2) {
       bgColor = themeManager.isDarkMode ? Color(0xFF8B1F1F) : Color(0xFF7C7FCC);
       badgeColor = Color(0xFFC0C0C0);
-      avatarBgColor = themeManager.isDarkMode ? Color(0xFF2C2C2E) : Color(0xFFCFFFF7);
+      avatarBgColor = themeManager.isDarkMode
+          ? Color(0xFF2C2C2E)
+          : Color(0xFFCFFFF7);
       emoji = '🥈';
     } else {
-      bgColor = themeManager.isDarkMode ? Color(0xFF636366) : Color(0xFF0891B2).withOpacity(0.6);
+      bgColor = themeManager.isDarkMode
+          ? Color(0xFF636366)
+          : Color(0xFF0891B2).withOpacity(0.6);
       badgeColor = Color(0xFFCD7F32);
-      avatarBgColor = themeManager.isDarkMode ? Color(0xFF1C1C1E) : Color(0xFFFFEB99);
+      avatarBgColor = themeManager.isDarkMode
+          ? Color(0xFF1C1C1E)
+          : Color(0xFFFFEB99);
       emoji = '🥉';
     }
 
@@ -363,32 +375,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           appBar: AppBar(
             backgroundColor: themeManager.backgroundColor,
             elevation: 0,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Container(
-                margin: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: themeManager.primary.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(100),
-                    onTap: () => Navigator.pop(context),
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: themeManager.primary,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            automaticallyImplyLeading: false,
             title: Text(
               'Leaderboard',
               style: TextStyle(
@@ -398,42 +385,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               ),
             ),
             centerTitle: true,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Container(
-                  margin: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: themeManager.primary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(100),
-                      onTap: _loadLeaderboard,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.share_outlined,
-                          color: themeManager.primary,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
           body: _isLoading
               ? Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(themeManager.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      themeManager.primary,
+                    ),
                   ),
                 )
               : _leaderboard.isEmpty
@@ -444,13 +402,17 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       Icon(
                         Icons.leaderboard,
                         size: 80,
-                        color: themeManager.isDarkMode ? Color(0xFF636366) : Colors.grey,
+                        color: themeManager.isDarkMode
+                            ? Color(0xFF636366)
+                            : Colors.grey,
                       ),
                       SizedBox(height: 20),
                       Text(
                         'No rankings yet',
                         style: TextStyle(
-                          color: themeManager.isDarkMode ? Color(0xFF8E8E93) : Colors.grey,
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF8E8E93)
+                              : Colors.grey,
                           fontSize: 18,
                         ),
                       ),
@@ -459,77 +421,31 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 )
               : Column(
                   children: [
-                    // Weekly/All Time Toggle
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: themeManager.primary.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: themeManager.primary,
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Text(
-                                  'Weekly',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  'All Time',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: themeManager.primary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
                     _buildTopThreePodium(themeManager),
 
                     // Current User Rank Card
                     if (_currentUserRank != null && _currentUserRank! > 3)
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         padding: EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: themeManager.isDarkMode
                               ? LinearGradient(
-                                  colors: [Color(0xFF8B1F1F), Color(0xFFD23232)],
+                                  colors: [
+                                    Color(0xFF8B1F1F),
+                                    Color(0xFFD23232),
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 )
                               : LinearGradient(
-                                  colors: [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                  colors: [
+                                    Color(0xFF0891B2),
+                                    Color(0xFF7C7FCC),
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -591,9 +507,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     // Table Container
                     Expanded(
                       child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white,
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF2C2C2E)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -607,10 +528,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           children: [
                             // Table Header
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
                               decoration: BoxDecoration(
                                 color: themeManager.primary,
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -656,7 +582,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             Expanded(
                               child: ListView.separated(
                                 padding: EdgeInsets.zero,
-                                itemCount: _leaderboard.where((e) => e['rank'] > 3).length,
+                                itemCount: _leaderboard
+                                    .where((e) => e['rank'] > 3)
+                                    .length,
                                 separatorBuilder: (context, index) => Divider(
                                   height: 1,
                                   thickness: 1,
@@ -665,18 +593,30 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                       : Colors.grey.shade200,
                                 ),
                                 itemBuilder: (context, index) {
-                                  final allEntries = _leaderboard.where((e) => e['rank'] > 3).toList();
+                                  final allEntries = _leaderboard
+                                      .where((e) => e['rank'] > 3)
+                                      .toList();
                                   final entry = allEntries[index];
-                                  final isCurrentUser = entry['isCurrentUser'] as bool;
+                                  final isCurrentUser =
+                                      entry['isCurrentUser'] as bool;
                                   final rank = entry['rank'] as int;
 
                                   return Container(
                                     color: isCurrentUser
                                         ? (themeManager.isDarkMode
-                                            ? Color(0xFFD23232).withOpacity(0.1)
-                                            : Color(0xFFFFFFD0).withOpacity(0.5))
-                                        : (themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white),
-                                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                              ? Color(
+                                                  0xFFD23232,
+                                                ).withOpacity(0.1)
+                                              : Color(
+                                                  0xFFFFFFD0,
+                                                ).withOpacity(0.5))
+                                        : (themeManager.isDarkMode
+                                              ? Color(0xFF2C2C2E)
+                                              : Colors.white),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 16,
+                                    ),
                                     child: Row(
                                       children: [
                                         SizedBox(
@@ -700,7 +640,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                                 child: Text(
                                                   entry['displayName'],
                                                   style: TextStyle(
-                                                    color: themeManager.isDarkMode
+                                                    color:
+                                                        themeManager.isDarkMode
                                                         ? Color(0xFFE8E8E8)
                                                         : Colors.black87,
                                                     fontSize: 16,
@@ -708,23 +649,33 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                                         ? FontWeight.bold
                                                         : FontWeight.w500,
                                                   ),
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               if (isCurrentUser)
                                                 Container(
-                                                  margin: EdgeInsets.only(left: 8),
-                                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  margin: EdgeInsets.only(
+                                                    left: 8,
+                                                  ),
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
                                                   decoration: BoxDecoration(
                                                     color: themeManager.primary,
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     'YOU',
                                                     style: TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
@@ -855,8 +806,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   color: isSelected
                       ? themeManager.primary
                       : (themeManager.isDarkMode
-                          ? Color(0xFF8E8E93)
-                          : Color(0xFF2D5263).withOpacity(0.6)),
+                            ? Color(0xFF8E8E93)
+                            : Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],

@@ -1,5 +1,6 @@
 // App.js
 import React, { useEffect, useState } from 'react';
+// import LearnProgressTab from './LearnProgressTab';
 import './App.css';
 import { useAuth } from './providers/AuthProvider';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -486,6 +487,14 @@ function App() {
           >
             Progress
           </button>
+          {/*
+          <button 
+            className={activeTab === 'learnProgress' ? 'active' : ''}
+            onClick={() => setActiveTab('learnProgress')}
+          >
+            Learn Progress
+          </button>
+          */}
           <button 
             className={activeTab === 'activities' ? 'active' : ''}
             onClick={() => setActiveTab('activities')}
@@ -520,6 +529,7 @@ function App() {
         {activeTab === 'overview' && <OverviewTab />}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'progress' && <ProgressTab />}
+  {/* {activeTab === 'learnProgress' && <LearnProgressTab token={token} />} */}
         {activeTab === 'activities' && <ActivitiesTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'displayNameChanges' && <DisplayNameChangesTab />}

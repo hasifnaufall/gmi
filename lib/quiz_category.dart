@@ -15,21 +15,19 @@ import 'theme_manager.dart';
 
 // Learn + Quiz screens
 import 'alphabet_learn.dart';
-import 'alphabet_q.dart'show showAlphabetQuizSelection;
+import 'alphabet_q.dart' show showAlphabetQuizSelection;
 import 'number_learn.dart';
-import 'number_q.dart'show showNumberQuizSelection;
+import 'number_q.dart' show showNumberQuizSelection;
 import 'colour_learn.dart';
-import 'colour_q.dart'show showColourQuizSelection;
+import 'colour_q.dart' show showColourQuizSelection;
 import 'fruits_learn.dart';
-import 'fruits_q.dart'show showFruitsQuizSelection;
+import 'fruits_q.dart' show showFruitQuizSelection;
 import 'animals_learn.dart';
-import 'animals_q.dart'show showAnimalQuizSelection;
+import 'animals_q.dart' show showAnimalQuizSelection;
 import 'verb_learn.dart';
-import 'verb_q.dart'show showVerbQuizSelection;
+import 'verb_q.dart' show showVerbQuizSelection;
 import 'speech_learn.dart';
 import 'speech_q.dart' show showSpeechQuizSelection;
-
-
 
 // TODO: Import speech_learn.dart and speech_q.dart when you create them
 // import 'speech_learn.dart';
@@ -94,7 +92,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = false;
+  static const bool kUnlocksDisabled = true;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -204,12 +202,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           .collection('progress')
           .get()
           .timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          print('Rank loading timed out');
-          throw TimeoutException('Rank loading timed out');
-        },
-      );
+            const Duration(seconds: 5),
+            onTimeout: () {
+              print('Rank loading timed out');
+              throw TimeoutException('Rank loading timed out');
+            },
+          );
 
       // Create a list of users with their level and score
       List<Map<String, dynamic>> allUsers = [];
@@ -279,19 +277,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }
 
   void _showLevelInfo() {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.emoji_events, color: Color(0xFF5A7A8A), size: 28),
+            Icon(
+              Icons.emoji_events,
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF5A7A8A),
+              size: 28,
+            ),
             SizedBox(width: 12),
             Text(
               'Level ${QuestStatus.level}',
               style: GoogleFonts.montserrat(
-                color: Color(0xFF0891B2),
+                color: isDark
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF0891B2),
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
               ),
@@ -300,12 +306,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         ),
         content: Text(
           'Your current level shows your overall progress in WaveAct!\n\n'
-              '📚 Complete quizzes to earn XP\n'
-              '🎯 Each correct answer gives you XP\n'
-              '⬆️ Level up to unlock new quiz categories\n\n'
-              'Keep learning to reach higher levels!',
+          '📚 Complete quizzes to earn XP\n'
+          '🎯 Each correct answer gives you XP\n'
+          '⬆️ Level up to unlock new quiz categories\n\n'
+          'Keep learning to reach higher levels!',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF2D5263),
+            color: isDark ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
             fontSize: 15,
             height: 1.5,
           ),
@@ -314,7 +320,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: isDark
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -335,19 +343,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }
 
   void _showLivequizInfo() {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.star, color: Color(0xFF8B6914), size: 28),
+            Icon(
+              Icons.star,
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF8B6914),
+              size: 28,
+            ),
             SizedBox(width: 12),
             Text(
               'Unlocked Categories',
               style: GoogleFonts.montserrat(
-                color: Color(0xFF0891B2),
+                color: isDark
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF0891B2),
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
               ),
@@ -356,12 +372,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         ),
         content: Text(
           'You have unlocked $_unlockedCategoryCount out of 6 quiz categories!\n\n'
-              '🔑 Complete quests to earn keys\n'
-              '🎮 Use 200 keys to unlock new categories\n'
-              '📈 Reach required levels to access locked content\n\n'
-              'Play more quizzes and complete quests to unlock all categories and become a sign language master!',
+          '🔑 Complete quests to earn keys\n'
+          '🎮 Use 200 keys to unlock new categories\n'
+          '📈 Reach required levels to access locked content\n\n'
+          'Play more quizzes and complete quests to unlock all categories and become a sign language master!',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF2D5263),
+            color: isDark ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
             fontSize: 15,
             height: 1.5,
           ),
@@ -370,7 +386,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: isDark
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -391,19 +409,27 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   }
 
   void _showRankInfo() {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.leaderboard, color: Color(0xFF2C5263), size: 28),
+            Icon(
+              Icons.leaderboard,
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFF2C5263),
+              size: 28,
+            ),
             SizedBox(width: 12),
             Text(
               _userRank != null ? 'Rank #$_userRank' : 'Your Rank',
               style: GoogleFonts.montserrat(
-                color: Color(0xFF0891B2),
+                color: isDark
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF0891B2),
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
               ),
@@ -413,17 +439,17 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         content: Text(
           _userRank != null
               ? 'You are ranked #$_userRank among all WaveAct learners!\n\n'
-              '🏆 Your rank is based on your total XP\n'
-              '⚡ Complete quizzes to earn more XP\n'
-              '📊 Tap "Ranking" tab to see the full leaderboard\n\n'
-              'Keep practicing to climb higher!'
+                    '🏆 Your rank is based on your total XP\n'
+                    '⚡ Complete quizzes to earn more XP\n'
+                    '📊 Tap "Ranking" tab to see the full leaderboard\n\n'
+                    'Keep practicing to climb higher!'
               : 'Your ranking is being calculated...\n\n'
-              '🏆 Rankings are based on total XP earned\n'
-              '⚡ Complete quizzes to earn XP and improve your rank\n'
-              '📊 Check the "Ranking" tab to see all learners\n\n'
-              'Start your journey to the top!',
+                    '🏆 Rankings are based on total XP earned\n'
+                    '⚡ Complete quizzes to earn XP and improve your rank\n'
+                    '📊 Check the "Ranking" tab to see all learners\n\n'
+                    'Start your journey to the top!',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF2D5263),
+            color: isDark ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
             fontSize: 15,
             height: 1.5,
           ),
@@ -432,7 +458,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0891B2),
+              backgroundColor: isDark
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2),
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -467,6 +495,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required VoidCallback onLearn,
     required VoidCallback onQuiz,
   }) {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     return showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -485,11 +515,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: isDark
+                            ? Colors.black.withOpacity(0.5)
+                            : Colors.black.withOpacity(0.15),
                         blurRadius: 28,
                         offset: const Offset(0, 16),
                       ),
@@ -502,7 +534,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         children: [
                           IconButton(
                             splashRadius: 22,
-                            icon: const Icon(Icons.arrow_back_rounded),
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              color: isDark
+                                  ? const Color(0xFFE8E8E8)
+                                  : Colors.black,
+                            ),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                           const SizedBox(width: 4),
@@ -510,9 +547,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                             child: Text(
                               title,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? const Color(0xFFE8E8E8)
+                                    : Colors.black,
                               ),
                             ),
                           ),
@@ -600,6 +640,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
 
   // Fun and friendly requirements dialog
   void _showRequirementsDialog({required String title, required String key}) {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     final requiredLevel = QuestStatus.requiredLevelFor(key);
     final haveLevel = QuestStatus.level >= requiredLevel;
     final cost = QuestStatus.unlockCost;
@@ -618,12 +660,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [const Color(0xFFFFF4E6), const Color(0xFFFFE8CC)],
+              colors: isDark
+                  ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                  : [const Color(0xFFFFF4E6), const Color(0xFFFFE8CC)],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.orange.withOpacity(0.3),
+                color: isDark
+                    ? Colors.black.withOpacity(0.5)
+                    : Colors.orange.withOpacity(0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -637,11 +683,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: isDark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.orange.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -656,17 +704,24 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               // Title
               Text(
                 '$title is locked!',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF2D3748),
+                  color: isDark
+                      ? const Color(0xFFE8E8E8)
+                      : const Color(0xFF2D3748),
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Complete these to unlock:',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? const Color(0xFF8E8E93)
+                      : Colors.grey.shade700,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -677,6 +732,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 text: 'Level $requiredLevel',
                 subtext: 'You\'re at level ${QuestStatus.level}',
                 isCompleted: haveLevel,
+                isDark: isDark,
               ),
               const SizedBox(height: 12),
               _buildFunRequirementRow(
@@ -684,6 +740,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                 text: '$cost Keys',
                 subtext: 'You have ${QuestStatus.userPoints} keys',
                 isCompleted: haveKeys,
+                isDark: isDark,
               ),
               const SizedBox(height: 24),
 
@@ -796,16 +853,19 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required String text,
     required String subtext,
     required bool isCompleted,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
-              ? const Color(0xFF22C55E).withOpacity(0.3)
-              : Colors.grey.shade300,
+              ? (isDark
+                    ? const Color(0xFF22C55E).withOpacity(0.5)
+                    : const Color(0xFF22C55E).withOpacity(0.3))
+              : (isDark ? const Color(0xFF636366) : Colors.grey.shade300),
           width: 2,
         ),
       ),
@@ -818,7 +878,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             decoration: BoxDecoration(
               color: isCompleted
                   ? const Color(0xFF22C55E).withOpacity(0.1)
-                  : Colors.grey.shade100,
+                  : (isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade100),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -837,14 +897,23 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: isCompleted
-                        ? const Color(0xFF2D3748)
-                        : Colors.grey.shade600,
+                        ? (isDark
+                              ? const Color(0xFFE8E8E8)
+                              : const Color(0xFF2D3748))
+                        : (isDark
+                              ? const Color(0xFF8E8E93)
+                              : Colors.grey.shade600),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtext,
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? const Color(0xFF8E8E93)
+                        : Colors.grey.shade600,
+                  ),
                 ),
               ],
             ),
@@ -865,10 +934,14 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade200,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.close, color: Colors.grey.shade500, size: 18),
+              child: Icon(
+                Icons.close,
+                color: isDark ? const Color(0xFF636366) : Colors.grey.shade500,
+                size: 18,
+              ),
             ),
         ],
       ),
@@ -955,16 +1028,16 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   Widget _buildEasyCategories(ThemeManager themeManager) {
     final isNumbersUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
+        QuestStatus.isContentUnlocked(QuestStatus.levelNumbers);
     final isColourUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelColour);
+        QuestStatus.isContentUnlocked(QuestStatus.levelColour);
     final isFruitsUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
+        QuestStatus.isContentUnlocked(QuestStatus.levelGreetings);
     final isAnimalsUnlocked =
         kUnlocksDisabled ||
-            QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
+        QuestStatus.isContentUnlocked(QuestStatus.levelCommonVerb);
 
     return GridView.count(
       crossAxisCount: 2,
@@ -988,9 +1061,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               onLearn: () async {
                 await Navigator.push(
                   context,
-                  _buildImmersiveRoute(
-                    const AlphabetLearnScreen(),
-                  ),
+                  _buildImmersiveRoute(const AlphabetLearnScreen()),
                 );
                 await QuestStatus.autoSaveProgress();
               },
@@ -1020,9 +1091,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onLearn: () async {
                     await Navigator.push(
                       context,
-                      _buildImmersiveRoute(
-                        const NumberLearnScreen(),
-                      ),
+                      _buildImmersiveRoute(const NumberLearnScreen()),
                     );
                     await QuestStatus.autoSaveProgress();
                   },
@@ -1054,9 +1123,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onLearn: () async {
                     await Navigator.push(
                       context,
-                      _buildImmersiveRoute(
-                        const ColourLearnScreen(),
-                      ),
+                      _buildImmersiveRoute(const ColourLearnScreen()),
                     );
                     await QuestStatus.autoSaveProgress();
                   },
@@ -1088,14 +1155,12 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onLearn: () async {
                     await Navigator.push(
                       context,
-                      _buildImmersiveRoute(
-                        const FruitsLearnScreen(),
-                      ),
+                      _buildImmersiveRoute(const FruitsLearnScreen()),
                     );
                     await QuestStatus.autoSaveProgress();
                   },
                   onQuiz: () async {
-                    await showFruitsQuizSelection(context);
+                    await showFruitQuizSelection(context);
                     await QuestStatus.autoSaveProgress();
                     if (!mounted) return;
                     setState(() {});
@@ -1122,9 +1187,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onLearn: () async {
                     await Navigator.push(
                       context,
-                      _buildImmersiveRoute(
-                        const AnimalsLearnScreen(),
-                      ),
+                      _buildImmersiveRoute(const AnimalsLearnScreen()),
                     );
                     await QuestStatus.autoSaveProgress();
                   },
@@ -1145,10 +1208,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           imageAsset: 'assets/images/verb/VERBS.jpg',
           imageWidth: 92,
           isUnlocked:
-          kUnlocksDisabled ||
-              QuestStatus.isContentUnlocked(
-                QuestStatus.levelVerbs,
-              ),
+              kUnlocksDisabled ||
+              QuestStatus.isContentUnlocked(QuestStatus.levelVerbs),
           themeManager: themeManager,
           onTap: () {
             _handleOpenOrUnlock(
@@ -1160,9 +1221,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   onLearn: () async {
                     await Navigator.push(
                       context,
-                      _buildImmersiveRoute(
-                        const VerbLearnScreen(),
-                      ),
+                      _buildImmersiveRoute(const VerbLearnScreen()),
                     );
                     await QuestStatus.autoSaveProgress();
                   },
@@ -1206,7 +1265,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           themeManager: themeManager,
           onTap: () {
             _handleOpenOrUnlock(
-              key: QuestStatus.levelSpeech,        // ✅ use the new key
+              key: QuestStatus.levelSpeech, // ✅ use the new key
               title: "Speech",
               onOpen: () async {
                 _openLevelChoice(
@@ -1234,8 +1293,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-
-/* When you create speech_learn.dart and speech_q.dart, use this:
+  /* When you create speech_learn.dart and speech_q.dart, use this:
             _openLevelChoice(
               title: "Speech",
               onLearn: () async {
@@ -1256,9 +1314,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             );
             */
 
-        // TODO: Add more medium difficulty categories here
-
-
+  // TODO: Add more medium difficulty categories here
 
   // Hard difficulty - Will be implemented later
   Widget _buildHardCategories(ThemeManager themeManager) {
@@ -1348,16 +1404,21 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: ColorFiltered(
-                                  colorFilter: ColorFilter.mode(
-                                    Colors.white,
-                                    BlendMode.srcIn,
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/logo.png',
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
+                                child: themeManager.isDarkMode
+                                    ? ColorFiltered(
+                                        colorFilter: ColorFilter.mode(
+                                          Colors.white,
+                                          BlendMode.srcIn,
+                                        ),
+                                        child: Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.contain,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        'assets/images/logo.png',
+                                        fit: BoxFit.contain,
+                                      ),
                               ),
                             ),
                             SizedBox(width: 12),
@@ -1420,9 +1481,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                           colors: themeManager.isDarkMode
                               ? [Color(0xFF2C2C2E), Color(0xFF3A3A3C)]
                               : [
-                            Color(0xFFCFFFF7),
-                            Color(0xFFA4A9FC).withOpacity(0.3),
-                          ],
+                                  Color(0xFFCFFFF7),
+                                  Color(0xFFA4A9FC).withOpacity(0.3),
+                                ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -1608,22 +1669,24 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   Widget _buildModernNavBar(ThemeManager themeManager) {
     return Container(
       decoration: BoxDecoration(
-        color: themeManager.isDarkMode
-            ? Color(0xFF000000)
-            : themeManager.surface,
+        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
-          color: themeManager.primary.withOpacity(0.3),
+          color: themeManager.isDarkMode
+              ? const Color(0xFFD23232).withOpacity(0.3)
+              : const Color(0xFF0891B2).withOpacity(0.3),
           width: 1.5,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: themeManager.primary.withOpacity(0.15),
+            color: themeManager.isDarkMode
+                ? const Color(0xFFD23232).withOpacity(0.15)
+                : const Color(0xFF0891B2).withOpacity(0.15),
             blurRadius: 20,
-            offset: Offset(0, -5),
+            offset: const Offset(0, -5),
           ),
         ],
       ),
@@ -1683,8 +1746,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           decoration: BoxDecoration(
             color: isSelected
                 ? (themeManager.isDarkMode
-                ? Color(0xFFD23232).withOpacity(0.15)
-                : Color(0xFF0891B2).withOpacity(0.1))
+                      ? const Color(0xFFD23232).withOpacity(0.1)
+                      : const Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -1700,11 +1763,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
                       ? (themeManager.isDarkMode
-                      ? Color(0xFFD23232)
-                      : Color(0xFF0891B2))
+                            ? const Color(0xFFD23232)
+                            : const Color(0xFF0891B2))
                       : (themeManager.isDarkMode
-                      ? Color(0xFF8E8E93)
-                      : Color(0xFF2D5263).withOpacity(0.6)),
+                            ? const Color(0xFF8E8E93)
+                            : const Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -1731,21 +1794,15 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         decoration: BoxDecoration(
           gradient: isSelected
               ? LinearGradient(
-            colors: [
-              color.withOpacity(0.3),
-              color.withOpacity(0.15),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
+                  colors: [color.withOpacity(0.3), color.withOpacity(0.15)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
               : LinearGradient(
-            colors: [
-              color.withOpacity(0.08),
-              color.withOpacity(0.05),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+                  colors: [color.withOpacity(0.08), color.withOpacity(0.05)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : color.withOpacity(0.3),
@@ -1753,19 +1810,19 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ),
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ]
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ]
               : [
-            BoxShadow(
-              color: color.withOpacity(0.15),
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
+                  BoxShadow(
+                    color: color.withOpacity(0.15),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
         ),
         child: Column(
           children: [
@@ -1822,13 +1879,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             child: Center(
               child: displayText != null
                   ? Text(
-                displayText,
-                style: GoogleFonts.montserrat(
-                  color: textColor ?? Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                ),
-              )
+                      displayText,
+                      style: GoogleFonts.montserrat(
+                        color: textColor ?? Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    )
                   : Icon(icon, color: iconColor ?? Colors.white, size: 32),
             ),
           ),
@@ -1875,22 +1932,22 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             child: Center(
               child: _loadingRank
                   ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
                   : _userRank != null
                   ? Text(
-                '#$_userRank',
-                style: GoogleFonts.montserrat(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              )
+                      '#$_userRank',
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
                   : Icon(Icons.leaderboard, color: Colors.white, size: 32),
             ),
           ),
@@ -1924,137 +1981,228 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required VoidCallback onTap,
     required ThemeManager themeManager,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: themeManager.isDarkMode
-              ? [Color(0xFF2C2C2E), Color(0xFF3A3A3C)]
-              : [Color(0xFFFCFCFC), Color(0xFFF7F5F0)],
-        ),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: themeManager.isDarkMode
-                ? Color(0xFFD23232).withOpacity(0.3)
-                : Color(0xFF0891B2).withOpacity(0.25),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+    return Transform(
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.001) // perspective
+        ..rotateX(-0.05), // slight 3D tilt
+      alignment: Alignment.center,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: themeManager.isDarkMode
+                ? [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
+                : [Colors.white, Color(0xFFF7F5F0)],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 70,
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: themeManager.isDarkMode
-                                  ? Color(0xFF636366)
-                                  : Color(0xFFEAF5F9),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                        if (imageAsset != null)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            child: Image.asset(
-                              imageAsset,
-                              width: imageWidth,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: imageWidth,
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: themeManager.isDarkMode
-                                        ? Color(0xFF8E8E93)
-                                        : Color(0xFF0891B2).withOpacity(0.3),
-                                    size: 40,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: themeManager.isDarkMode
+                ? Color(0xFFD23232).withOpacity(0.2)
+                : Color(0xFF0891B2).withOpacity(0.2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeManager.isDarkMode
+                  ? Color(0xFFD23232).withOpacity(0.25)
+                  : Color(0xFF0891B2).withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+              spreadRadius: -5,
+            ),
+            BoxShadow(
+              color: themeManager.isDarkMode
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              // Background gradient accent
+              Positioned(
+                top: -20,
+                right: -20,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        themeManager.isDarkMode
+                            ? Color(0xFFD23232).withOpacity(0.1)
+                            : Color(0xFF0891B2).withOpacity(0.1),
+                        Colors.transparent,
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    title,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: themeManager.isDarkMode
-                          ? Color(0xFFD23232)
-                          : Color(0xFF0891B2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 3D Image container
+                    if (imageAsset != null)
+                      Center(
+                        child: Transform(
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.002)
+                            ..rotateY(0.1)
+                            ..rotateX(-0.1),
+                          alignment: Alignment.center,
+                          child: Container(
+                            height: 85,
+                            width: imageWidth,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: themeManager.isDarkMode
+                                      ? Color(0xFFD23232).withOpacity(0.3)
+                                      : Color(0xFF0891B2).withOpacity(0.3),
+                                  blurRadius: 15,
+                                  offset: Offset(0, 8),
+                                  spreadRadius: -3,
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.asset(
+                                imageAsset,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: themeManager.isDarkMode
+                                          ? Color(0xFF3C3C3E)
+                                          : Color(0xFFEAF5F9),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: themeManager.isDarkMode
+                                          ? Color(0xFF8E8E93)
+                                          : Color(0xFF0891B2).withOpacity(0.3),
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: themeManager.isDarkMode
+                            ? Color(0xFFD23232)
+                            : Color(0xFF0891B2),
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$questions questions',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.quiz_outlined,
+                          size: 14,
+                          color: themeManager.isDarkMode
+                              ? Color(0xFF8E8E93)
+                              : Color(0xFF0891B2).withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$questions questions',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: themeManager.isDarkMode
+                                ? Color(0xFF8E8E93)
+                                : Color(0xFF0891B2).withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Lock overlay for locked categories
+              if (!isUnlocked)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
                       color:
-                      (themeManager.isDarkMode
-                          ? Color(0xFFE8E8E8)
-                          : Color(0xFF0891B2))
-                          .withOpacity(0.7),
+                          (themeManager.isDarkMode
+                                  ? Color(0xFF1C1C1E)
+                                  : Colors.white)
+                              .withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: themeManager.isDarkMode
+                            ? Color(0xFF636366)
+                            : Color(0xFF0891B2).withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lock_rounded,
+                            color: themeManager.isDarkMode
+                                ? Color(0xFF8E8E93)
+                                : Color(0xFF0891B2).withOpacity(0.5),
+                            size: 40,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'LOCKED',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: themeManager.isDarkMode
+                                  ? Color(0xFF8E8E93)
+                                  : Color(0xFF0891B2).withOpacity(0.5),
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            if (!isUnlocked)
+                ),
+              // Tap area
               Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color:
-                    (themeManager.isDarkMode
-                        ? Color(0xFF1C1C1E)
-                        : Color(0xFFFCFCFC))
-                        .withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.lock,
-                      color: themeManager.isDarkMode
-                          ? Color(0xFF8E8E93)
-                          : Color(0xFF6B9BAF),
-                      size: 32,
-                    ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: onTap,
+                    splashColor: themeManager.isDarkMode
+                        ? Color(0xFFD23232).withOpacity(0.1)
+                        : Color(0xFF0891B2).withOpacity(0.1),
+                    highlightColor: themeManager.isDarkMode
+                        ? Color(0xFFD23232).withOpacity(0.05)
+                        : Color(0xFF0891B2).withOpacity(0.05),
                   ),
                 ),
               ),
-            Positioned.fill(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: onTap,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

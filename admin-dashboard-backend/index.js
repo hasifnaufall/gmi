@@ -141,7 +141,47 @@ app.post('/feedback', async (req, res) => {
   }
 });
 
+
 // ===== USER PROGRESS ROUTES =====
+// Get all users' learning progress for admin dashboard
+app.get('/users/learn-progress', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    // Fetch all users from Auth
+    const listUsers = await admin.auth().listUsers(1000);
+    const authUsers = listUsers.users.map(user => ({
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email
+    }));
+
+    // Fetch all progress docs
+    const progressSnapshot = await db.collection('progress').get();
+    const progressData = {};
+    progressSnapshot.docs.forEach(doc => {
+      progressData[doc.id] = doc.data();
+    });
+
+    // Compose learning progress for each user
+    const learnProgress = authUsers.map(user => {
+      const progress = progressData[user.uid] || {};
+      return {
+        userId: user.uid,
+        displayName: user.displayName || user.email || user.uid,
+        learnedAlphabetAll: !!progress.learnedAlphabetAll,
+        learnedNumbersAll: !!progress.learnedNumbersAll,
+        learnedColoursAll: !!progress.learnedColoursAll,
+        learnedFruitsAll: !!progress.learnedFruitsAll,
+        learnedAnimalsAll: !!progress.learnedAnimalsAll,
+        learnedVerbsAll: !!progress.learnedVerbsAll
+      };
+    });
+
+    res.send(learnProgress);
+  } catch (error) {
+    console.error('Error fetching learn progress:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
 
 // Get all users and their progress
 app.get('/users/progress', verifyAuth, requireAdmin, async (req, res) => {
