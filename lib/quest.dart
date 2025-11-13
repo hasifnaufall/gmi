@@ -537,6 +537,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🔤',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 2',
@@ -552,6 +553,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '📚',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 3',
@@ -567,6 +569,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎯',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 4',
@@ -582,6 +585,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🔥',
+                          themeManager: themeManager,
                         ),
 
                         // ================ Q5 – Q8 : Numbers (Unlock at Level 5) ==================
@@ -601,6 +605,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🔢',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 6',
@@ -616,6 +621,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🧮',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 7',
@@ -632,6 +638,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '⭐',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 8',
@@ -647,6 +654,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🏆',
+                          themeManager: themeManager,
                         ),
 
                         // ================= Q9 – Q12 : Colour (Unlock at Level 10) =================
@@ -666,6 +674,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎨',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 10',
@@ -681,6 +690,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🌈',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 11',
@@ -696,6 +706,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '⚡',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 12',
@@ -711,6 +722,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '✅',
+                          themeManager: themeManager,
                         ),
 
                         // ================= Q13 – Q16 : Fruits (Unlock at Level 15) ================
@@ -730,6 +742,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🍎',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 14',
@@ -745,6 +758,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🍌',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 15',
@@ -760,6 +774,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎯',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 16',
@@ -775,6 +790,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🏁',
+                          themeManager: themeManager,
                         ),
 
                         // ================= Q17 – Q20 : Animals (Unlock at Level 25) ===============
@@ -794,6 +810,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🐯',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 18',
@@ -809,6 +826,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🐘',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 19',
@@ -824,6 +842,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎪',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 20',
@@ -840,6 +859,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '👑',
+                          themeManager: themeManager,
                         ),
 
                         // ================= Q21 – Q24 : Simple Global Milestones ====================
@@ -857,6 +877,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎁',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 22',
@@ -872,6 +893,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '📈',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 23',
@@ -902,6 +924,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🔓',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 24',
@@ -917,6 +940,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🏅',
+                          themeManager: themeManager,
                         ),
 
                         // ================= Q25 – Q28 : Verbs (Unlock at Level 30) =================
@@ -936,6 +960,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🏃',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 26',
@@ -951,6 +976,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '💪',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 27',
@@ -966,6 +992,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🎬',
+                          themeManager: themeManager,
                         ),
                         _FunQuestItem(
                           title: 'Quest 28',
@@ -981,6 +1008,7 @@ class _QuestScreenState extends State<QuestScreen> {
                             });
                           },
                           icon: '🌟',
+                          themeManager: themeManager,
                         ),
                       ],
                     ),
@@ -999,20 +1027,24 @@ class _QuestScreenState extends State<QuestScreen> {
   Widget _buildFunNavBar(ThemeManager themeManager) {
     return Container(
       decoration: BoxDecoration(
-        color: themeManager.isDarkMode ? Color(0xFF000000) : Colors.white,
+        color: themeManager.isDarkMode ? const Color(0xFF2C2C2E) : Colors.white,
         border: Border.all(
-          color: themeManager.primary.withOpacity(0.3),
+          color: themeManager.isDarkMode
+              ? const Color(0xFFD23232).withOpacity(0.3)
+              : const Color(0xFF0891B2).withOpacity(0.3),
           width: 1.5,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         boxShadow: [
           BoxShadow(
-            color: themeManager.primary.withOpacity(0.15),
+            color: themeManager.isDarkMode
+                ? const Color(0xFFD23232).withOpacity(0.15)
+                : const Color(0xFF0891B2).withOpacity(0.15),
             blurRadius: 20,
-            offset: Offset(0, -5),
+            offset: const Offset(0, -5),
           ),
         ],
       ),
@@ -1072,8 +1104,8 @@ class _QuestScreenState extends State<QuestScreen> {
           decoration: BoxDecoration(
             color: isSelected
                 ? (themeManager.isDarkMode
-                      ? Color(0xFFD23232).withOpacity(0.15)
-                      : Color(0xFF0891B2).withOpacity(0.1))
+                      ? const Color(0xFFD23232).withOpacity(0.1)
+                      : const Color(0xFF0891B2).withOpacity(0.1))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -1089,11 +1121,11 @@ class _QuestScreenState extends State<QuestScreen> {
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
                       ? (themeManager.isDarkMode
-                            ? Color(0xFFD23232)
-                            : Color(0xFF0891B2))
+                            ? const Color(0xFFD23232)
+                            : const Color(0xFF0891B2))
                       : (themeManager.isDarkMode
-                            ? Color(0xFF8E8E93)
-                            : Color(0xFF2D5263).withOpacity(0.6)),
+                            ? const Color(0xFF8E8E93)
+                            : const Color(0xFF2D5263).withOpacity(0.6)),
                 ),
               ),
             ],
@@ -1134,6 +1166,7 @@ class _FunQuestItem extends StatelessWidget {
   final bool isClaimed;
   final VoidCallback onClaim;
   final String icon;
+  final ThemeManager? themeManager;
 
   const _FunQuestItem({
     required this.title,
@@ -1143,27 +1176,46 @@ class _FunQuestItem extends StatelessWidget {
     required this.isClaimed,
     required this.onClaim,
     required this.icon,
+    this.themeManager,
   });
 
   @override
   Widget build(BuildContext context) {
     final canClaim = isCompleted && !isClaimed;
+    final isDark = themeManager?.isDarkMode ?? false;
     Color backgroundColor;
     Color borderColor;
     String statusEmoji = '⏳';
+    IconData? lockIcon;
 
     if (isClaimed) {
-      backgroundColor = const Color(0xFFD1FAE5); // Light green
-      borderColor = const Color(0xFF10B981); // Green
+      // Already claimed - gray
+      backgroundColor = isDark
+          ? const Color(0xFF3C3C3E)
+          : Colors.grey.shade200; // Gray for claimed
+      borderColor = isDark
+          ? const Color(0xFF636366)
+          : Colors.grey.shade400; // Gray border
       statusEmoji = '✅';
+      lockIcon = null;
     } else if (canClaim) {
-      backgroundColor = const Color(0xFFFFEB99); // Darker yellow matching theme
-      borderColor = const Color(0xFF8B6914); // Darker brown matching theme
+      // Done and claimable - green
+      backgroundColor = isDark
+          ? const Color(0xFF065F46)
+          : const Color(0xFFD1FAE5); // Dark green : Light green
+      borderColor = isDark
+          ? const Color(0xFF10B981)
+          : const Color(0xFF10B981); // Green border
       statusEmoji = '🎁';
+      lockIcon = null;
     } else {
-      backgroundColor = Colors.grey.shade100;
-      borderColor = Color(0xFF6B5D42); // Darker brown for locked
-      statusEmoji = '🔒';
+      // Locked
+      backgroundColor = isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade100;
+      borderColor = isDark
+          ? const Color(0xFF636366)
+          : const Color(0xFF6B5D42); // Gray : Brown
+      statusEmoji = '';
+      lockIcon = Icons.lock; // Add lock icon
     }
 
     return Container(
@@ -1186,12 +1238,14 @@ class _FunQuestItem extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
             shape: BoxShape.circle,
             border: Border.all(color: borderColor, width: 2),
           ),
           child: Center(
-            child: Text(icon, style: const TextStyle(fontSize: 18)),
+            child: lockIcon != null
+                ? Icon(lockIcon, size: 20, color: borderColor)
+                : Text(icon, style: const TextStyle(fontSize: 18)),
           ),
         ),
         title: Row(
@@ -1201,28 +1255,35 @@ class _FunQuestItem extends StatelessWidget {
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF2D5263),
+                color: isDark
+                    ? const Color(0xFFE8E8E8)
+                    : const Color(0xFF2D5263),
               ),
             ),
             const SizedBox(width: 4),
-            Text(statusEmoji, style: TextStyle(fontSize: 12)),
+            Text(statusEmoji, style: const TextStyle(fontSize: 12)),
           ],
         ),
         subtitle: Text(
           subtitle,
           style: GoogleFonts.montserrat(
             fontSize: 12,
-            color: Color(0xFF2D5263).withOpacity(0.8),
+            color: isDark
+                ? const Color(0xFF8E8E93)
+                : const Color(0xFF2D5263).withOpacity(0.8),
           ),
         ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: canClaim
-                ? Color(0xFF0891B2) // Darker cyan for claimable
+                ? const Color(0xFF10B981) // Green for claimable (done)
                 : isClaimed
-                ? Color(0xFF10B981) // Green for claimed
-                : Color(0xFF6B5D42).withOpacity(0.5), // Brown for locked
+                ? (isDark
+                      ? const Color(0xFF636366)
+                      : Colors.grey.shade500) // Gray for claimed
+                : (isDark ? const Color(0xFF636366) : const Color(0xFF6B5D42))
+                      .withOpacity(0.5), // Gray : Brown for locked
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
@@ -1255,14 +1316,20 @@ class _FunQuestItem extends StatelessWidget {
                       vertical: 0,
                     ),
                     backgroundColor: isClaimed
-                        ? const Color(0xFF7C7FCC) // Purple/periwinkle for DONE
+                        ? Colors
+                              .grey
+                              .shade400 // Gray for DONE (already claimed)
                         : canClaim
-                        ? const Color(0xFFFFEB99) // Yellow for CLAIM
-                        : Colors.grey.shade400, // Grey for locked
+                        ? const Color(
+                            0xFF10B981,
+                          ) // Green for CLAIM (ready to claim)
+                        : (isDark
+                              ? const Color(0xFF636366)
+                              : Colors.grey.shade400), // Grey for locked
                     foregroundColor: isClaimed
                         ? Colors.white
                         : canClaim
-                        ? Color(0xFF2D5263)
+                        ? Colors.white
                         : Colors.white,
                     elevation: 0,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
