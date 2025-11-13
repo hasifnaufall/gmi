@@ -378,10 +378,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             automaticallyImplyLeading: false,
             title: Text(
               'Leaderboard',
-              style: TextStyle(
-                color: themeManager.primary,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.montserrat(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: themeManager.isDarkMode
+                    ? const Color(0xFFD23232)
+                    : const Color(0xFF0891B2),
               ),
             ),
             centerTitle: true,

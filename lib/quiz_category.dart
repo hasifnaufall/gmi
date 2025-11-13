@@ -39,45 +39,91 @@ import 'speech_q.dart' show showSpeechQuizSelection;
 /// ===================
 /// Top-level helper used in popup
 /// ===================
-class _BigChoiceButton extends StatelessWidget {
+class _ModernChoiceButton extends StatelessWidget {
   final String label;
+  final String subtitle;
   final IconData icon;
-  final Color color;
+  final LinearGradient gradient;
+  final bool isDark;
   final VoidCallback onTap;
 
-  const _BigChoiceButton({
+  const _ModernChoiceButton({
     required this.label,
+    required this.subtitle,
     required this.icon,
-    required this.color,
+    required this.gradient,
+    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Ink(
-        height: 120,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: color.withOpacity(0.12),
-          border: Border.all(color: color.withOpacity(0.35)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 34, color: color),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                letterSpacing: 0.6,
-                fontWeight: FontWeight.w800,
-                color: color.withOpacity(0.95),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          height: 85,
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: gradient.colors.first.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, size: 32, color: Colors.white),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white.withOpacity(0.8),
+                  size: 20,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -501,94 +547,125 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Learn or Quiz',
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 220),
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (_, __, ___) {
-        return GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Material(
-            type: MaterialType.transparency,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 100),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 40,
+                      offset: const Offset(0, -10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Drag indicator
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.black.withOpacity(0.5)
-                            : Colors.black.withOpacity(0.15),
-                        blurRadius: 28,
-                        offset: const Offset(0, 16),
+                            ? const Color(0xFF3C3C3E)
+                            : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
+                    ),
+                    const SizedBox(height: 24),
+                    // Title
+                    Text(
+                      title,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? const Color(0xFFE8E8E8)
+                            : const Color(0xFF1C1C1E),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Choose your learning mode',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? const Color(0xFF8E8E93)
+                            : const Color(0xFF636366),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
                         children: [
-                          IconButton(
-                            splashRadius: 22,
-                            icon: Icon(
-                              Icons.arrow_back_rounded,
-                              color: isDark
-                                  ? const Color(0xFFE8E8E8)
-                                  : Colors.black,
+                          _ModernChoiceButton(
+                            label: 'Learn',
+                            subtitle: 'Study and practice',
+                            icon: Icons.school_rounded,
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [
+                                      const Color(0xFF0891B2),
+                                      const Color(0xFF06B6D4),
+                                    ]
+                                  : [
+                                      const Color(0xFF22D3EE),
+                                      const Color(0xFF06B6D4),
+                                    ],
                             ),
-                            onPressed: () => Navigator.of(context).pop(),
+                            isDark: isDark,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              onLearn();
+                            },
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              title,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? const Color(0xFFE8E8E8)
-                                    : Colors.black,
-                              ),
+                          const SizedBox(height: 16),
+                          _ModernChoiceButton(
+                            label: 'Quiz',
+                            subtitle: 'Test your knowledge',
+                            icon: Icons.quiz_rounded,
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [
+                                      const Color(0xFF8B1F1F),
+                                      const Color(0xFFD23232),
+                                    ]
+                                  : [
+                                      const Color(0xFF3B82F6),
+                                      const Color(0xFF60A5FA),
+                                    ],
                             ),
+                            isDark: isDark,
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              onQuiz();
+                            },
                           ),
-                          const SizedBox(width: 48),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _BigChoiceButton(
-                              label: 'LEARN',
-                              icon: Icons.school_rounded,
-                              color: const Color(0xFF22D3EE),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                onLearn();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _BigChoiceButton(
-                              label: 'QUIZ',
-                              icon: Icons.quiz_rounded,
-                              color: const Color(0xFF60A5FA),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                onQuiz();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
             ),
@@ -596,16 +673,18 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         );
       },
       transitionBuilder: (_, anim, __, child) {
-        final curved = CurvedAnimation(
-          parent: anim,
-          curve: Curves.easeOutCubic,
-        );
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1.0).animate(curved),
-            child: child,
-          ),
+        final slideAnimation =
+            Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
+              CurvedAnimation(
+                parent: anim,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              ),
+            );
+
+        return SlideTransition(
+          position: slideAnimation,
+          child: FadeTransition(opacity: anim, child: child),
         );
       },
     );
@@ -1427,7 +1506,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: themeManager.primary,
+                                color: themeManager.isDarkMode
+                                    ? const Color(0xFFD23232)
+                                    : const Color(0xFF0891B2),
                               ),
                             ),
                           ],
@@ -1613,7 +1694,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Easy',
-                            icon: Icons.sentiment_satisfied_alt, // Keep this or change to Icons.check_circle
+                            icon: Icons
+                                .sentiment_satisfied_alt, // Keep this or change to Icons.check_circle
                             color: Color(0xFF22C55E),
                             isSelected: _selectedDifficulty == 'Easy',
                             themeManager: themeManager,
@@ -1626,7 +1708,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Medium',
-                            icon: Icons.sentiment_neutral, // Keep this or change to Icons.flash_on
+                            icon: Icons
+                                .sentiment_neutral, // Keep this or change to Icons.flash_on
                             color: Color(0xFFFB923C),
                             isSelected: _selectedDifficulty == 'Medium',
                             themeManager: themeManager,
@@ -1639,7 +1722,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                         Expanded(
                           child: _difficultyButton(
                             label: 'Hard',
-                            icon: Icons.sentiment_very_dissatisfied, // Keep this or change to Icons.whatshot
+                            icon: Icons
+                                .sentiment_very_dissatisfied, // Keep this or change to Icons.whatshot
                             color: Color(0xFFEF4444),
                             isSelected: _selectedDifficulty == 'Hard',
                             themeManager: themeManager,
@@ -1796,35 +1880,33 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? color
-              : (themeManager.isDarkMode
-              ? Color(0xFF2C2C2E)
-              : Colors.white),
+              : (themeManager.isDarkMode ? Color(0xFF2C2C2E) : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? color
                 : (themeManager.isDarkMode
-                ? Color(0xFF3C3C3E)
-                : Color(0xFFE5E7EB)),
+                      ? Color(0xFF3C3C3E)
+                      : Color(0xFFE5E7EB)),
             width: 2,
           ),
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ]
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ]
               : [
-            BoxShadow(
-              color: themeManager.isDarkMode
-                  ? Colors.black.withOpacity(0.2)
-                  : Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
+                  BoxShadow(
+                    color: themeManager.isDarkMode
+                        ? Colors.black.withOpacity(0.2)
+                        : Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
         ),
         child: Center(
           child: Text(
@@ -1835,8 +1917,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
               color: isSelected
                   ? Colors.white
                   : (themeManager.isDarkMode
-                  ? Color(0xFFE8E8E8)
-                  : Color(0xFF2D5263)),
+                        ? Color(0xFFE8E8E8)
+                        : Color(0xFF2D5263)),
               letterSpacing: 0.5,
             ),
           ),

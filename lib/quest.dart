@@ -260,8 +260,8 @@ class _QuestScreenState extends State<QuestScreen> {
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
                             color: themeManager.isDarkMode
-                                ? Color(0xFFFFE5E5)
-                                : themeManager.primary,
+                                ? const Color(0xFFD23232)
+                                : const Color(0xFF0891B2),
                           ),
                         ),
                         SizedBox(height: 4),
