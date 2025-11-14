@@ -138,7 +138,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = true;
+  static const bool kUnlocksDisabled = false;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
