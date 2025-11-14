@@ -1,6 +1,7 @@
 // App.js
 import React, { useEffect, useState } from 'react';
 // import LearnProgressTab from './LearnProgressTab';
+import AdminManagement from './AdminManagement';
 import './App.css';
 import { useAuth } from './providers/AuthProvider';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -532,6 +533,12 @@ function App() {
           >
             Feedback
           </button>
+          <button 
+            className={activeTab === 'admins' ? 'active' : ''}
+            onClick={() => setActiveTab('admins')}
+          >
+            Admin Management
+          </button>
         </div>
         <button className="refresh-btn" onClick={() => {fetchData(); fetchLeaderboard(); fetchDisplayNameChanges(); fetchFeedback();}}>
           Refresh
@@ -547,6 +554,7 @@ function App() {
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'displayNameChanges' && <DisplayNameChangesTab />}
         {activeTab === 'feedback' && <FeedbackTab />}
+        {activeTab === 'admins' && <AdminManagement />}
       </main>
     </div>
   );
