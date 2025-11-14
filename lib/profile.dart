@@ -1669,7 +1669,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
                   color: themeManager.isDarkMode
-                      ? const Color(0xFF8E8E93)
+                      ? Colors.white.withOpacity(0.7)
                       : const Color(0xFF2D5263).withOpacity(0.7),
                 ),
               ),
@@ -1679,7 +1679,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: themeManager.isDarkMode
-                      ? const Color(0xFFD23232)
+                      ? Colors.white
                       : const Color(0xFF0891B2),
                 ),
               ),
