@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'theme_manager.dart';
 import 'sign_video_player.dart';
+import 'quest_status.dart';
 
 class VerbLearnScreen extends StatefulWidget {
   const VerbLearnScreen({super.key});
@@ -31,7 +32,6 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
     {"label": "Follow", "video": "assets/videos/verbs/follow.mp4"},
   ];
 
-  final Set<String> _watched = {};
   String _query = "";
   int _columns = 3;
   bool _notifiedAllLearned = false;
@@ -75,7 +75,8 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
     );
 
     if (watched == true) {
-      setState(() => _watched.add(item['label']!));
+      setState(() => QuestStatus.watchedVerbs.add(item['label']!));
+      await QuestStatus.autoSaveProgress();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +89,9 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
       }
 
       // If all 15 verbs learned, you can add quest logic here similar to numbers
-      if (_watched.length == 15 && !_notifiedAllLearned && mounted) {
+      if (QuestStatus.watchedVerbs.length == 15 &&
+          !_notifiedAllLearned &&
+          mounted) {
         _notifiedAllLearned = true;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -103,7 +106,7 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final watchedCount = _watched.length;
+    final watchedCount = QuestStatus.watchedVerbs.length;
     final progress = watchedCount / _all.length;
 
     return Consumer<ThemeManager>(
@@ -356,7 +359,7 @@ class _VerbLearnScreenState extends State<VerbLearnScreen> {
                   itemBuilder: (context, index) {
                     final item = _filtered[index];
                     final label = item['label']!;
-                    final watched = _watched.contains(label);
+                    final watched = QuestStatus.watchedVerbs.contains(label);
 
                     return _VerbCard(
                       label: label,

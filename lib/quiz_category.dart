@@ -138,7 +138,7 @@ class QuizCategoryScreen extends StatefulWidget {
 }
 
 class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
-  static const bool kUnlocksDisabled = false;
+  static const bool kUnlocksDisabled = true;
 
   int _selectedIndex = 0;
   bool _loadingUnlocks = true;
@@ -162,11 +162,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       await _loadUserName();
       await _loadUnlocks();
 
-      // Disable rank loading for now - it's too slow
-      // _loadUserRank();
-      if (mounted) {
-        setState(() => _loadingRank = false);
-      }
+      // Load user rank from leaderboard
+      _loadUserRank();
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -243,51 +240,58 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         return;
       }
 
-      // Fetch all users and calculate rank locally with timeout
-      final allUsersSnapshot = await FirebaseFirestore.instance
+      // Listen to real-time updates from progress collection
+      FirebaseFirestore.instance
           .collection('progress')
-          .get()
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              print('Rank loading timed out');
-              throw TimeoutException('Rank loading timed out');
+          .snapshots()
+          .listen(
+            (snapshot) async {
+              try {
+                // Create a list of users with their level and score
+                List<Map<String, dynamic>> allUsers = [];
+                for (var doc in snapshot.docs) {
+                  final data = doc.data();
+                  allUsers.add({
+                    'userId': doc.id,
+                    'level': data['level'] ?? 0,
+                    'score': data['score'] ?? 0,
+                  });
+                }
+
+                // Sort users by level (descending), then by score (descending)
+                allUsers.sort((a, b) {
+                  int levelCompare = (b['level'] as int).compareTo(
+                    a['level'] as int,
+                  );
+                  if (levelCompare != 0) return levelCompare;
+                  return (b['score'] as int).compareTo(a['score'] as int);
+                });
+
+                // Find current user's rank
+                int rank = 1;
+                for (var user in allUsers) {
+                  if (user['userId'] == currentUserId) {
+                    break;
+                  }
+                  rank++;
+                }
+
+                if (mounted) {
+                  setState(() {
+                    _userRank = rank;
+                    _loadingRank = false;
+                  });
+                }
+              } catch (e) {
+                print('Error calculating rank: $e');
+                if (mounted) setState(() => _loadingRank = false);
+              }
+            },
+            onError: (e) {
+              print('Error listening to rank updates: $e');
+              if (mounted) setState(() => _loadingRank = false);
             },
           );
-
-      // Create a list of users with their level and score
-      List<Map<String, dynamic>> allUsers = [];
-      for (var doc in allUsersSnapshot.docs) {
-        final data = doc.data();
-        allUsers.add({
-          'userId': doc.id,
-          'level': data['level'] ?? 0,
-          'score': data['score'] ?? 0,
-        });
-      }
-
-      // Sort users by level (descending), then by score (descending)
-      allUsers.sort((a, b) {
-        int levelCompare = (b['level'] as int).compareTo(a['level'] as int);
-        if (levelCompare != 0) return levelCompare;
-        return (b['score'] as int).compareTo(a['score'] as int);
-      });
-
-      // Find current user's rank
-      int rank = 1;
-      for (var user in allUsers) {
-        if (user['userId'] == currentUserId) {
-          break;
-        }
-        rank++;
-      }
-
-      if (mounted) {
-        setState(() {
-          _userRank = rank;
-          _loadingRank = false;
-        });
-      }
     } catch (e) {
       print('Error loading user rank: $e');
       if (mounted) setState(() => _loadingRank = false);

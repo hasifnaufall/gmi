@@ -423,6 +423,71 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 )
               : Column(
                   children: [
+                    // How Leaderboard Works Info
+                    Container(
+                      margin: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: themeManager.isDarkMode
+                              ? [Color(0xFF2C2C2E), Color(0xFF3A3A3C)]
+                              : [Color(0xFFE0F2FE), Color(0xFFF0F9FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: themeManager.primary.withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: themeManager.primary.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.info_outline_rounded,
+                              color: themeManager.primary,
+                              size: 24,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'How Rankings Work',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFFE8E8E8)
+                                        : Color(0xFF1E293B),
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Rankings are based on your Level first, then XP points. Complete quizzes to climb higher!',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    height: 1.4,
+                                    color: themeManager.isDarkMode
+                                        ? Color(0xFF8E8E93)
+                                        : Color(0xFF475569),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     _buildTopThreePodium(themeManager),
 
                     // Current User Rank Card

@@ -154,14 +154,18 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                  gradient: LinearGradient(
+                    colors: themeManager.isDarkMode
+                        ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
+                        : [const Color(0xFF0891B2), const Color(0xFF06B6D4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0891B2).withOpacity(0.3),
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFFD23232).withOpacity(0.3)
+                          : const Color(0xFF0891B2).withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -286,20 +290,29 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextField(
-                  keyboardType: TextInputType.number,
                   onChanged: (v) => setState(() => _query = v),
-                  style: GoogleFonts.montserrat(),
+                  style: GoogleFonts.montserrat(
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFFE8E8E8)
+                        : Colors.black,
+                  ),
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search,
-                      color: Color(0xFF0891B2),
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFFD23232)
+                          : const Color(0xFF0891B2),
                     ),
-                    hintText: "Search 1–20",
+                    hintText: "Search A–Z",
                     hintStyle: GoogleFonts.montserrat(
-                      color: Colors.grey.shade500,
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFF8E8E93)
+                          : Colors.grey.shade500,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: themeManager.isDarkMode
+                        ? const Color(0xFF2C2C2E)
+                        : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 14,
@@ -311,14 +324,18 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(
-                        color: Colors.grey.shade200,
+                        color: themeManager.isDarkMode
+                            ? const Color(0xFF636366)
+                            : Colors.grey.shade200,
                         width: 1,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF0891B2),
+                      borderSide: BorderSide(
+                        color: themeManager.isDarkMode
+                            ? const Color(0xFFD23232)
+                            : const Color(0xFF0891B2),
                         width: 2,
                       ),
                     ),
@@ -475,7 +492,7 @@ class _NumberCardState extends State<_NumberCard>
                     ),
                   ),
                 ),
-              // Number
+              // Letter
               Center(
                 child: Text(
                   widget.label,
@@ -483,8 +500,12 @@ class _NumberCardState extends State<_NumberCard>
                     fontSize: 52,
                     fontWeight: FontWeight.w900,
                     color: widget.watched
-                        ? const Color(0xFF0891B2)
-                        : const Color(0xFF2D5263),
+                        ? (widget.themeManager.isDarkMode
+                              ? const Color(0xFFD23232)
+                              : const Color(0xFF0891B2))
+                        : (widget.themeManager.isDarkMode
+                              ? const Color(0xFFE8E8E8)
+                              : const Color(0xFF2D5263)),
                     letterSpacing: 1,
                   ),
                 ),
@@ -500,13 +521,26 @@ class _NumberCardState extends State<_NumberCard>
                   ),
                   decoration: BoxDecoration(
                     gradient: widget.watched
-                        ? const LinearGradient(
-                            colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                        ? LinearGradient(
+                            colors: widget.themeManager.isDarkMode
+                                ? [
+                                    const Color(0xFFD23232),
+                                    const Color(0xFF8B1F1F),
+                                  ]
+                                : [
+                                    const Color(0xFF0891B2),
+                                    const Color(0xFF06B6D4),
+                                  ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
                         : LinearGradient(
-                            colors: [Colors.grey.shade100, Colors.grey.shade50],
+                            colors: widget.themeManager.isDarkMode
+                                ? [
+                                    const Color(0xFF636366),
+                                    const Color(0xFF3C3C3E),
+                                  ]
+                                : [Colors.grey.shade100, Colors.grey.shade50],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -514,7 +548,9 @@ class _NumberCardState extends State<_NumberCard>
                     boxShadow: widget.watched
                         ? [
                             BoxShadow(
-                              color: const Color(0xFF0891B2).withOpacity(0.3),
+                              color: widget.themeManager.isDarkMode
+                                  ? const Color(0xFFD23232).withOpacity(0.3)
+                                  : const Color(0xFF0891B2).withOpacity(0.3),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -531,7 +567,9 @@ class _NumberCardState extends State<_NumberCard>
                         size: 16,
                         color: widget.watched
                             ? Colors.white
-                            : Colors.grey.shade600,
+                            : (widget.themeManager.isDarkMode
+                                  ? const Color(0xFF8E8E93)
+                                  : Colors.grey.shade600),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -541,7 +579,9 @@ class _NumberCardState extends State<_NumberCard>
                           fontWeight: FontWeight.w700,
                           color: widget.watched
                               ? Colors.white
-                              : Colors.grey.shade600,
+                              : (widget.themeManager.isDarkMode
+                                    ? const Color(0xFF8E8E93)
+                                    : Colors.grey.shade600),
                         ),
                       ),
                     ],

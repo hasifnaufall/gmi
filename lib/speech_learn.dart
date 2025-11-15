@@ -16,9 +16,6 @@ class SpeechLearnScreen extends StatefulWidget {
 }
 
 class _SpeechLearnScreenState extends State<SpeechLearnScreen> {
-  // Local watched set (since QuestStatus.watchedSpeech doesn't exist yet)
-  final Set<String> _watchedSpeech = <String>{};
-
   // Build speech phrases with video paths
   final List<Map<String, String>> _all = [
     {'label': 'How are you', 'video': 'assets/videos/speechs/hay.mp4'},
@@ -77,7 +74,7 @@ class _SpeechLearnScreenState extends State<SpeechLearnScreen> {
     );
 
     if (watched == true) {
-      setState(() => _watchedSpeech.add(item['label']!));
+      setState(() => QuestStatus.watchedSpeech.add(item['label']!));
       await QuestStatus.autoSaveProgress();
 
       if (mounted) {
@@ -90,7 +87,7 @@ class _SpeechLearnScreenState extends State<SpeechLearnScreen> {
         );
       }
 
-      if (_watchedSpeech.length == _all.length && mounted) {
+      if (QuestStatus.watchedSpeech.length == _all.length && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('All Speech phrases learned! Great job! 🎤'),
@@ -104,7 +101,7 @@ class _SpeechLearnScreenState extends State<SpeechLearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final watchedCount = _watchedSpeech.length;
+    final watchedCount = QuestStatus.watchedSpeech.length;
     final progress = watchedCount / _all.length;
 
     return Consumer<ThemeManager>(
@@ -358,7 +355,7 @@ class _SpeechLearnScreenState extends State<SpeechLearnScreen> {
                   itemBuilder: (context, index) {
                     final item = _filtered[index];
                     final label = item['label']!;
-                    final watched = _watchedSpeech.contains(label);
+                    final watched = QuestStatus.watchedSpeech.contains(label);
 
                     return _SpeechCard(
                       label: label,

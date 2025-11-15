@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gmi",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "gmi (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "gmi (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "temp_pkg",
+            "cwd": "temp_pkg",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "temp_pkg (profile mode)",
+            "cwd": "temp_pkg",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "temp_pkg (release mode)",
+            "cwd": "temp_pkg",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
