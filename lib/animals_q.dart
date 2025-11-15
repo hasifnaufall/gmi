@@ -2189,8 +2189,8 @@ class _CleanConfirmDialog extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: themeManager.isDarkMode
-                ? const [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
-                : const [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+                ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -2219,20 +2219,19 @@ class _CleanConfirmDialog extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: icon == Icons.warning_amber_rounded
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
-                        : (themeManager.isDarkMode
-                              ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                              : const [Color(0xFFEF4444), Color(0xFFDC2626)]),
+                        : themeManager.isDarkMode
+                        ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : themeManager.primary)
-                              .withOpacity(0.3),
+                      color: (icon == Icons.warning_amber_rounded
+                          ? const Color(0xFFFF4B4A)
+                          : themeManager.primary)
+                          .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2264,8 +2263,48 @@ class _CleanConfirmDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 22),
+
+              // 🔁 NEW BUTTON ROW (your design)
               Row(
                 children: [
+                  // FIRST BUTTON: Cancel (now BLUE gradient)
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: themeManager.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeManager.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding:
+                            const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // SECOND BUTTON: Continue (now WHITE/outlined)
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -2285,13 +2324,14 @@ class _CleanConfirmDialog extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => Navigator.pop(context, false),
+                          onTap: () => Navigator.pop(context, true),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding:
+                            const EdgeInsets.symmetric(vertical: 14),
                             alignment: Alignment.center,
                             child: Text(
-                              secondaryLabel,
+                              primaryLabel,
                               style: GoogleFonts.montserrat(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
@@ -2303,43 +2343,9 @@ class _CleanConfirmDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: themeManager.primaryGradient,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: themeManager.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, true),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            alignment: Alignment.center,
-                            child: Text(
-                              primaryLabel,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
+
             ],
           ),
         ),
@@ -2347,6 +2353,7 @@ class _CleanConfirmDialog extends StatelessWidget {
     );
   }
 }
+
 
 class _MixMatchReviewDialog extends StatelessWidget {
   final List<Map<String, dynamic>> reviewData;

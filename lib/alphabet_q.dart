@@ -59,10 +59,10 @@ Future<void> showAlphabetQuizSelection(BuildContext context) {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (themeManager.isDarkMode
-                                  ? const Color(0xFFD23232)
-                                  : const Color(0xFFEF4444))
-                              .withOpacity(0.3),
+                      (themeManager.isDarkMode
+                          ? const Color(0xFFD23232)
+                          : const Color(0xFFEF4444))
+                          .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -118,7 +118,7 @@ Future<void> showAlphabetQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const AlphabetQuizScreen(quizType: QuizType.mixMatch),
+                  const AlphabetQuizScreen(quizType: QuizType.mixMatch),
                 ),
               );
             },
@@ -135,7 +135,7 @@ Future<void> showAlphabetQuizSelection(BuildContext context) {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      const AlphabetQuizScreen(quizType: QuizType.both),
+                  const AlphabetQuizScreen(quizType: QuizType.both),
                 ),
               );
             },
@@ -291,7 +291,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
   int? _pendingIndex;
   final Map<int, bool> _sessionAnswers = {};
   final Map<int, int> _userSelectedIndex =
-      {}; // Store user's selected option index
+  {}; // Store user's selected option index
 
   // Mix & Match state
   late List<int> mixMatchIndices;
@@ -372,7 +372,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     final correctLetter = questions[qIdx]['correctLetter'] as String;
     final allLetters = List<String>.generate(
       26,
-      (i) => String.fromCharCode(65 + i),
+          (i) => String.fromCharCode(65 + i),
     );
     allLetters.remove(correctLetter);
     allLetters.shuffle();
@@ -744,7 +744,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     final totalQuestions =
         activeIndices.length +
-        (mixMatchIndices.isEmpty ? 0 : mixMatchIndices.length);
+            (mixMatchIndices.isEmpty ? 0 : mixMatchIndices.length);
 
     // ========= BADGES: update counters for this completed quiz =========
     // Count this quiz
@@ -825,7 +825,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
         icon: Icons.warning_amber_rounded,
         title: 'Are you sure?',
         message:
-            "This action can't be undone and your progress this round will be lost.",
+        "This action can't be undone and your progress this round will be lost.",
         primaryLabel: 'Leave',
         secondaryLabel: 'Stay',
       ),
@@ -1257,8 +1257,8 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
     required ThemeManager themeManager,
   }) {
     assert(
-      lettersOrder.length == imagesOrder.length,
-      "lettersOrder and imagesOrder must be same length",
+    lettersOrder.length == imagesOrder.length,
+    "lettersOrder and imagesOrder must be same length",
     );
 
     return Column(
@@ -1333,7 +1333,7 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                     children: [
                       DragTarget<String>(
                         onWillAccept: (data) =>
-                            !_mmReviewMode && data != null && !isRightMatched,
+                        !_mmReviewMode && data != null && !isRightMatched,
                         onAccept: (draggedLeftId) {
                           setState(() {
                             _currentMatches[draggedLeftId] = rightId;
@@ -1346,8 +1346,8 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                         builder: (context, candidate, rejected) {
                           final isHovering =
                               !_mmReviewMode &&
-                              candidate.isNotEmpty &&
-                              !isRightMatched;
+                                  candidate.isNotEmpty &&
+                                  !isRightMatched;
                           // Find the matched letter for this image
                           String? matchedLetter;
                           if (isRightMatched) {
@@ -1423,9 +1423,9 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   // Question Card (MC)
   Widget _buildQuestionCard(
-    Map<String, dynamic> question,
-    ThemeManager themeManager,
-  ) {
+      Map<String, dynamic> question,
+      ThemeManager themeManager,
+      ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -1505,10 +1505,10 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
   // Options Grid (MC)
   Widget _buildOptionsGrid(
-    List<String> options,
-    int qIdx,
-    ThemeManager themeManager,
-  ) {
+      List<String> options,
+      int qIdx,
+      ThemeManager themeManager,
+      ) {
     return Expanded(
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -1524,17 +1524,17 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
           final isCorrect = index == correctIndex;
           final wasSelected =
               alreadyAnswered &&
-              _sessionAnswers[qIdx] == isCorrect &&
-              isCorrect;
+                  _sessionAnswers[qIdx] == isCorrect &&
+                  isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
           // Review mode: show correct/wrong colors
           final showCorrect = _mcqReviewMode && alreadyAnswered && isCorrect;
           final showWrong =
               _mcqReviewMode &&
-              alreadyAnswered &&
-              _userSelectedIndex[qIdx] == index &&
-              !isCorrect;
+                  alreadyAnswered &&
+                  _userSelectedIndex[qIdx] == index &&
+                  !isCorrect;
 
           return OptionCard(
             option: options[index],
@@ -1626,13 +1626,13 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
                 decoration: BoxDecoration(
                   gradient: themeManager.isDarkMode
                       ? LinearGradient(
-                          colors: [
-                            themeManager.primary.withOpacity(0.8),
-                            themeManager.primary,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
+                    colors: [
+                      themeManager.primary.withOpacity(0.8),
+                      themeManager.primary,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
                       : themeManager.primaryGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -1726,12 +1726,12 @@ class OptionCard extends StatelessWidget {
           if (isSelected || isPending || reviewCorrect || reviewWrong)
             BoxShadow(
               color:
-                  (reviewCorrect
-                          ? const Color(0xFF16A34A)
-                          : reviewWrong
-                          ? const Color(0xFFFF4B4A)
-                          : themeManager.primary)
-                      .withOpacity(0.3),
+              (reviewCorrect
+                  ? const Color(0xFF16A34A)
+                  : reviewWrong
+                  ? const Color(0xFFFF4B4A)
+                  : themeManager.primary)
+                  .withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -1753,17 +1753,17 @@ class OptionCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: reviewCorrect || reviewWrong
                         ? const LinearGradient(
-                            colors: [Colors.white, Colors.white],
-                          )
+                      colors: [Colors.white, Colors.white],
+                    )
                         : themeManager.primaryGradient,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color:
-                            (reviewCorrect || reviewWrong
-                                    ? Colors.white
-                                    : themeManager.primary)
-                                .withOpacity(0.3),
+                        (reviewCorrect || reviewWrong
+                            ? Colors.white
+                            : themeManager.primary)
+                            .withOpacity(0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -1775,8 +1775,8 @@ class OptionCard extends StatelessWidget {
                       style: GoogleFonts.montserrat(
                         color: reviewCorrect || reviewWrong
                             ? (reviewCorrect
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFFFF4B4A))
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFFFF4B4A))
                             : Colors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
@@ -1794,8 +1794,8 @@ class OptionCard extends StatelessWidget {
                       color: reviewCorrect || reviewWrong
                           ? Colors.white
                           : (isSelected || isPending
-                                ? themeManager.primary
-                                : themeManager.textPrimary),
+                          ? themeManager.primary
+                          : themeManager.textPrimary),
                     ),
                   ),
                 ),
@@ -1977,14 +1977,14 @@ class _ImageCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color:
-                (reviewWrong
-                        ? const Color(0xFFFF4B4A)
-                        : reviewCorrect
-                        ? const Color(0xFF22C55E)
-                        : isHovering
-                        ? const Color(0xFF06B6D4)
-                        : const Color(0xFFEF4444))
-                    .withOpacity(isHovering ? 0.3 : 0.15),
+            (reviewWrong
+                ? const Color(0xFFFF4B4A)
+                : reviewCorrect
+                ? const Color(0xFF22C55E)
+                : isHovering
+                ? const Color(0xFF06B6D4)
+                : const Color(0xFFEF4444))
+                .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
           ),
@@ -2174,7 +2174,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
   }
 }
 
-// Clean Confirm Dialog
+// ========== CRITICAL: Clean Confirm Dialog WITH SWAPPED BUTTON COLORS ==========
 class _CleanConfirmDialog extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -2230,8 +2230,8 @@ class _CleanConfirmDialog extends StatelessWidget {
                     colors: icon == Icons.warning_amber_rounded
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
                         : (themeManager.isDarkMode
-                              ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                              : const [Color(0xFFEF4444), Color(0xFFDC2626)]),
+                        ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
+                        : const [Color(0xFFEF4444), Color(0xFFDC2626)]),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2239,10 +2239,10 @@ class _CleanConfirmDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (icon == Icons.warning_amber_rounded
-                                  ? const Color(0xFFFF4B4A)
-                                  : themeManager.primary)
-                              .withOpacity(0.3),
+                      (icon == Icons.warning_amber_rounded
+                          ? const Color(0xFFFF4B4A)
+                          : themeManager.primary)
+                          .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2274,12 +2274,50 @@ class _CleanConfirmDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 22),
+              // ========== SWAPPED BUTTON COLORS HERE ==========
               Row(
                 children: [
+                  // FIRST BUTTON: Cancel (secondaryLabel) - NOW BLUE GRADIENT
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        gradient: themeManager.primaryGradient, // NOW BLUE!
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeManager.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800, // Changed from w700
+                                fontSize: 15,
+                                color: Colors.white, // Changed from primary
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // SECOND BUTTON: Continue (primaryLabel) - NOW WHITE/OUTLINED
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient( // NOW WHITE!
                           colors: themeManager.isDarkMode
                               ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
                               : const [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
@@ -2295,41 +2333,6 @@ class _CleanConfirmDialog extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => Navigator.pop(context, false),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            alignment: Alignment.center,
-                            child: Text(
-                              secondaryLabel,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: themeManager.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: themeManager.primaryGradient,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: themeManager.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
                           onTap: () => Navigator.pop(context, true),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
@@ -2338,9 +2341,9 @@ class _CleanConfirmDialog extends StatelessWidget {
                             child: Text(
                               primaryLabel,
                               style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700, // Changed from w800
                                 fontSize: 15,
-                                color: Colors.white,
+                                color: themeManager.primary, // Changed from white
                               ),
                             ),
                           ),
@@ -2420,10 +2423,10 @@ class _GreatWorkDialog extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          (isPerfect
-                                  ? const Color(0xFFFFD700)
-                                  : const Color(0xFFEF4444))
-                              .withOpacity(0.4),
+                      (isPerfect
+                          ? const Color(0xFFFFD700)
+                          : const Color(0xFFEF4444))
+                          .withOpacity(0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -2442,8 +2445,8 @@ class _GreatWorkDialog extends StatelessWidget {
                   colors: isPerfect
                       ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
                       : (themeManager.isDarkMode
-                            ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                            : const [Color(0xFFEF4444), Color(0xFFDC2626)]),
+                      ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
+                      : const [Color(0xFFEF4444), Color(0xFFDC2626)]),
                 ).createShader(bounds),
                 child: Text(
                   isPerfect ? "Perfection!" : "Great Work!",
@@ -2726,10 +2729,10 @@ class _MCQReviewDialog extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color:
-                                  (isCorrect
-                                          ? const Color(0xFF22C55E)
-                                          : const Color(0xFFFF4B4A))
-                                      .withOpacity(0.3),
+                              (isCorrect
+                                  ? const Color(0xFF22C55E)
+                                  : const Color(0xFFFF4B4A))
+                                  .withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -3049,10 +3052,10 @@ class _MixMatchReviewDialog extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color:
-                                  (isCorrect
-                                          ? const Color(0xFF22C55E)
-                                          : const Color(0xFFFF4B4A))
-                                      .withOpacity(0.3),
+                              (isCorrect
+                                  ? const Color(0xFF22C55E)
+                                  : const Color(0xFFFF4B4A))
+                                  .withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -3103,15 +3106,15 @@ class _MixMatchReviewDialog extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                   child: userImage != null
                                       ? Image.asset(
-                                          userImage,
-                                          fit: BoxFit.contain,
-                                        )
+                                    userImage,
+                                    fit: BoxFit.contain,
+                                  )
                                       : const Center(
-                                          child: Icon(
-                                            Icons.help_outline_rounded,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
+                                    child: Icon(
+                                      Icons.help_outline_rounded,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),

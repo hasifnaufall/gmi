@@ -21,7 +21,7 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
     {"label": "Rabbit", "video": "assets/videos/animals/arnab.mp4"},
     {"label": "Chicken", "video": "assets/videos/animals/ayam.mp4"},
     {"label": "Pig", "video": "assets/videos/animals/babi.mp4"},
-    {"label": "Rhinoceros", "video": "assets/videos/animals/badak_sumbu.mp4"},
+    {"label": "Rhinoceros", "video": "assets/videos/animals/badaksumbu.mp4"},
     {"label": "Grasshopper", "video": "assets/videos/animals/belalang.mp4"},
     {"label": "Bear", "video": "assets/videos/animals/beruang.mp4"},
     {"label": "Monitor Lizard", "video": "assets/videos/animals/biawak.mp4"},
@@ -39,7 +39,7 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
     {"label": "Goat", "video": "assets/videos/animals/kambing.mp4"},
     {"label": "Mouse Deer", "video": "assets/videos/animals/kancil.mp4"},
     {"label": "Spider", "video": "assets/videos/animals/labah.mp4"},
-    {"label": "Butterfly", "video": "assets/videos/animals/rama_rama.mp4"},
+    {"label": "Butterfly", "video": "assets/videos/animals/rama-rama.mp4"},
     {"label": "Lion", "video": "assets/videos/animals/singa.mp4"},
     {"label": "Giraffe", "video": "assets/videos/animals/zirafah.mp4"},
   ];

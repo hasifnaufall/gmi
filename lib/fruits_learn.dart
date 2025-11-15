@@ -36,7 +36,7 @@ class _FruitsLearnScreenState extends State<FruitsLearnScreen> {
     {"label": "Rambutan", "video": "assets/videos/fruits/rambutan.mp4"},
     {"label": "Sour-sop", "video": "assets/videos/fruits/sour-sop.mp4"},
     {"label": "Starfruit", "video": "assets/videos/fruits/starfruit.mp4"},
-    {"label": "Sugar Cane", "video": "assets/videos/fruits/sugar cane.mp4"},
+    {"label": "Sugar Cane", "video": "assets/videos/fruits/sugarcane.mp4"},
     {"label": "Watermelon", "video": "assets/videos/fruits/watermelon.mp4"},
   ];
 
