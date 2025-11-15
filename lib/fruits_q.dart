@@ -50,7 +50,7 @@ Future<void> showFruitQuizSelection(BuildContext context) {
                   gradient: LinearGradient(
                     colors: themeManager.isDarkMode
                         ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        : const [Color(0xFFEF4444), Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -60,7 +60,7 @@ Future<void> showFruitQuizSelection(BuildContext context) {
                       color:
                           (themeManager.isDarkMode
                                   ? const Color(0xFFD23232)
-                                  : const Color(0xFF69D3E4))
+                                  : const Color(0xFFEF4444))
                               .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -92,7 +92,7 @@ Future<void> showFruitQuizSelection(BuildContext context) {
             icon: Icons.quiz_rounded,
             title: 'Multiple Choice',
             description: '5 questions',
-            gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            gradient: const [Color(0xFFEF4444), Color(0xFFDC2626)],
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -714,18 +714,31 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
     final reviewData = <Map<String, dynamic>>[];
     for (final idx in mixMatchIndices) {
       final fruit = questions[idx]['correctFruit'] as String;
+      final correctImage = questions[idx]['image'] as String;
       final leftId = "left_$fruit";
       final rightId = "right_$fruit";
       final userMatched = _currentMatches[leftId];
+
+      // Find user's matched image
+      String? userImage;
+      if (userMatched != null) {
+        final userFruit = userMatched.replaceFirst('right_', '');
+        final userIdx = mixMatchIndices.firstWhere(
+          (i) => questions[i]['correctFruit'] == userFruit,
+          orElse: () => -1,
+        );
+        if (userIdx != -1) {
+          userImage = questions[userIdx]['image'] as String;
+        }
+      }
+
       final isCorrect = userMatched == rightId;
 
       reviewData.add({
-        'correctAnswer': fruit,
-        'imagePath': questions[idx]['image'],
+        'fruit': fruit,
+        'correctImage': correctImage,
+        'userImage': userImage,
         'isCorrect': isCorrect,
-        'userAnswer': userMatched != null
-            ? userMatched.replaceFirst('right_', '')
-            : 'No match',
       });
     }
 
@@ -1185,9 +1198,17 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
-            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+          children: [
+            _LegendDot(
+              label: 'Correct',
+              color: Color(0xFF22C55E),
+              themeManager: themeManager,
+            ),
+            _LegendDot(
+              label: 'Wrong',
+              color: Color(0xFFFF4B4A),
+              themeManager: themeManager,
+            ),
           ],
         ),
       ],
@@ -1211,7 +1232,7 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
               backgroundColor: themeManager.isDarkMode
                   ? const Color(0xFF636366)
                   : const Color(0xFFE0F2F1),
-              valueColor: AlwaysStoppedAnimation(themeManager.primary),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFA726)),
               minHeight: 10,
             ),
           ),
@@ -1338,15 +1359,20 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
                             child: _LetterCard(
                               letter: letter,
                               isFloating: true,
+                              themeManager: themeManager,
                             ),
                           ),
                           childWhenDragging: Opacity(
                             opacity: 0.3,
-                            child: _LetterCard(letter: letter),
+                            child: _LetterCard(
+                              letter: letter,
+                              themeManager: themeManager,
+                            ),
                           ),
                           child: _LetterCard(
                             letter: letter,
                             isMatched: isLeftMatched,
+                            themeManager: themeManager,
                           ),
                         ),
                       ),
@@ -1584,7 +1610,6 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
 
   // Confirm Bar (MC)
   Widget _buildConfirmBar(List<String> options, ThemeManager themeManager) {
-    final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1606,79 +1631,77 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              gradient: themeManager.primaryGradient,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Selected: ${options[idx]}',
-              style: GoogleFonts.montserrat(
-                color: themeManager.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _pendingIndex = null),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF636366)
+                      : Colors.grey.shade400,
+                  width: 1.5,
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(
-                color: themeManager.isDarkMode
-                    ? const Color(0xFF8E8E93)
-                    : Colors.grey.shade600,
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                final i = _pendingIndex;
+                if (i != null) handleAnswer(i);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                shadowColor: Colors.transparent,
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.all(
-                    Colors.transparent,
-                  ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: themeManager.isDarkMode
+                      ? LinearGradient(
+                          colors: [
+                            themeManager.primary.withOpacity(0.8),
+                            themeManager.primary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : themeManager.primaryGradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-            onPressed: () {
-              final i = _pendingIndex;
-              if (i != null) handleAnswer(i);
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Text(
-                  'Confirm',
-                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1845,7 +1868,12 @@ class OptionCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
-  const _LegendDot({required this.label, required this.color});
+  final ThemeManager themeManager;
+  const _LegendDot({
+    required this.label,
+    required this.color,
+    required this.themeManager,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -1870,7 +1898,9 @@ class _LegendDot extends StatelessWidget {
           label,
           style: GoogleFonts.montserrat(
             fontSize: 12,
-            color: Colors.black54,
+            color: themeManager.isDarkMode
+                ? const Color(0xFFE5E5EA)
+                : Colors.black54,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1885,9 +1915,11 @@ class _LetterCard extends StatelessWidget {
   final String letter;
   final bool isMatched;
   final bool isFloating;
+  final ThemeManager themeManager;
 
   const _LetterCard({
     required this.letter,
+    required this.themeManager,
     this.isMatched = false,
     this.isFloating = false,
   });
@@ -1895,11 +1927,13 @@ class _LetterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isFloating ? 100 : double.infinity,
+      width: isFloating ? 140 : double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isMatched
               ? [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]
+              : themeManager.isDarkMode
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1908,26 +1942,31 @@ class _LetterCard extends StatelessWidget {
         border: Border.all(
           color: isMatched
               ? const Color(0xFFFBBF24)
-              : const Color(0xFF69D3E4).withOpacity(0.3),
+              : themeManager.primary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color:
-                (isMatched ? const Color(0xFFFBBF24) : const Color(0xFF69D3E4))
-                    .withOpacity(0.2),
+            color: (isMatched ? const Color(0xFFFBBF24) : themeManager.primary)
+                .withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Center(
-        child: Text(
-          letter,
-          style: GoogleFonts.montserrat(
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            letter,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: isMatched ? Colors.white : themeManager.primary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -1960,7 +1999,7 @@ class _ImageCard extends StatelessWidget {
     } else if (reviewWrong) {
       colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
-      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+      colors = const [Color(0xFF06B6D4), Color(0xFF0891B2)];
     } else if (isMatched) {
       colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
@@ -1984,7 +2023,9 @@ class _ImageCard extends StatelessWidget {
                         ? const Color(0xFFFF4B4A)
                         : reviewCorrect
                         ? const Color(0xFF22C55E)
-                        : const Color(0xFF69D3E4))
+                        : isHovering
+                        ? const Color(0xFF06B6D4)
+                        : const Color(0xFFEF4444))
                     .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
@@ -2011,28 +2052,26 @@ class _ImageCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (matchedLetter != null &&
-                isMatched &&
-                !reviewCorrect &&
-                !reviewWrong)
+            if (matchedLetter != null && !reviewCorrect && !reviewWrong)
               Positioned(
                 right: 8,
                 top: 8,
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  constraints: const BoxConstraints(
+                    maxWidth: 80,
+                    minHeight: 35,
+                  ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    color: const Color(0xFFF59E0B),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFBBF24).withOpacity(0.3),
-                        blurRadius: 8,
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -2041,10 +2080,14 @@ class _ImageCard extends StatelessWidget {
                     child: Text(
                       matchedLetter!,
                       style: GoogleFonts.montserrat(
-                        fontSize: 18,
+                        fontSize: 11,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
+                        height: 1.1,
                       ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
@@ -2120,7 +2163,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: widget.color == const Color(0xFF2C5CB0)
-                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
+                  ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
                   : [widget.color, widget.color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -2129,7 +2172,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
             boxShadow: [
               BoxShadow(
                 color: widget.color == const Color(0xFF2C5CB0)
-                    ? const Color(0xFF69D3E4).withOpacity(0.4)
+                    ? const Color(0xFFEF4444).withOpacity(0.4)
                     : widget.color.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -2234,7 +2277,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
                         : themeManager.isDarkMode
                         ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2684,107 +2727,197 @@ class _MixMatchReviewDialog extends StatelessWidget {
                 ],
               ),
             ),
-            // Review Grid
+            // Review List
             Flexible(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.0,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                ),
-                itemCount: reviewData.length,
-                itemBuilder: (context, index) {
-                  final data = reviewData[index];
-                  final isCorrect = data['isCorrect'] as bool;
-                  return Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: themeManager.isDarkMode
-                          ? const Color(0xFF3C3C3E)
-                          : Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isCorrect
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFFFF4B4A),
-                        width: 2,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        // Image
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: reviewData.map((data) {
+                    final fruit = data['fruit'] as String;
+                    final correctImage = data['correctImage'] as String;
+                    final userImage = data['userImage'] as String?;
+                    final isCorrect = data['isCorrect'] as bool;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isCorrect
+                                ? const [Color(0xFF22C55E), Color(0xFF16A34A)]
+                                : const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isCorrect
+                                          ? const Color(0xFF22C55E)
+                                          : const Color(0xFFFF4B4A))
+                                      .withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                data['imagePath'],
-                                fit: BoxFit.contain,
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Fruit name
+                            Flexible(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 10,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minHeight: 60,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    fruit,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      color: isCorrect
+                                          ? const Color(0xFF16A34A)
+                                          : const Color(0xFFFF4B4A),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+
+                            // Arrow
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+
+                            // User's matched image
+                            Flexible(
+                              flex: 3,
+                              child: Container(
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: userImage != null
+                                      ? Image.asset(
+                                          userImage,
+                                          fit: BoxFit.contain,
+                                        )
+                                      : const Center(
+                                          child: Icon(
+                                            Icons.help_outline_rounded,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+
+                            // Show correct image if wrong
+                            if (!isCorrect) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white.withOpacity(0.7),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                flex: 2,
+                                child: Container(
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.asset(
+                                      correctImage,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        // Answer
-                        Text(
-                          data['correctAnswer'],
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: isCorrect
-                                ? const Color(0xFF22C55E)
-                                : const Color(0xFFFF4B4A),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        // Status icon
-                        Icon(
-                          isCorrect ? Icons.check_circle : Icons.cancel,
-                          color: isCorrect
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFFF4B4A),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-            // Continue button
+            // Continue Button
             Padding(
               padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: themeManager.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+              child: SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: themeManager.primaryGradient,
                     borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeManager.primary.withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Continue',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Continue',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward_rounded, size: 20),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -2855,8 +2988,8 @@ class _GreatWorkDialog extends StatelessWidget {
                                   const Color(0xFFD23232),
                                 ]
                               : [
-                                  const Color(0xFF69D3E4),
-                                  const Color(0xFF4FC3E4),
+                                  const Color(0xFFEF4444),
+                                  const Color(0xFFDC2626),
                                 ]),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -2889,8 +3022,8 @@ class _GreatWorkDialog extends StatelessWidget {
                       : (themeManager.isDarkMode
                             ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
                             : [
-                                const Color(0xFF69D3E4),
-                                const Color(0xFF4FC3E4),
+                                const Color(0xFFEF4444),
+                                const Color(0xFFDC2626),
                               ]),
                 ).createShader(bounds),
                 child: Text(
@@ -2950,7 +3083,7 @@ class _GreatWorkDialog extends StatelessWidget {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: themeManager.isDarkMode
                           ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                          : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                          : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     ).createShader(bounds),
                     child: Text(
                       "$score / $total",
@@ -2973,7 +3106,7 @@ class _GreatWorkDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        color: const Color(0xFFEF4444).withOpacity(0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),

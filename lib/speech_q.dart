@@ -53,7 +53,7 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
                   gradient: LinearGradient(
                     colors: themeManager.isDarkMode
                         ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
-                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -63,7 +63,7 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
                       color:
                           (themeManager.isDarkMode
                                   ? const Color(0xFFD23232)
-                                  : const Color(0xFF69D3E4))
+                                  : const Color(0xFFEF4444))
                               .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -97,7 +97,7 @@ Future<void> showSpeechQuizSelection(BuildContext context) {
             description: '10 questions',
             gradient: themeManager.isDarkMode
                 ? const [Color(0xFFD23232), Color(0xFF8B1F1F)]
-                : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                : const [Color(0xFFEF4444), Color(0xFFDC2626)],
             themeManager: themeManager,
             onTap: () {
               Navigator.pop(context);
@@ -590,9 +590,19 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       final leftId = "left_$phrase";
       final rightId = "right_$phrase";
       final isCorrect = _currentMatches[leftId] == rightId;
+
+      // Get user's matched image
+      String? userMatchedImage;
+      if (_currentMatches.containsKey(leftId)) {
+        final userRightId = _currentMatches[leftId]!;
+        final userPhrase = userRightId.replaceFirst('right_', '');
+        userMatchedImage = _imageForPhrase[userPhrase];
+      }
+
       reviewData.add({
-        'imagePath': _imageForPhrase[phrase]!,
-        'correctAnswer': phrase,
+        'phrase': phrase,
+        'correctImage': _imageForPhrase[phrase]!,
+        'userImage': userMatchedImage,
         'isCorrect': isCorrect,
       });
     }
@@ -602,8 +612,8 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       barrierDismissible: false,
       builder: (_) => _MixMatchReviewDialog(
         reviewData: reviewData,
-        correctCount: _mmCorrectCount,
-        totalCount: mixMatchIndices.length,
+        allCorrect: _mmCorrectCount == mixMatchIndices.length,
+        onContinue: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -863,16 +873,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFFD23232).withOpacity(0.3)
-                    : const Color(0xFF69D3E4).withOpacity(0.3),
-              ),
+              border: Border.all(color: themeManager.primary.withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: isDark
-                      ? const Color(0xFFD23232).withOpacity(0.15)
-                      : const Color(0xFF69D3E4).withOpacity(0.15),
+                  color: themeManager.primary.withOpacity(0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -880,7 +884,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
             ),
             child: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
+              color: themeManager.primary,
               size: 20,
             ),
           ),
@@ -892,7 +896,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
             style: GoogleFonts.montserrat(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
+              color: themeManager.primary,
               letterSpacing: -0.5,
             ),
           ),
@@ -900,19 +904,11 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
-                  : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: themeManager.primaryGradient,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: isDark
-                    ? const Color(0xFFD23232).withOpacity(0.3)
-                    : const Color(0xFF69D3E4).withOpacity(0.3),
+                color: themeManager.primary.withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -1017,10 +1013,10 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF69D3E4).withOpacity(0.3)),
+            border: Border.all(color: themeManager.primary.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF69D3E4).withOpacity(0.1),
+                color: themeManager.primary.withOpacity(0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -1031,9 +1027,17 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
-            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+          children: [
+            _LegendDot(
+              label: 'Correct',
+              color: Color(0xFF22C55E),
+              themeManager: themeManager,
+            ),
+            _LegendDot(
+              label: 'Wrong',
+              color: Color(0xFFFF4B4A),
+              themeManager: themeManager,
+            ),
           ],
         ),
       ],
@@ -1057,11 +1061,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               backgroundColor: themeManager.isDarkMode
                   ? const Color(0xFF636366)
                   : const Color(0xFFE0F2F1),
-              valueColor: AlwaysStoppedAnimation(
-                themeManager.isDarkMode
-                    ? const Color(0xFFD23232)
-                    : const Color(0xFF69D3E4),
-              ),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFA726)),
               minHeight: 10,
             ),
           ),
@@ -1072,9 +1072,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           textAlign: TextAlign.center,
           style: GoogleFonts.montserrat(
             fontSize: 13,
-            color: themeManager.isDarkMode
-                ? const Color(0xFF8E8E93)
-                : Colors.black54,
+            color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1096,16 +1094,12 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: themeManager.isDarkMode
-              ? const Color(0xFFD23232).withOpacity(0.3)
-              : const Color(0xFF69D3E4).withOpacity(0.3),
+          color: themeManager.primary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: themeManager.isDarkMode
-                ? const Color(0xFFD23232).withOpacity(0.15)
-                : const Color(0xFF69D3E4).withOpacity(0.15),
+            color: themeManager.primary.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1117,9 +1111,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: themeManager.isDarkMode
-                    ? [const Color(0xFFD23232), const Color(0xFF8B1F1F)]
-                    : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                colors: themeManager.primaryGradient.colors,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -1138,9 +1130,7 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: themeManager.isDarkMode
-                    ? const Color(0xFFD23232)
-                    : const Color(0xFF69D3E4),
+                color: themeManager.primary,
               ),
             ),
           ),
@@ -1266,7 +1256,6 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
                               reviewCorrect: showCorrect,
                               reviewWrong: showWrong,
                               matchedPhrase: matchedPhrase,
-                              themeManager: themeManager,
                             ),
                           );
                         },
@@ -1323,30 +1312,25 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     Map<String, dynamic> question,
     ThemeManager themeManager,
   ) {
-    final isDark = themeManager.isDarkMode;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
-              : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
+          colors: themeManager.isDarkMode
+              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+              : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFFD23232).withOpacity(0.3)
-              : const Color(0xFF69D3E4).withOpacity(0.3),
+          color: themeManager.primary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? const Color(0xFFD23232).withOpacity(0.15)
-                : const Color(0xFF69D3E4).withOpacity(0.15),
+            color: themeManager.primary.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1355,12 +1339,12 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
       child: Column(
         children: [
           Text(
-            "What phrase is being signed?",
+            "What sign is shown?",
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: isDark ? const Color(0xFFD23232) : const Color(0xFF69D3E4),
+              color: themeManager.primary,
               letterSpacing: -0.3,
             ),
           ),
@@ -1368,18 +1352,14 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+              color: themeManager.isDarkMode
+                  ? const Color(0xFF636366)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFFD23232).withOpacity(0.2)
-                    : const Color(0xFF69D3E4).withOpacity(0.2),
-              ),
+              border: Border.all(color: themeManager.primary.withOpacity(0.2)),
               boxShadow: [
                 BoxShadow(
-                  color: isDark
-                      ? const Color(0xFFD23232).withOpacity(0.1)
-                      : const Color(0xFF69D3E4).withOpacity(0.1),
+                  color: themeManager.primary.withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1416,7 +1396,13 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
     ThemeManager themeManager,
   ) {
     return Expanded(
-      child: ListView.builder(
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 1.6,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
         itemCount: options.length,
         itemBuilder: (context, index) {
           final alreadyAnswered = _sessionAnswers.containsKey(qIdx);
@@ -1428,25 +1414,22 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
               isCorrect;
           final isPending = !alreadyAnswered && _pendingIndex == index;
 
-          // Review mode highlighting
+          // Review mode: show correct/wrong
           final showCorrect = _mcqReviewMode && isCorrect;
           final showWrong =
-              _mcqReviewMode && _userSelectedIndex[qIdx] == index && !isCorrect;
+              _mcqReviewMode && !isCorrect && _userSelectedIndex[qIdx] == index;
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: OptionCard(
-              option: options[index],
-              number: index + 1,
-              isSelected: wasSelected,
-              isPending: isPending,
-              reviewCorrect: showCorrect,
-              reviewWrong: showWrong,
-              themeManager: themeManager,
-              onTap: alreadyAnswered || _mcqReviewMode
-                  ? null
-                  : () => setState(() => _pendingIndex = index),
-            ),
+          return OptionCard(
+            option: options[index],
+            number: index + 1,
+            isSelected: wasSelected,
+            isPending: isPending,
+            themeManager: themeManager,
+            reviewCorrect: showCorrect,
+            reviewWrong: showWrong,
+            onTap: alreadyAnswered || _mcqReviewMode
+                ? null
+                : () => setState(() => _pendingIndex = index),
           );
         },
       ),
@@ -1455,93 +1438,97 @@ class _SpeechQuizScreenState extends State<SpeechQuizScreen>
 
   // Confirm Bar
   Widget _buildConfirmBar(List<String> options, ThemeManager themeManager) {
-    final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+        gradient: LinearGradient(
+          colors: themeManager.isDarkMode
+              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+              : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF69D3E4), width: 2),
+        border: Border.all(color: themeManager.primary, width: 2),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF69D3E4).withOpacity(0.2),
+            color: themeManager.primary.withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Selected: ${options[idx]}',
-              style: GoogleFonts.montserrat(
-                color: const Color(0xFF69D3E4),
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _pendingIndex = null),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF636366)
+                      : Colors.grey.shade400,
+                  width: 1.5,
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(color: Colors.grey.shade600),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Gradient confirm button
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              final i = _pendingIndex;
-              if (i != null) handleAnswer(i);
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                final i = _pendingIndex;
+                if (i != null) handleAnswer(i);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
+                shadowColor: Colors.transparent,
               ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: themeManager.isDarkMode
+                      ? LinearGradient(
+                          colors: [
+                            themeManager.primary.withOpacity(0.8),
+                            themeManager.primary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : themeManager.primaryGradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Confirm',
-                  style: GoogleFonts.montserrat(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ),
@@ -1589,13 +1576,17 @@ class OptionCard extends StatelessWidget {
       borderColor = const Color(0xFFFF4B4A);
       gradientColors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isSelected || isPending) {
-      borderColor = isSelected
-          ? const Color(0xFF69D3E4)
-          : const Color(0xFF4FC3E4);
-      gradientColors = const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
+      borderColor = isSelected ? themeManager.primary : themeManager.secondary;
+      gradientColors = themeManager.isDarkMode
+          ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+          : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)];
     } else {
-      borderColor = const Color(0xFFE3E6EE);
-      gradientColors = const [Color(0xFFFFFFFF), Color(0xFFFAFAFA)];
+      borderColor = themeManager.isDarkMode
+          ? const Color(0xFF636366)
+          : const Color(0xFFE3E6EE);
+      gradientColors = themeManager.isDarkMode
+          ? const [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
+          : const [Color(0xFFFFFFFF), Color(0xFFFAFAFA)];
     }
 
     return AnimatedContainer(
@@ -1638,18 +1629,14 @@ class OptionCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: (reviewCorrect || reviewWrong)
                         ? null
-                        : const LinearGradient(
-                            colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                        : themeManager.primaryGradient,
                     color: (reviewCorrect || reviewWrong) ? Colors.white : null,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: (reviewCorrect || reviewWrong)
                             ? borderColor.withOpacity(0.3)
-                            : const Color(0xFF69D3E4).withOpacity(0.3),
+                            : themeManager.primary.withOpacity(0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -1678,8 +1665,10 @@ class OptionCard extends StatelessWidget {
                       color: (reviewCorrect || reviewWrong)
                           ? Colors.white
                           : (isSelected || isPending
-                                ? const Color(0xFF69D3E4)
-                                : const Color(0xFF2D5263)),
+                                ? themeManager.primary
+                                : (themeManager.isDarkMode
+                                      ? const Color(0xFFE5E5EA)
+                                      : const Color(0xFF2D5263))),
                       height: 1.3,
                     ),
                     maxLines: 3,
@@ -1689,12 +1678,8 @@ class OptionCard extends StatelessWidget {
                 if (isSelected)
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                    decoration: BoxDecoration(
+                      gradient: themeManager.primaryGradient,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -1715,7 +1700,12 @@ class OptionCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
-  const _LegendDot({required this.label, required this.color});
+  final ThemeManager themeManager;
+  const _LegendDot({
+    required this.label,
+    required this.color,
+    required this.themeManager,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -1740,7 +1730,9 @@ class _LegendDot extends StatelessWidget {
           label,
           style: GoogleFonts.montserrat(
             fontSize: 12,
-            color: Colors.black54,
+            color: themeManager.isDarkMode
+                ? const Color(0xFFE5E5EA)
+                : Colors.black54,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1772,6 +1764,8 @@ class _PhraseCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: isMatched
               ? [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]
+              : themeManager.isDarkMode
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1780,14 +1774,13 @@ class _PhraseCard extends StatelessWidget {
         border: Border.all(
           color: isMatched
               ? const Color(0xFFFBBF24)
-              : const Color(0xFF69D3E4).withOpacity(0.3),
+              : themeManager.primary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color:
-                (isMatched ? const Color(0xFFFBBF24) : const Color(0xFF69D3E4))
-                    .withOpacity(0.2),
+            color: (isMatched ? const Color(0xFFFBBF24) : themeManager.primary)
+                .withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1802,7 +1795,7 @@ class _PhraseCard extends StatelessWidget {
             style: GoogleFonts.montserrat(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+              color: isMatched ? Colors.white : themeManager.primary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -1820,11 +1813,9 @@ class _ImageCard extends StatelessWidget {
   final bool reviewCorrect;
   final bool reviewWrong;
   final String? matchedPhrase;
-  final ThemeManager themeManager;
 
   const _ImageCard({
     required this.imagePath,
-    required this.themeManager,
     this.isMatched = false,
     this.isHovering = false,
     this.reviewCorrect = false,
@@ -1840,7 +1831,7 @@ class _ImageCard extends StatelessWidget {
     } else if (reviewWrong) {
       colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
-      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+      colors = const [Color(0xFFDC2626), Color(0xFFEF4444)];
     } else if (isMatched) {
       colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
@@ -1864,7 +1855,7 @@ class _ImageCard extends StatelessWidget {
                         ? const Color(0xFFFF4B4A)
                         : reviewCorrect
                         ? const Color(0xFF22C55E)
-                        : const Color(0xFF69D3E4))
+                        : const Color(0xFFEF4444))
                     .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
@@ -1891,46 +1882,43 @@ class _ImageCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (isMatched && matchedPhrase != null)
+            if (matchedPhrase != null && !reviewCorrect && !reviewWrong)
               Positioned(
-                left: 8,
+                right: 8,
                 top: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: 8,
                     vertical: 6,
                   ),
                   constraints: const BoxConstraints(
-                    maxWidth: 100,
-                    minHeight: 45,
+                    maxWidth: 80,
+                    minHeight: 35,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white, width: 3),
+                    color: const Color(0xFFF59E0B),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFBBF24).withOpacity(0.5),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: Text(
-                    matchedPhrase!,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1.2,
+                  child: Center(
+                    child: Text(
+                      matchedPhrase!,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.1,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -2005,7 +1993,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: widget.color == const Color(0xFF2C5CB0)
-                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
+                  ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
                   : [widget.color, widget.color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -2014,7 +2002,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
             boxShadow: [
               BoxShadow(
                 color: widget.color == const Color(0xFF2C5CB0)
-                    ? const Color(0xFF69D3E4).withOpacity(0.4)
+                    ? const Color(0xFFEF4444).withOpacity(0.4)
                     : widget.color.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -2078,25 +2066,28 @@ class _CleanConfirmDialog extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: const Color(0xFF69D3E4).withOpacity(0.3),
+            color: themeManager.primary.withOpacity(0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF69D3E4).withOpacity(0.2),
+              color: themeManager.primary.withOpacity(0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -2114,7 +2105,9 @@ class _CleanConfirmDialog extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: icon == Icons.warning_amber_rounded
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
-                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        : themeManager.isDarkMode
+                        ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
+                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2124,7 +2117,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                       color:
                           (icon == Icons.warning_amber_rounded
                                   ? const Color(0xFFFF4B4A)
-                                  : const Color(0xFF69D3E4))
+                                  : themeManager.primary)
                               .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
@@ -2140,7 +2133,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                 style: GoogleFonts.montserrat(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1E1E),
+                  color: themeManager.textPrimary,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -2150,7 +2143,9 @@ class _CleanConfirmDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
                   fontSize: 15,
-                  color: const Color(0xFF6B7280),
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : const Color(0xFF6B7280),
                   height: 1.4,
                 ),
               ),
@@ -2160,14 +2155,24 @@ class _CleanConfirmDialog extends StatelessWidget {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
+                        gradient: LinearGradient(
+                          colors: themeManager.isDarkMode
+                              ? [
+                                  const Color(0xFF3C3C3E),
+                                  const Color(0xFF2C2C2E),
+                                ]
+                              : [
+                                  const Color(0xFFFAFAFA),
+                                  const Color(0xFFFFFFFF),
+                                ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: const Color(0xFF69D3E4).withOpacity(0.5),
+                          color: themeManager.isDarkMode
+                              ? const Color(0xFF636366)
+                              : themeManager.primary.withOpacity(0.5),
                           width: 2,
                         ),
                       ),
@@ -2184,7 +2189,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                               style: GoogleFonts.montserrat(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: const Color(0xFF69D3E4),
+                                color: themeManager.primary,
                               ),
                             ),
                           ),
@@ -2196,15 +2201,11 @@ class _CleanConfirmDialog extends StatelessWidget {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        gradient: themeManager.primaryGradient,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF69D3E4).withOpacity(0.3),
+                            color: themeManager.primary.withOpacity(0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -2471,192 +2472,298 @@ class _MCQReviewDialog extends StatelessWidget {
 // Mix & Match Review Dialog
 class _MixMatchReviewDialog extends StatelessWidget {
   final List<Map<String, dynamic>> reviewData;
-  final int correctCount;
-  final int totalCount;
+  final bool allCorrect;
+  final VoidCallback onContinue;
 
   const _MixMatchReviewDialog({
     required this.reviewData,
-    required this.correctCount,
-    required this.totalCount,
+    required this.allCorrect,
+    required this.onContinue,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeManager = ThemeManager.of(context, listen: false);
+    final correctCount = reviewData.where((d) => d['isCorrect'] == true).length;
+    final totalCount = reviewData.length;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.transparent,
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 500),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: themeManager.isDarkMode
                 ? const [Color(0xFF2C2C2E), Color(0xFF1C1C1E)]
-                : const [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                : const [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
             color: themeManager.primary.withOpacity(0.3),
-            width: 2,
+            width: 1.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: themeManager.primary.withOpacity(0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: themeManager.primaryGradient.colors,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFA726), Color(0xFFFF9800)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(26),
-                  topRight: Radius.circular(26),
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
                 ),
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.swap_horiz, color: Colors.white, size: 28),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Match Results',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
+                  const Icon(
+                    Icons.visibility_rounded,
+                    color: Colors.white,
+                    size: 28,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '$correctCount/$totalCount',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Review Your Answers',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
-            // Review Grid
-            Flexible(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.0,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                ),
-                itemCount: reviewData.length,
-                itemBuilder: (context, index) {
-                  final data = reviewData[index];
-                  final isCorrect = data['isCorrect'] as bool;
-                  return Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: themeManager.isDarkMode
-                          ? const Color(0xFF3C3C3E)
-                          : Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isCorrect
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFFFF4B4A),
-                        width: 2,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        // Image
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                data['imagePath'],
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Answer
-                        Text(
-                          data['correctAnswer'],
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: isCorrect
-                                ? const Color(0xFF22C55E)
-                                : const Color(0xFFFF4B4A),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        // Status icon
-                        Icon(
-                          isCorrect ? Icons.check_circle : Icons.cancel,
-                          color: isCorrect
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFFF4B4A),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Continue button
+
+            // Score
             Padding(
               padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: themeManager.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 32,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Continue',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2C2C2E),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF3C3C3E), width: 2),
+                ),
+                child: Text(
+                  "$correctCount / $totalCount Correct",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFFEF4444),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+
+            // Review List
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: reviewData.map((data) {
+                    final phrase = data['phrase'] as String;
+                    final correctImage = data['correctImage'] as String;
+                    final userImage = data['userImage'] as String?;
+                    final isCorrect = data['isCorrect'] as bool;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isCorrect
+                                ? [
+                                    const Color(0xFF22C55E),
+                                    const Color(0xFF16A34A),
+                                  ]
+                                : [
+                                    const Color(0xFFFF6B6B),
+                                    const Color(0xFFFF5252),
+                                  ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isCorrect
+                                          ? const Color(0xFF16A34A)
+                                          : const Color(0xFFFF5252))
+                                      .withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Phrase
+                            Container(
+                              width: 65,
+                              height: 65,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: Center(
+                                child: Text(
+                                  phrase,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: isCorrect
+                                        ? const Color(0xFF16A34A)
+                                        : const Color(0xFFFF5252),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Arrow
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+
+                            // User's matched image
+                            Container(
+                              width: 80,
+                              height: 65,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: userImage != null
+                                    ? Image.asset(
+                                        userImage,
+                                        fit: BoxFit.contain,
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          Icons.help_outline_rounded,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                              ),
+                            ),
+
+                            // Always show arrow and correct image for learning
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 80,
+                              height: 65,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.asset(
+                                  correctImage,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+
+            // Continue Button
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF8B0000), Color(0xFF6B0000)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8B0000).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onContinue,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 26,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Continue',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward_rounded, size: 20),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -2682,25 +2789,28 @@ class _GreatWorkDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFAFAFA), Color(0xFFF0FDFA)],
+          gradient: LinearGradient(
+            colors: themeManager.isDarkMode
+                ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: const Color(0xFF69D3E4).withOpacity(0.3),
+            color: const Color(0xFFEF4444).withOpacity(0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF69D3E4).withOpacity(0.25),
+              color: const Color(0xFFEF4444).withOpacity(0.25),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),
@@ -2718,7 +2828,7 @@ class _GreatWorkDialog extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isPerfect
                         ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        : const [Color(0xFFEF4444), Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2728,7 +2838,7 @@ class _GreatWorkDialog extends StatelessWidget {
                       color:
                           (isPerfect
                                   ? const Color(0xFFFFD700)
-                                  : const Color(0xFF69D3E4))
+                                  : const Color(0xFFEF4444))
                               .withOpacity(0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
@@ -2752,7 +2862,7 @@ class _GreatWorkDialog extends StatelessWidget {
                 shaderCallback: (bounds) => LinearGradient(
                   colors: isPerfect
                       ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                      : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      : const [Color(0xFFEF4444), Color(0xFFDC2626)],
                 ).createShader(bounds),
                 child: Text(
                   isPerfect ? "Perfection!" : "Great Work!",
@@ -2773,7 +2883,9 @@ class _GreatWorkDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
                   fontSize: 16,
-                  color: const Color(0xFF4B5563),
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFFE5E5EA)
+                      : const Color(0xFF4B5563),
                   height: 1.5,
                 ),
               ),
@@ -2784,19 +2896,21 @@ class _GreatWorkDialog extends StatelessWidget {
                   horizontal: 28,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                  gradient: LinearGradient(
+                    colors: themeManager.isDarkMode
+                        ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                        : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    color: const Color(0xFFEF4444).withOpacity(0.3),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.15),
+                      color: const Color(0xFFEF4444).withOpacity(0.15),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2805,7 +2919,7 @@ class _GreatWorkDialog extends StatelessWidget {
                 child: Center(
                   child: ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                     ).createShader(bounds),
                     child: Text(
                       "$score / $total",
@@ -2825,14 +2939,14 @@ class _GreatWorkDialog extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        color: const Color(0xFFEF4444).withOpacity(0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -2884,9 +2998,12 @@ class _BonusRoundDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = ThemeManager.of(context, listen: false);
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: themeManager.isDarkMode
+          ? const Color(0xFF2C2C2E)
+          : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -2897,14 +3014,14 @@ class _BonusRoundDialog extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                  colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF69D3E4).withOpacity(0.3),
+                    color: const Color(0xFFEF4444).withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -2923,7 +3040,9 @@ class _BonusRoundDialog extends StatelessWidget {
               style: GoogleFonts.montserrat(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF1E1E1E),
+                color: themeManager.isDarkMode
+                    ? const Color(0xFFE5E5EA)
+                    : const Color(0xFF1E1E1E),
                 height: 1.3,
               ),
             ),
@@ -2933,7 +3052,9 @@ class _BonusRoundDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 fontSize: 15,
-                color: const Color(0xFF6B7280),
+                color: themeManager.isDarkMode
+                    ? const Color(0xFFAEAEB2)
+                    : const Color(0xFF6B7280),
                 height: 1.5,
               ),
             ),
@@ -2943,14 +3064,14 @@ class _BonusRoundDialog extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF69D3E4).withOpacity(0.4),
+                      color: const Color(0xFFEF4444).withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),

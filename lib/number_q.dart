@@ -50,7 +50,7 @@ Future<void> showNumberQuizSelection(BuildContext context) {
                   gradient: LinearGradient(
                     colors: themeManager.isDarkMode
                         ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        : const [Color(0xFFEF4444), Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -60,7 +60,7 @@ Future<void> showNumberQuizSelection(BuildContext context) {
                       color:
                           (themeManager.isDarkMode
                                   ? const Color(0xFFD23232)
-                                  : const Color(0xFF69D3E4))
+                                  : const Color(0xFFEF4444))
                               .withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -92,7 +92,7 @@ Future<void> showNumberQuizSelection(BuildContext context) {
             icon: Icons.quiz_rounded,
             title: 'Multiple Choice',
             description: '5 questions',
-            gradient: const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+            gradient: const [Color(0xFFEF4444), Color(0xFFDC2626)],
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -1226,9 +1226,17 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            _LegendDot(label: 'Correct', color: Color(0xFF22C55E)),
-            _LegendDot(label: 'Wrong', color: Color(0xFFFF4B4A)),
+          children: [
+            _LegendDot(
+              label: 'Correct',
+              color: Color(0xFF22C55E),
+              themeManager: themeManager,
+            ),
+            _LegendDot(
+              label: 'Wrong',
+              color: Color(0xFFFF4B4A),
+              themeManager: themeManager,
+            ),
           ],
         ),
       ],
@@ -1252,7 +1260,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
               backgroundColor: themeManager.isDarkMode
                   ? const Color(0xFF636366)
                   : const Color(0xFFE0F2F1),
-              valueColor: AlwaysStoppedAnimation(themeManager.primary),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFA726)),
               minHeight: 10,
             ),
           ),
@@ -1263,7 +1271,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
           textAlign: TextAlign.center,
           style: GoogleFonts.montserrat(
             fontSize: 13,
-            color: Colors.black54,
+            color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1378,15 +1386,20 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
                             borderRadius: BorderRadius.circular(16),
                             child: _LetterCard(
                               letter: letter,
+                              themeManager: themeManager,
                               isFloating: true,
                             ),
                           ),
                           childWhenDragging: Opacity(
                             opacity: 0.3,
-                            child: _LetterCard(letter: letter),
+                            child: _LetterCard(
+                              letter: letter,
+                              themeManager: themeManager,
+                            ),
                           ),
                           child: _LetterCard(
                             letter: letter,
+                            themeManager: themeManager,
                             isMatched: isLeftMatched,
                           ),
                         ),
@@ -1626,7 +1639,6 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
 
   // Confirm Bar (MC)
   Widget _buildConfirmBar(List<String> options, ThemeManager themeManager) {
-    final idx = _pendingIndex!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1648,79 +1660,77 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              gradient: themeManager.primaryGradient,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.touch_app, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Selected: ${options[idx]}',
-              style: GoogleFonts.montserrat(
-                color: themeManager.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _pendingIndex = null),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF636366)
+                      : Colors.grey.shade400,
+                  width: 1.5,
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(
+                  color: themeManager.isDarkMode
+                      ? const Color(0xFF8E8E93)
+                      : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => setState(() => _pendingIndex = null),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(
-                color: themeManager.isDarkMode
-                    ? const Color(0xFF8E8E93)
-                    : Colors.grey.shade600,
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                final i = _pendingIndex;
+                if (i != null) handleAnswer(i);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                shadowColor: Colors.transparent,
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.all(
-                    Colors.transparent,
-                  ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: themeManager.isDarkMode
+                      ? LinearGradient(
+                          colors: [
+                            themeManager.primary.withOpacity(0.8),
+                            themeManager.primary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : themeManager.primaryGradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-            onPressed: () {
-              final i = _pendingIndex;
-              if (i != null) handleAnswer(i);
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Text(
-                  'Confirm',
-                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1898,7 +1908,12 @@ class OptionCard extends StatelessWidget {
 class _LegendDot extends StatelessWidget {
   final String label;
   final Color color;
-  const _LegendDot({required this.label, required this.color});
+  final ThemeManager themeManager;
+  const _LegendDot({
+    required this.label,
+    required this.color,
+    required this.themeManager,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -1923,7 +1938,9 @@ class _LegendDot extends StatelessWidget {
           label,
           style: GoogleFonts.montserrat(
             fontSize: 12,
-            color: Colors.black54,
+            color: themeManager.isDarkMode
+                ? const Color(0xFFE5E5EA)
+                : Colors.black54,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -1939,9 +1956,11 @@ class _LetterCard extends StatelessWidget {
   final bool isMatched;
   final bool isDragging;
   final bool isFloating;
+  final ThemeManager themeManager;
 
   const _LetterCard({
     required this.letter,
+    required this.themeManager,
     this.isMatched = false,
     this.isDragging = false,
     this.isFloating = false,
@@ -1950,11 +1969,13 @@ class _LetterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isFloating ? 100 : double.infinity,
+      width: isFloating ? 140 : double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isMatched
               ? [const Color(0xFFFBBF24), const Color(0xFFF59E0B)]
+              : themeManager.isDarkMode
+              ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF0FDFA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1963,26 +1984,31 @@ class _LetterCard extends StatelessWidget {
         border: Border.all(
           color: isMatched
               ? const Color(0xFFF59E0B)
-              : const Color(0xFF69D3E4).withOpacity(0.3),
+              : themeManager.primary.withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color:
-                (isMatched ? const Color(0xFFF59E0B) : const Color(0xFF69D3E4))
-                    .withOpacity(0.3),
+            color: (isMatched ? const Color(0xFFF59E0B) : themeManager.primary)
+                .withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Center(
-        child: Text(
-          letter,
-          style: GoogleFonts.montserrat(
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            color: isMatched ? Colors.white : const Color(0xFF69D3E4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            letter,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: isMatched ? Colors.white : themeManager.primary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -2015,7 +2041,7 @@ class _ImageCard extends StatelessWidget {
     } else if (reviewWrong) {
       colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
-      colors = const [Color(0xFF4FC3E4), Color(0xFF69D3E4)];
+      colors = const [Color(0xFF06B6D4), Color(0xFF0891B2)];
     } else if (isMatched) {
       colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
@@ -2039,7 +2065,9 @@ class _ImageCard extends StatelessWidget {
                         ? const Color(0xFFFF4B4A)
                         : reviewCorrect
                         ? const Color(0xFF22C55E)
-                        : const Color(0xFF69D3E4))
+                        : isHovering
+                        ? const Color(0xFF06B6D4)
+                        : const Color(0xFFEF4444))
                     .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
             offset: const Offset(0, 2),
@@ -2071,8 +2099,11 @@ class _ImageCard extends StatelessWidget {
                 right: 8,
                 top: 8,
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  constraints: const BoxConstraints(maxWidth: 80),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF59E0B),
                     borderRadius: BorderRadius.circular(8),
@@ -2087,11 +2118,14 @@ class _ImageCard extends StatelessWidget {
                   child: Center(
                     child: Text(
                       matchedLetter!,
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
@@ -2167,7 +2201,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: widget.color == const Color(0xFF2C5CB0)
-                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
+                  ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
                   : [widget.color, widget.color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -2176,7 +2210,7 @@ class _SlideInBadgeState extends State<_SlideInBadge>
             boxShadow: [
               BoxShadow(
                 color: widget.color == const Color(0xFF2C5CB0)
-                    ? const Color(0xFF69D3E4).withOpacity(0.4)
+                    ? const Color(0xFFEF4444).withOpacity(0.4)
                     : widget.color.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -2281,7 +2315,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
                         : themeManager.isDarkMode
                         ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                        : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2472,7 +2506,7 @@ class _MCQReviewDialog extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: isPerfect
                       ? const [Color(0xFF22C55E), Color(0xFF16A34A)]
-                      : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                      : const [Color(0xFFEF4444), Color(0xFFDC2626)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -2528,7 +2562,7 @@ class _MCQReviewDialog extends StatelessWidget {
                 ),
                 child: ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                   ).createShader(bounds),
                   child: Text(
                     "$correctCount / $totalCount Correct",
@@ -2854,7 +2888,7 @@ class _MixMatchReviewDialog extends StatelessWidget {
                 ),
                 child: ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                   ).createShader(bounds),
                   child: Text(
                     "$correctCount / $totalCount Correct",
@@ -3116,8 +3150,8 @@ class _GreatWorkDialog extends StatelessWidget {
                                   const Color(0xFFD23232),
                                 ]
                               : [
-                                  const Color(0xFF69D3E4),
-                                  const Color(0xFF4FC3E4),
+                                  const Color(0xFFEF4444),
+                                  const Color(0xFFDC2626),
                                 ]),
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -3150,8 +3184,8 @@ class _GreatWorkDialog extends StatelessWidget {
                       : (themeManager.isDarkMode
                             ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
                             : [
-                                const Color(0xFF69D3E4),
-                                const Color(0xFF4FC3E4),
+                                const Color(0xFFEF4444),
+                                const Color(0xFFDC2626),
                               ]),
                 ).createShader(bounds),
                 child: Text(
@@ -3211,7 +3245,7 @@ class _GreatWorkDialog extends StatelessWidget {
                     shaderCallback: (bounds) => LinearGradient(
                       colors: themeManager.isDarkMode
                           ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                          : [const Color(0xFF69D3E4), const Color(0xFF4FC3E4)],
+                          : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
                     ).createShader(bounds),
                     child: Text(
                       "$score / $total",
@@ -3234,7 +3268,7 @@ class _GreatWorkDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF69D3E4).withOpacity(0.4),
+                        color: const Color(0xFFEF4444).withOpacity(0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
