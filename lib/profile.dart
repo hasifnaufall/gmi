@@ -30,17 +30,165 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _progressService = UserProgressService();
   String? _displayName;
+  int _selectedAvatarIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _loadDisplayName();
+    _loadAvatarIndex();
   }
 
   Future<void> _loadDisplayName() async {
     final name = await _progressService.getDisplayName();
     if (!mounted) return;
     setState(() => _displayName = name);
+  }
+
+  Future<void> _loadAvatarIndex() async {
+    final index = await _progressService.getAvatarIndex();
+    if (!mounted) return;
+    setState(() => _selectedAvatarIndex = index);
+  }
+
+  Future<void> _saveAvatarIndex(int index) async {
+    await _progressService.saveAvatarIndex(index);
+    setState(() => _selectedAvatarIndex = index);
+  }
+
+  List<List<Color>> get _avatarGradients => [
+    // 0: Cyan-Purple (default)
+    const [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+    // 1: Pink-Orange
+    const [Color(0xFFEC4899), Color(0xFFF97316)],
+    // 2: Green-Blue
+    const [Color(0xFF10B981), Color(0xFF06B6D4)],
+    // 3: Purple-Pink
+    const [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+    // 4: Yellow-Red
+    const [Color(0xFFFBBF24), Color(0xFFEF4444)],
+    // 5: Indigo-Purple
+    const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+    // 6: Teal-Green
+    const [Color(0xFF14B8A6), Color(0xFF22C55E)],
+    // 7: Orange-Pink
+    const [Color(0xFFF97316), Color(0xFFEC4899)],
+    // 8: Blue-Cyan
+    const [Color(0xFF3B82F6), Color(0xFF06B6D4)],
+    // 9: Rose-Red
+    const [Color(0xFFF43F5E), Color(0xFFDC2626)],
+  ];
+
+  Future<void> _showAvatarPicker() async {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    await showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: themeManager.isDarkMode
+                  ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
+                  : [const Color(0xFFFAFAFA), const Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: themeManager.primary.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose Your Avatar',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: themeManager.isDarkMode
+                        ? const Color(0xFFD23232)
+                        : const Color(0xFF0891B2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
+                  itemCount: _avatarGradients.length,
+                  itemBuilder: (_, i) {
+                    final isSelected = i == _selectedAvatarIndex;
+                    return GestureDetector(
+                      onTap: () {
+                        _saveAvatarIndex(i);
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? (themeManager.isDarkMode
+                                      ? const Color(0xFFD23232)
+                                      : const Color(0xFF0891B2))
+                                : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _avatarGradients[i],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: _avatarGradients[i][0].withOpacity(0.4),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.w600,
+                      color: themeManager.isDarkMode
+                          ? const Color(0xFF8E8E93)
+                          : const Color(0xFF6B7280),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _promptEditDisplayName() async {
@@ -729,44 +877,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Stack(
                         alignment: Alignment.center,
                         children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              gradient: themeManager.isDarkMode
-                                  ? const LinearGradient(
-                                      colors: [
-                                        Color(0xFFD23232),
-                                        Color(0xFF8B1F1F),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    )
-                                  : const LinearGradient(
-                                      colors: [
-                                        Color(0xFF0891B2),
-                                        Color(0xFF7C7FCC),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: themeManager.isDarkMode
-                                      ? const Color(0xFFD23232).withOpacity(0.3)
-                                      : const Color(
-                                          0xFF0891B2,
-                                        ).withOpacity(0.3),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
+                          GestureDetector(
+                            onTap: _showAvatarPicker,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors:
+                                      _avatarGradients[_selectedAvatarIndex],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                              ],
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        _avatarGradients[_selectedAvatarIndex][0]
+                                            .withOpacity(0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.white,
+                          ),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: _showAvatarPicker,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: themeManager.isDarkMode
+                                      ? const Color(0xFFD23232)
+                                      : const Color(0xFF0891B2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.palette_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                           Positioned(

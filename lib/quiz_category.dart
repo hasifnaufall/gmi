@@ -148,6 +148,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
   bool _loadingRank = true;
   int _unlockedCategoryCount = 0;
   String _selectedDifficulty = 'Easy'; // Default difficulty
+  int _avatarIndex = 0;
 
   @override
   void initState() {
@@ -160,6 +161,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       // Load critical data first
       await _loadUserProgress();
       await _loadUserName();
+      await _loadAvatarIndex();
       await _loadUnlocks();
 
       // Load user rank from leaderboard
@@ -191,6 +193,40 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
       print('Error loading username: $e');
     }
   }
+
+  Future<void> _loadAvatarIndex() async {
+    try {
+      final index = await UserProgressService().getAvatarIndex();
+      if (mounted) {
+        setState(() => _avatarIndex = index);
+      }
+    } catch (e) {
+      print('Error loading avatar index: $e');
+    }
+  }
+
+  List<List<Color>> get _avatarGradients => [
+    // 0: Cyan-Purple (default)
+    const [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+    // 1: Pink-Orange
+    const [Color(0xFFEC4899), Color(0xFFF97316)],
+    // 2: Green-Blue
+    const [Color(0xFF10B981), Color(0xFF06B6D4)],
+    // 3: Purple-Pink
+    const [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+    // 4: Yellow-Red
+    const [Color(0xFFFBBF24), Color(0xFFEF4444)],
+    // 5: Indigo-Purple
+    const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+    // 6: Teal-Green
+    const [Color(0xFF14B8A6), Color(0xFF22C55E)],
+    // 7: Orange-Pink
+    const [Color(0xFFF97316), Color(0xFFEC4899)],
+    // 8: Blue-Cyan
+    const [Color(0xFF3B82F6), Color(0xFF06B6D4)],
+    // 9: Rose-Red
+    const [Color(0xFFF43F5E), Color(0xFFDC2626)],
+  ];
 
   Future<void> _loadUserProgress() async {
     try {
@@ -392,7 +428,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     );
   }
 
-  void _showLivequizInfo() {
+  void _showStreakInfo() {
     final themeManager = Provider.of<ThemeManager>(context, listen: false);
     final isDark = themeManager.isDarkMode;
     showDialog(
@@ -403,13 +439,13 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
         title: Row(
           children: [
             Icon(
-              Icons.star,
-              color: isDark ? const Color(0xFFD23232) : const Color(0xFF8B6914),
+              Icons.local_fire_department,
+              color: isDark ? const Color(0xFFD23232) : const Color(0xFFFF6B35),
               size: 28,
             ),
             SizedBox(width: 12),
             Text(
-              'Unlocked Categories',
+              'Streak Days',
               style: GoogleFonts.montserrat(
                 color: isDark
                     ? const Color(0xFFD23232)
@@ -421,11 +457,11 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           ],
         ),
         content: Text(
-          'You have unlocked $_unlockedCategoryCount out of 6 quiz categories!\n\n'
-          '🔑 Complete quests to earn keys\n'
-          '🎮 Use 200 keys to unlock new categories\n'
-          '📈 Reach required levels to access locked content\n\n'
-          'Play more quizzes and complete quests to unlock all categories and become a sign language master!',
+          'Your current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays != 1 ? "s" : ""}!\n\n'
+          '🔥 Come back daily to maintain your streak\n'
+          '📚 Complete at least one quiz per day\n'
+          '🏆 Build longer streaks for consistency\n\n'
+          'Keep learning every day to build your sign language skills and maintain your streak!',
           style: GoogleFonts.montserrat(
             color: isDark ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
             fontSize: 15,
@@ -1622,18 +1658,15 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                             height: 80,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: themeManager.isDarkMode
-                                    ? [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                                    : [Color(0xFF0891B2), Color(0xFF7C7FCC)],
+                                colors: _avatarGradients[_avatarIndex],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: themeManager.isDarkMode
-                                      ? Color(0xFFD23232).withOpacity(0.3)
-                                      : Color(0xFF0891B2).withOpacity(0.3),
+                                  color: _avatarGradients[_avatarIndex][0]
+                                      .withOpacity(0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -1669,22 +1702,28 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
                           onTap: _showLevelInfo,
                         ),
                         _buildIconButton(
-                          icon: Icons.star,
-                          label: 'Livequiz',
+                          icon: Icons.local_fire_department,
+                          label: 'Streak',
                           color: themeManager.isDarkMode
-                              ? Color(0xFF636366)
-                              : Color(0xFFFFEB99),
-                          iconColor: themeManager.isDarkMode
-                              ? Color(0xFFE8E8E8)
-                              : Color(0xFF8B6914),
-                          displayText: '$_unlockedCategoryCount',
-                          textColor: themeManager.isDarkMode
-                              ? Color(0xFFE8E8E8)
-                              : Color(0xFF5D4A0E),
+                              ? Color(0xFFFF6B35)
+                              : Color(0xFFFF6B35),
+                          gradient: themeManager.isDarkMode
+                              ? LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF6B35),
+                                    Color(0xFFFF4500),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          iconColor: Colors.white,
+                          displayText: '${QuestStatus.streakDays}',
+                          textColor: Colors.white,
                           labelTextColor: themeManager.isDarkMode
                               ? Color(0xFFE8E8E8)
                               : Color(0xFF2D5263),
-                          onTap: _showLivequizInfo,
+                          onTap: _showStreakInfo,
                         ),
                         _buildRankButton(),
                       ],
@@ -1939,6 +1978,7 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     String? displayText,
     Color? textColor,
     Color? labelTextColor,
+    Gradient? gradient,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -1950,7 +1990,8 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
             height: 70,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color,
+              color: gradient == null ? color : null,
+              gradient: gradient,
               boxShadow: [
                 BoxShadow(
                   color: color.withOpacity(0.4),

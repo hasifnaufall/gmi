@@ -1308,7 +1308,12 @@ class _FunQuestItem extends StatelessWidget {
               SizedBox(
                 height: 22,
                 child: ElevatedButton(
-                  onPressed: canClaim ? onClaim : null,
+                  onPressed: canClaim
+                      ? () {
+                          // Ensure onClaim is only called on explicit button press
+                          onClaim();
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(60, 22),
                     padding: const EdgeInsets.symmetric(

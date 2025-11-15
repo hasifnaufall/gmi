@@ -223,11 +223,41 @@ class UserProgressService {
 
     print('Feedback submitted by $displayName');
   }
+
   Future<void> saveAchievements(List<String> ids) async {
     // TODO: persist to local storage / cloud if you want
   }
 
   Future<void> saveCounters(Map<String, dynamic> counters) async {
     // TODO: persist to local storage / cloud if you want
+  }
+
+  /// Save user avatar index
+  Future<void> saveAvatarIndex(int index) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('No user logged in');
+
+    await _firestore.collection('users').doc(user.uid).set({
+      'avatarIndex': index,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    print('Avatar index saved: $index');
+  }
+
+  /// Get user avatar index
+  Future<int> getAvatarIndex() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 0;
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc.data()?['avatarIndex'] as int? ?? 0;
+      }
+    } catch (e) {
+      print('Error getting avatar index: $e');
+    }
+    return 0;
   }
 }

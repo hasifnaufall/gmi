@@ -2041,7 +2041,7 @@ class _ImageCard extends StatelessWidget {
     } else if (reviewWrong) {
       colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
-      colors = const [Color(0xFF06B6D4), Color(0xFF0891B2)];
+      colors = const [Color(0xFFEF4444), Color(0xFFDC2626)];
     } else if (isMatched) {
       colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
@@ -2066,7 +2066,7 @@ class _ImageCard extends StatelessWidget {
                         : reviewCorrect
                         ? const Color(0xFF22C55E)
                         : isHovering
-                        ? const Color(0xFF06B6D4)
+                        ? const Color(0xFFEF4444)
                         : const Color(0xFFEF4444))
                     .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
@@ -2315,7 +2315,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
                         : themeManager.isDarkMode
                         ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+                        : [const Color(0xFF06B6D4), const Color(0xFF0891B2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2360,40 +2360,33 @@ class _CleanConfirmDialog extends StatelessWidget {
               const SizedBox(height: 22),
               Row(
                 children: [
+                  // FIRST BUTTON: Continue/Leave (now WHITE/outlined)
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: themeManager.isDarkMode
-                              ? [
-                                  const Color(0xFF3C3C3E),
-                                  const Color(0xFF2C2C2E),
-                                ]
-                              : [
-                                  const Color(0xFFFAFAFA),
-                                  const Color(0xFFFFFFFF),
-                                ],
+                              ? const [Color(0xFF3C3C3E), Color(0xFF2C2C2E)]
+                              : const [Color(0xFFFAFAFA), Color(0xFFFFFFFF)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: themeManager.isDarkMode
-                              ? const Color(0xFF636366)
-                              : themeManager.primary.withOpacity(0.5),
+                          color: themeManager.primary.withOpacity(0.5),
                           width: 2,
                         ),
                       ),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => Navigator.pop(context, false),
+                          onTap: () => Navigator.pop(context, true),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             alignment: Alignment.center,
                             child: Text(
-                              secondaryLabel,
+                              primaryLabel,
                               style: GoogleFonts.montserrat(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
@@ -2406,6 +2399,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // SECOND BUTTON: Cancel/Stay (now BLUE gradient - highlighted)
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -2422,13 +2416,13 @@ class _CleanConfirmDialog extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => Navigator.pop(context, true),
+                          onTap: () => Navigator.pop(context, false),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             alignment: Alignment.center,
                             child: Text(
-                              primaryLabel,
+                              secondaryLabel,
                               style: GoogleFonts.montserrat(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
