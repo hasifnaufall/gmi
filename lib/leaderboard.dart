@@ -608,12 +608,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                               child: Row(
                                 children: [
                                   SizedBox(
-                                    width: 60,
+                                    width: 50,
                                     child: Text(
                                       'Rank',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 15,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -624,19 +624,31 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                       'Name',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 15,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
                                   SizedBox(
-                                    width: 80,
+                                    width: 50,
+                                    child: Text(
+                                      'Level',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 60,
                                     child: Text(
                                       'Points',
                                       textAlign: TextAlign.right,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 15,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -687,14 +699,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                     child: Row(
                                       children: [
                                         SizedBox(
-                                          width: 60,
+                                          width: 50,
                                           child: Text(
                                             '${rank.toString().padLeft(2, '0')}',
                                             style: TextStyle(
                                               color: themeManager.isDarkMode
                                                   ? Color(0xFFE8E8E8)
                                                   : Colors.black87,
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -711,7 +723,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                                         themeManager.isDarkMode
                                                         ? Color(0xFFE8E8E8)
                                                         : Colors.black87,
-                                                    fontSize: 16,
+                                                    fontSize: 15,
                                                     fontWeight: isCurrentUser
                                                         ? FontWeight.bold
                                                         : FontWeight.w500,
@@ -726,21 +738,21 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                                     left: 8,
                                                   ),
                                                   padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
+                                                    horizontal: 8,
+                                                    vertical: 3,
                                                   ),
                                                   decoration: BoxDecoration(
                                                     color: themeManager.primary,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          10,
+                                                          8,
                                                         ),
                                                   ),
                                                   child: Text(
                                                     'YOU',
                                                     style: TextStyle(
                                                       color: Colors.white,
-                                                      fontSize: 10,
+                                                      fontSize: 9,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                     ),
@@ -750,7 +762,40 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                           ),
                                         ),
                                         SizedBox(
-                                          width: 80,
+                                          width: 50,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: themeManager.isDarkMode
+                                                    ? [
+                                                        Color(0xFF8B1F1F),
+                                                        Color(0xFFD23232),
+                                                      ]
+                                                    : [
+                                                        Color(0xFF0891B2),
+                                                        Color(0xFF06B6D4),
+                                                      ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              '${entry['level']}',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 60,
                                           child: Text(
                                             '${entry['score']}',
                                             textAlign: TextAlign.right,
@@ -758,7 +803,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                               color: themeManager.isDarkMode
                                                   ? Color(0xFFE8E8E8)
                                                   : Colors.black87,
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),

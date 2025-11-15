@@ -1924,7 +1924,7 @@ class _ImageCard extends StatelessWidget {
     } else if (reviewWrong) {
       colors = const [Color(0xFFFF6B6A), Color(0xFFFF4B4A)];
     } else if (isHovering) {
-      colors = const [Color(0xFF06B6D4), Color(0xFF0891B2)];
+      colors = const [Color(0xFFEF4444), Color(0xFFDC2626)];
     } else if (isMatched) {
       colors = const [Color(0xFFFBBF24), Color(0xFFF59E0B)];
     } else {
@@ -1949,7 +1949,7 @@ class _ImageCard extends StatelessWidget {
                         : reviewCorrect
                         ? const Color(0xFF22C55E)
                         : isHovering
-                        ? const Color(0xFF06B6D4)
+                        ? const Color(0xFFEF4444)
                         : const Color(0xFFEF4444))
                     .withOpacity(isHovering ? 0.3 : 0.15),
             blurRadius: isHovering ? 12 : 8,
@@ -2202,17 +2202,18 @@ class _CleanConfirmDialog extends StatelessWidget {
                         ? const [Color(0xFFFF4B4A), Color(0xFFFF6B6A)]
                         : themeManager.isDarkMode
                         ? [const Color(0xFF8B1F1F), const Color(0xFFD23232)]
-                        : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+                        : [const Color(0xFF06B6D4), const Color(0xFF0891B2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (icon == Icons.warning_amber_rounded
-                          ? const Color(0xFFFF4B4A)
-                          : themeManager.primary)
-                          .withOpacity(0.3),
+                      color:
+                          (icon == Icons.warning_amber_rounded
+                                  ? const Color(0xFFFF4B4A)
+                                  : themeManager.primary)
+                              .withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2248,44 +2249,7 @@ class _CleanConfirmDialog extends StatelessWidget {
               // 🔁 NEW BUTTON ROW (your design)
               Row(
                 children: [
-                  // FIRST BUTTON: Cancel (now BLUE gradient)
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: themeManager.primaryGradient,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: themeManager.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, false),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding:
-                            const EdgeInsets.symmetric(vertical: 14),
-                            alignment: Alignment.center,
-                            child: Text(
-                              secondaryLabel,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 15,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // SECOND BUTTON: Continue (now WHITE/outlined)
+                  // FIRST BUTTON: Continue/Leave (now WHITE/outlined)
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -2308,8 +2272,7 @@ class _CleanConfirmDialog extends StatelessWidget {
                           onTap: () => Navigator.pop(context, true),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
-                            padding:
-                            const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             alignment: Alignment.center,
                             child: Text(
                               primaryLabel,
@@ -2324,9 +2287,44 @@ class _CleanConfirmDialog extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  // SECOND BUTTON: Cancel/Stay (now BLUE gradient - highlighted)
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: themeManager.primaryGradient,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeManager.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, false),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            alignment: Alignment.center,
+                            child: Text(
+                              secondaryLabel,
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-
             ],
           ),
         ),
@@ -2334,7 +2332,6 @@ class _CleanConfirmDialog extends StatelessWidget {
     );
   }
 }
-
 
 // MCQ Review Dialog
 class _MCQReviewDialog extends StatelessWidget {
