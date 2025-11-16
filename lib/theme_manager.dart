@@ -25,24 +25,22 @@ class ThemeManager extends ChangeNotifier {
   }
 
   ThemeManager() {
-    // Don't load theme in constructor - do it lazily
-    _loadThemeAsync();
+    // Load theme synchronously to prevent flash
+    _loadThemeSync();
   }
 
-  void _loadThemeAsync() {
+  void _loadThemeSync() {
     if (_isLoading) return;
     _isLoading = true;
 
-    Future.microtask(() async {
+    // Load synchronously
+    SharedPreferences.getInstance().then((prefs) {
       try {
-        final prefs = await SharedPreferences.getInstance();
         final savedTheme = prefs.getBool(_themeKey) ?? false;
-        if (_isDarkMode != savedTheme) {
-          _isDarkMode = savedTheme;
-          _isInitialized = true;
+        _isDarkMode = savedTheme;
+        _isInitialized = true;
+        if (savedTheme != false) {
           notifyListeners();
-        } else {
-          _isInitialized = true;
         }
       } catch (e) {
         print('Error loading theme: $e');

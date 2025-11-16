@@ -734,25 +734,142 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     required String title,
     required VoidCallback onConfirm,
   }) {
+    final themeManager = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = themeManager.isDarkMode;
     final cost = QuestStatus.unlockCost;
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Unlock $title?"),
-        content: Text("Spend $cost keys to unlock this level."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF3C3C3E), const Color(0xFF2C2C2E)]
+                  : [const Color(0xFFFFF4E6), const Color(0xFFFFE8CC)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.5)
+                    : Colors.orange.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            child: const Text("Unlock"),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Lock emoji
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.orange.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text('🔒', style: TextStyle(fontSize: 36)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                'Unlock $title?',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: isDark
+                      ? const Color(0xFFE8E8E8)
+                      : const Color(0xFF2D3748),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Spend $cost keys to unlock this level.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? const Color(0xFF8E8E93)
+                      : Colors.grey.shade700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onConfirm();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF6B35),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                      ),
+                      child: const Text(
+                        'Unlock',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1365,7 +1482,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
     // If you later add QuestStatus.levelSpeech and an unlock flow,
     // you can replace `true` with a real check:
     // final isSpeechUnlocked = kUnlocksDisabled || QuestStatus.isContentUnlocked(QuestStatus.levelSpeech);
-    final isSpeechUnlocked = true;
+    final isSpeechUnlocked =
+        kUnlocksDisabled ||
+        QuestStatus.isContentUnlocked(QuestStatus.levelSpeech);
 
     return GridView.count(
       crossAxisCount: 2,

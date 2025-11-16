@@ -1706,7 +1706,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.w800,
                             color: isUnlocked
                                 ? (themeManager.isDarkMode
-                                      ? const Color(0xFFD23232)
+                                      ? Colors.white
                                       : const Color(0xFF0891B2))
                                 : (themeManager.isDarkMode
                                       ? const Color(0xFF636366)
@@ -1742,9 +1742,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: isUnlocked
                                   ? (themeManager.isDarkMode
-                                        ? const Color(
-                                            0xFFD23232,
-                                          ).withOpacity(0.15)
+                                        ? Colors.white.withOpacity(0.15)
                                         : const Color(
                                             0xFF0891B2,
                                           ).withOpacity(0.15))
@@ -1762,7 +1760,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fontWeight: FontWeight.w700,
                                 color: isUnlocked
                                     ? (themeManager.isDarkMode
-                                          ? const Color(0xFFD23232)
+                                          ? Colors.white
                                           : const Color(0xFF0891B2))
                                     : (themeManager.isDarkMode
                                           ? const Color(0xFF636366)
