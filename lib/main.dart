@@ -291,18 +291,27 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeManager = Provider.of<ThemeManager>(context);
+    final isDarkMode = themeManager.isDarkMode;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFCFFFF7), // Light mint
-              Color(0xFF69D3E4), // Bright cyan
-              Color(0xFF4FC3E4), // Lighter cyan
-            ],
-            stops: [0.0, 0.6, 1.0],
+            colors: isDarkMode
+                ? [
+                    const Color(0xFF1C1C1E), // Dark background
+                    const Color(0xFF2C2C2E), // Medium dark
+                    const Color(0xFF3C3C3E), // Lighter dark
+                  ]
+                : [
+                    const Color(0xFFCFFFF7), // Light mint
+                    const Color(0xFF69D3E4), // Bright cyan
+                    const Color(0xFF4FC3E4), // Lighter cyan
+                  ],
+            stops: const [0.0, 0.6, 1.0],
           ),
         ),
         child: Stack(
@@ -319,10 +328,15 @@ class _SplashScreenState extends State<SplashScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF69D3E4).withOpacity(0.3),
-                        const Color(0xFF69D3E4).withOpacity(0.0),
-                      ],
+                      colors: isDarkMode
+                          ? [
+                              const Color(0xFFD23232).withOpacity(0.2),
+                              const Color(0xFFD23232).withOpacity(0.0),
+                            ]
+                          : [
+                              const Color(0xFF69D3E4).withOpacity(0.3),
+                              const Color(0xFF69D3E4).withOpacity(0.0),
+                            ],
                     ),
                   ),
                 ),
@@ -339,10 +353,15 @@ class _SplashScreenState extends State<SplashScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFFCFFFF7).withOpacity(0.4),
-                        const Color(0xFFCFFFF7).withOpacity(0.0),
-                      ],
+                      colors: isDarkMode
+                          ? [
+                              const Color(0xFF8B1F1F).withOpacity(0.3),
+                              const Color(0xFF8B1F1F).withOpacity(0.0),
+                            ]
+                          : [
+                              const Color(0xFFCFFFF7).withOpacity(0.4),
+                              const Color(0xFFCFFFF7).withOpacity(0.0),
+                            ],
                     ),
                   ),
                 ),
@@ -362,14 +381,24 @@ class _SplashScreenState extends State<SplashScreen>
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                            colors: isDarkMode
+                                ? [
+                                    const Color(0xFF2C2C2E),
+                                    const Color(0xFF3C3C3E),
+                                  ]
+                                : [
+                                    const Color(0xFFFFFFFF),
+                                    const Color(0xFFF0FDFA),
+                                  ],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF69D3E4).withOpacity(0.4),
+                              color: isDarkMode
+                                  ? const Color(0xFFD23232).withOpacity(0.3)
+                                  : const Color(0xFF69D3E4).withOpacity(0.4),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
                               spreadRadius: 5,
@@ -391,8 +420,16 @@ class _SplashScreenState extends State<SplashScreen>
                     child: FadeTransition(
                       opacity: _fadeAnimation,
                       child: ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: isDarkMode
+                              ? [
+                                  const Color(0xFFD23232),
+                                  const Color(0xFFE8E8E8),
+                                ]
+                              : [
+                                  const Color(0xFFFFFFFF),
+                                  const Color(0xFFF0FDFA),
+                                ],
                         ).createShader(bounds),
                         child: Text(
                           'WaveAct',
@@ -417,7 +454,9 @@ class _SplashScreenState extends State<SplashScreen>
                         style: GoogleFonts.montserrat(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.9),
+                          color: isDarkMode
+                              ? const Color(0xFFE8E8E8).withOpacity(0.9)
+                              : Colors.white.withOpacity(0.9),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -449,10 +488,16 @@ class _SplashScreenState extends State<SplashScreen>
                                 height: 12,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: isDarkMode
+                                      ? const Color(0xFFD23232).withOpacity(0.9)
+                                      : Colors.white.withOpacity(0.9),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: isDarkMode
+                                          ? const Color(
+                                              0xFFD23232,
+                                            ).withOpacity(0.5)
+                                          : Colors.white.withOpacity(0.5),
                                       blurRadius: 8,
                                       spreadRadius: 2,
                                     ),
@@ -489,18 +534,24 @@ class _SplashScreenState extends State<SplashScreen>
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.85),
+                        color: isDarkMode
+                            ? const Color(0xFFE8E8E8).withOpacity(0.85)
+                            : Colors.white.withOpacity(0.85),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode
+                            ? const Color(0xFF2C2C2E)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: isDarkMode
+                                ? Colors.black.withOpacity(0.3)
+                                : Colors.black.withOpacity(0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),

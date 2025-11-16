@@ -361,7 +361,51 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             ),
           ],
         ),
-        SizedBox(height: 22 + extraHeight),
+        SizedBox(height: 26 + extraHeight),
+        // Level and XP below the diamond
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: themeManager.isDarkMode
+                    ? Color(0xFF3C3C3E)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: bgColor.withOpacity(0.5), width: 1.5),
+              ),
+              child: Text(
+                'Lv ${entry['level']}',
+                style: TextStyle(
+                  color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : bgColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            SizedBox(width: 6),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: themeManager.isDarkMode
+                    ? Color(0xFF3C3C3E)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: bgColor.withOpacity(0.5), width: 1.5),
+              ),
+              child: Text(
+                '${entry['score']} XP',
+                style: TextStyle(
+                  color: themeManager.isDarkMode ? Color(0xFFE8E8E8) : bgColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
