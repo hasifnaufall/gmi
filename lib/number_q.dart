@@ -475,10 +475,7 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     super.initState();
     Sfx().init();
 
-    if (!QuestStatus.alphabetQuizStarted) {
-      QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
-    }
+
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
 
@@ -857,14 +854,11 @@ class _NumberQuizScreenState extends State<NumberQuizScreen>
     // ========= END BADGES =========
 
     // Your existing quest logic
-    QuestStatus.alphabetRoundsCompleted += 1;
+    QuestStatus.numbersRoundsCompleted += 1;
 
-    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-        !QuestStatus.quest5Claimed) {
-      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
-    }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
-      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+// Track perfect rounds for Quest 7
+    if (sessionScore == totalQuestions) {
+      QuestStatus.incNumbersPerfectRounds();
     }
 
     QuestStatus.markFirstQuizMedalEarned();
