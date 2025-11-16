@@ -88,9 +88,15 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
     if (!mounted) return;
 
     if (watched == true) {
-      setState(() => QuestStatus.watchedAnimals.add(item['label']!));
+      setState(() {
+        QuestStatus.watchedAnimals.add(item['label']!);
 
-      // Save progress to database
+        // Check if all animals are now watched
+        if (QuestStatus.watchedAnimals.length >= _all.length) {
+          QuestStatus.markAnimalsLearnAll();
+        }
+      });
+
       await QuestStatus.autoSaveProgress();
 
       ScaffoldMessenger.of(context).showSnackBar(

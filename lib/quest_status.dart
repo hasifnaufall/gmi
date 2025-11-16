@@ -118,7 +118,7 @@ class QuestStatus {
 
   // Misc tracker
   static bool firstQuizMedalEarned =
-      false; // used by markFirstQuizMedalEarned()
+  false; // used by markFirstQuizMedalEarned()
 
   // ===== Counters & flags used by BadgeEngine and quiz screens =====
   static int quizzesCompleted = 0; // increment after each finished quiz
@@ -132,6 +132,7 @@ class QuestStatus {
   static bool playedAlphabet = false;
   static bool playedNumbers = false;
   static bool playedColours = false;
+  static bool playedFruits = false; // ✅ ADDED for fruits_q.dart
 
   // Set true in profile.dart when user sends feedback
   static bool feedbackSent = false;
@@ -208,6 +209,13 @@ class QuestStatus {
     _autoClaimAll();
     Future.microtask(() => autoSaveProgress());
   }
+  static bool fruitsQuizStarted = false;
+
+  static void markFruitsQuizStarted() {
+    fruitsQuizStarted = true;
+    // If you later add persistence (Firestore / SharedPreferences),
+    // you can also save this flag here.
+  }
 
   static void updateFruitsBestStreak(int streak) {
     if (streak > fruitsBestStreak) fruitsBestStreak = streak;
@@ -263,7 +271,7 @@ class QuestStatus {
 
   // ================= Chest Progress (goal grows +20 per chest) =================
   static int claimedPoints =
-      0; // progress within current chest tier (your UI shows this)
+  0; // progress within current chest tier (your UI shows this)
   static int levelGoalPoints = 30; // starting chest goal (first bar length)
 
   static double get chestProgress => levelGoalPoints == 0
@@ -605,12 +613,11 @@ class QuestStatus {
 
   static bool canClaimQuest23() =>
       isContentUnlocked(levelNumbers) &&
-      isContentUnlocked(levelColour) &&
-      isContentUnlocked(levelGreetings) &&
-      isContentUnlocked(levelCommonVerb) &&
-      isContentUnlocked(levelVerbs) &&
-      !quest23Claimed;
-  // (Note: Speech is not required for Q23 to keep your original quest tuning.)
+          isContentUnlocked(levelColour) &&
+          isContentUnlocked(levelGreetings) &&
+          isContentUnlocked(levelCommonVerb) &&
+          isContentUnlocked(levelVerbs) &&
+          !quest23Claimed;
 
   static int claimQuest23({int reward = 200, int progress = 20}) {
     if (!canClaimQuest23()) return 0;
@@ -673,7 +680,6 @@ class QuestStatus {
   }
 
   // ================== AUTO-CLAIM DISABLED ==================
-  // We keep the function to avoid refactors, but it's a no-op now.
   static void _autoClaimAll() {
     // Manual-claim only. Do not auto-claim anything here.
     Future.microtask(() => autoSaveProgress());
@@ -681,7 +687,6 @@ class QuestStatus {
 
   // ================= Utility / Titles / Newly Unlocked =================
   static Future<void> ensureUnlocksLoaded() async {
-    // Previously called _autoClaimAll(); now we just ensure state is consistent.
     await Future.delayed(const Duration(milliseconds: 1));
   }
 
@@ -710,7 +715,7 @@ class QuestStatus {
         return 'Animals Quest';
       case levelVerbs:
         return 'Verbs Quest';
-      case levelSpeech: // ✅ NEW
+      case levelSpeech:
         return 'Speech Quest';
       default:
         return key.replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2');
@@ -720,7 +725,7 @@ class QuestStatus {
   static bool markFirstQuizMedalEarned() {
     if (firstQuizMedalEarned) return false;
     firstQuizMedalEarned = true;
-    addXp(25); // small XP boost for first ever quiz
+    addXp(25);
     Future.microtask(() => autoSaveProgress());
     return true;
   }
@@ -735,7 +740,7 @@ class QuestStatus {
       streakDays += 1;
       if (streakDays > longestStreak) longestStreak = streakDays;
       lastStreakUtc = n;
-      _autoClaimAll(); // no-op
+      _autoClaimAll();
       Future.microtask(() => autoSaveProgress());
       return true;
     }
@@ -751,13 +756,9 @@ class QuestStatus {
 
   // ================= User Session Management =================
   static String? _currentUserId;
-
-  /// Reset all static variables to default values (for user switching)
-  // Flag to prevent auto-saving during progress loading
   static bool _loadingProgress = false;
 
   static void resetToDefaults() {
-    // reset quest claims
     quest1Claimed = quest2Claimed = quest3Claimed = false;
     quest4Claimed = quest5Claimed = quest6Claimed = false;
     quest7Claimed = quest8Claimed = quest9Claimed = quest10Claimed = false;
@@ -767,7 +768,6 @@ class QuestStatus {
     quest23Claimed = quest24Claimed = false;
     quest25Claimed = quest26Claimed = quest27Claimed = quest28Claimed = false;
 
-    // reset learning/quiz flags & counters
     learnedAlphabetAll = false;
     alphabetQuizStarted = false;
     alphabetRoundsCompleted = 0;
@@ -792,16 +792,15 @@ class QuestStatus {
     verbsRoundsCompleted = 0;
     verbsPerfectRounds = 0;
 
-    // Clear watched items in learn mode
     watchedAlphabet.clear();
     watchedNumbers.clear();
     watchedColours.clear();
     watchedFruits.clear();
     watchedAnimals.clear();
     watchedVerbs.clear();
-    watchedSpeech.clear(); // ✅ NEW
+    watchedSpeech.clear();
 
-    playedSpeech = false; // ✅ NEW
+    playedSpeech = false;
 
     userPoints = 0;
     achievements.clear();
@@ -816,11 +815,8 @@ class QuestStatus {
     resetStreak();
 
     firstQuizMedalEarned = false;
-
-    // Reset level 1 answers
     level1Answers = List<bool?>.filled(5, null);
 
-    // Reset new badge-engine counters/flags
     quizzesCompleted = 0;
     perfectQuizzes = 0;
     completedMC = false;
@@ -828,6 +824,7 @@ class QuestStatus {
     playedAlphabet = false;
     playedNumbers = false;
     playedColours = false;
+    playedFruits = false; // ✅ ADDED
     feedbackSent = false;
   }
 
@@ -839,9 +836,7 @@ class QuestStatus {
 
     try {
       if (_currentUserId != userId) {
-        print(
-          'Loading different user or after logout - resetting to defaults first',
-        );
+        print('Loading different user or after logout - resetting to defaults first');
         resetToDefaults();
       }
 
@@ -853,9 +848,7 @@ class QuestStatus {
       if (progress != null) {
         loadFromProgress(progress);
         print('Progress loaded for user: $userId');
-        print(
-          'Level after loading: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints',
-        );
+        print('Level after loading: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints');
       } else {
         print('No saved progress found for user: $userId - using defaults');
         _currentUserId = userId;
@@ -897,7 +890,6 @@ class QuestStatus {
 
   static bool get isLoadingProgress => _loadingProgress;
 
-  // ================= Resets =================
   static void resetLevel1Answers() {
     for (int i = 0; i < level1Answers.length; i++) {
       level1Answers[i] = null;
@@ -908,7 +900,6 @@ class QuestStatus {
   static void resetAll() {
     resetLevel1Answers();
 
-    // reset quest claims
     quest1Claimed = quest2Claimed = quest3Claimed = false;
     quest4Claimed = quest5Claimed = quest6Claimed = false;
     quest7Claimed = quest8Claimed = quest9Claimed = quest10Claimed = false;
@@ -918,7 +909,6 @@ class QuestStatus {
     quest23Claimed = quest24Claimed = false;
     quest25Claimed = quest26Claimed = quest27Claimed = quest28Claimed = false;
 
-    // reset learning/quiz flags & counters
     learnedAlphabetAll = false;
     alphabetQuizStarted = false;
     alphabetRoundsCompleted = 0;
@@ -957,7 +947,6 @@ class QuestStatus {
 
     firstQuizMedalEarned = false;
 
-    // Reset new badge-engine counters/flags
     quizzesCompleted = 0;
     perfectQuizzes = 0;
     completedMC = false;
@@ -965,6 +954,7 @@ class QuestStatus {
     playedAlphabet = false;
     playedNumbers = false;
     playedColours = false;
+    playedFruits = false; // ✅ ADDED
     feedbackSent = false;
 
     watchedAlphabet.clear();
@@ -973,27 +963,22 @@ class QuestStatus {
     watchedFruits.clear();
     watchedAnimals.clear();
     watchedVerbs.clear();
-    watchedSpeech.clear(); // ✅ NEW
+    watchedSpeech.clear();
 
-    playedSpeech = false; // ✅ NEW
+    playedSpeech = false;
 
     Future.microtask(() => autoSaveProgress());
   }
 
-  /// Save all progress to Firestore for the current user (coalesced)
   static Future<void> autoSaveProgress() async {
     if (_loadingProgress) {
-      print(
-        'autoSaveProgress: Currently loading progress - skipping save to avoid overwriting',
-      );
+      print('autoSaveProgress: Currently loading progress - skipping save to avoid overwriting');
       return;
     }
 
     final currentUserId = UserProgressService().getCurrentUserId();
     if (currentUserId == null || _currentUserId == null) {
-      print(
-        'autoSaveProgress: No user logged in (Firebase: $currentUserId, QuestStatus: $_currentUserId) - skipping save',
-      );
+      print('autoSaveProgress: No user logged in (Firebase: $currentUserId, QuestStatus: $_currentUserId) - skipping save');
       _saving = false;
       _saveQueued = false;
       return;
@@ -1005,12 +990,8 @@ class QuestStatus {
     }
     _saving = true;
     try {
-      print(
-        'autoSaveProgress: Saving progress for user $_currentUserId - Level: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints',
-      );
-      print(
-        'autoSaveProgress: Watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Verbs: ${watchedVerbs.length}, Speech: ${watchedSpeech.length}',
-      );
+      print('autoSaveProgress: Saving progress for user $_currentUserId - Level: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints');
+      print('autoSaveProgress: Watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Verbs: ${watchedVerbs.length}, Speech: ${watchedSpeech.length}');
       await UserProgressService().saveProgress(
         level: level,
         score: xp,
@@ -1022,7 +1003,6 @@ class QuestStatus {
         streakDays: streakDays,
         longestStreak: longestStreak,
         lastStreakUtc: lastStreakUtc?.millisecondsSinceEpoch,
-        // Quest states
         questStates: {
           'quest1Claimed': quest1Claimed,
           'quest2Claimed': quest2Claimed,
@@ -1053,7 +1033,6 @@ class QuestStatus {
           'quest27Claimed': quest27Claimed,
           'quest28Claimed': quest28Claimed,
         },
-        // Learning progress
         learningStates: {
           'learnedAlphabetAll': learnedAlphabetAll,
           'alphabetQuizStarted': alphabetQuizStarted,
@@ -1074,39 +1053,29 @@ class QuestStatus {
           'verbsRoundsCompleted': verbsRoundsCompleted,
           'verbsPerfectRounds': verbsPerfectRounds,
           'firstQuizMedalEarned': firstQuizMedalEarned,
-          // Watched items in learn mode
           'watchedAlphabet': watchedAlphabet.toList(),
           'watchedNumbers': watchedNumbers.toList(),
           'watchedColours': watchedColours.toList(),
           'watchedFruits': watchedFruits.toList(),
           'watchedAnimals': watchedAnimals.toList(),
           'watchedVerbs': watchedVerbs.toList(),
-          'watchedSpeech': watchedSpeech.toList(), // ✅ NEW
-          // Optional flags
-          'playedSpeech': playedSpeech, // ✅ NEW
+          'watchedSpeech': watchedSpeech.toList(),
+          'playedSpeech': playedSpeech,
+          'playedFruits': playedFruits, // ✅ ADDED
         },
-        // Unlocked content
         unlockedContent: _unlockedContent.toList(),
-        // Level 1 answers
-        level1Answers: level1Answers
-            .map((e) => e == null ? null : (e ? 1 : 0))
-            .toList(),
+        level1Answers: level1Answers.map((e) => e == null ? null : (e ? 1 : 0)).toList(),
       );
     } finally {
       _saving = false;
       if (_saveQueued) {
         _saveQueued = false;
-        Future.delayed(
-          const Duration(milliseconds: 200),
-          () => autoSaveProgress(),
-        );
+        Future.delayed(const Duration(milliseconds: 200), () => autoSaveProgress());
       }
     }
   }
 
-  /// Load all progress from Firestore data
   static void loadFromProgress(Map<String, dynamic> data) {
-    // Basic progress
     level = data['level'] ?? 1;
     xp = data['score'] ?? 0;
     achievements = Set<String>.from(data['achievements'] ?? []);
@@ -1118,12 +1087,9 @@ class QuestStatus {
     longestStreak = data['longestStreak'] ?? 0;
 
     if (data['lastStreakUtc'] != null) {
-      lastStreakUtc = DateTime.fromMillisecondsSinceEpoch(
-        data['lastStreakUtc'],
-      );
+      lastStreakUtc = DateTime.fromMillisecondsSinceEpoch(data['lastStreakUtc']);
     }
 
-    // Quest states
     final questStates = data['questStates'] as Map<String, dynamic>? ?? {};
     quest1Claimed = questStates['quest1Claimed'] ?? false;
     quest2Claimed = questStates['quest2Claimed'] ?? false;
@@ -1154,9 +1120,7 @@ class QuestStatus {
     quest27Claimed = questStates['quest27Claimed'] ?? false;
     quest28Claimed = questStates['quest28Claimed'] ?? false;
 
-    // Learning states
-    final learningStates =
-        data['learningStates'] as Map<String, dynamic>? ?? {};
+    final learningStates = data['learningStates'] as Map<String, dynamic>? ?? {};
     learnedAlphabetAll = learningStates['learnedAlphabetAll'] ?? false;
     alphabetQuizStarted = learningStates['alphabetQuizStarted'] ?? false;
     alphabetRoundsCompleted = learningStates['alphabetRoundsCompleted'] ?? 0;
@@ -1177,30 +1141,23 @@ class QuestStatus {
     verbsPerfectRounds = learningStates['verbsPerfectRounds'] ?? 0;
     firstQuizMedalEarned = learningStates['firstQuizMedalEarned'] ?? false;
 
-    // Watched items in learn mode
     watchedAlphabet = Set<String>.from(learningStates['watchedAlphabet'] ?? []);
     watchedNumbers = Set<String>.from(learningStates['watchedNumbers'] ?? []);
     watchedColours = Set<String>.from(learningStates['watchedColours'] ?? []);
     watchedFruits = Set<String>.from(learningStates['watchedFruits'] ?? []);
     watchedAnimals = Set<String>.from(learningStates['watchedAnimals'] ?? []);
     watchedVerbs = Set<String>.from(learningStates['watchedVerbs'] ?? []);
-    watchedSpeech = Set<String>.from(
-      learningStates['watchedSpeech'] ?? [],
-    ); // ✅ NEW
+    watchedSpeech = Set<String>.from(learningStates['watchedSpeech'] ?? []);
 
-    // Optional flags
-    playedSpeech = learningStates['playedSpeech'] ?? false; // ✅ NEW
+    playedSpeech = learningStates['playedSpeech'] ?? false;
+    playedFruits = learningStates['playedFruits'] ?? false; // ✅ ADDED
 
-    print(
-      'loadFromProgress: Loaded watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Verbs: ${watchedVerbs.length}, Speech: ${watchedSpeech.length}',
-    );
+    print('loadFromProgress: Loaded watched items - Alphabet: ${watchedAlphabet.length}, Numbers: ${watchedNumbers.length}, Colours: ${watchedColours.length}, Fruits: ${watchedFruits.length}, Animals: ${watchedAnimals.length}, Verbs: ${watchedVerbs.length}, Speech: ${watchedSpeech.length}');
 
-    // Unlocked content
     final unlockedList = data['unlockedContent'] as List? ?? [];
     _unlockedContent.clear();
     _unlockedContent.addAll(unlockedList.cast<String>());
 
-    // Level 1 answers
     final level1List = data['level1Answers'] as List? ?? [];
     level1Answers = level1List.map((e) => e == null ? null : (e == 1)).toList();
     if (level1Answers.isEmpty) {
