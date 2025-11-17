@@ -16,6 +16,7 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [displayNameChanges, setDisplayNameChanges] = useState([]);
   const [feedback, setFeedback] = useState([]);
+  const [recycledFeedback, setRecycledFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(null); // null: unknown, false: not admin, true: admin
@@ -49,6 +50,7 @@ function App() {
     fetchLeaderboard();
     fetchDisplayNameChanges();
     fetchFeedback();
+    fetchRecycledFeedback();
   }, [token, isAdmin]);
 
   const authHeaders = () => ({
@@ -128,17 +130,55 @@ function App() {
 
   const updateFeedbackStatus = async (feedbackId, newStatus) => {
     try {
-      await fetch(`${API_BASE}/feedback/${feedbackId}/status`, {
-        method: 'PUT',
+      if (newStatus === 'resolved') {
+        // Move to recycle bin
+        await fetch(`${API_BASE}/feedback/${feedbackId}/resolve`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          }
+        });
+      } else {
+        await fetch(`${API_BASE}/feedback/${feedbackId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+      }
+      fetchFeedback();
+      fetchRecycledFeedback();
+    } catch (err) {
+      console.error('Error updating feedback status:', err);
+    }
+  };
+
+  const fetchRecycledFeedback = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/feedback/recycled`, authHeaders());
+      const data = await res.json();
+      setRecycledFeedback(data);
+    } catch (err) {
+      console.error('Error fetching recycled feedback:', err);
+    }
+  };
+
+  const restoreFeedback = async (feedbackId) => {
+    try {
+      await fetch(`${API_BASE}/feedback/${feedbackId}/restore`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus })
+        }
       });
-      fetchFeedback(); // Refresh the list
+      fetchFeedback();
+      fetchRecycledFeedback();
     } catch (err) {
-      console.error('Error updating feedback status:', err);
+      console.error('Error restoring feedback:', err);
     }
   };
 
@@ -203,6 +243,14 @@ function App() {
     </div>
   );
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Successfully copied
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  };
+
   const UsersTab = () => (
     <div className="tab-content">
       <h2>User Management</h2>
@@ -210,30 +258,40 @@ function App() {
         <table>
           <thead>
             <tr>
+              <th>Display Name</th>
               <th>Email</th>
-              <th>Level</th>
-              <th>XP</th>
-              <th>Chests</th>
-              <th>Streak</th>
-              <th>User Points</th>
-              <th>Last Sign In</th>
-              <th>Status</th>
+              <th>Sign In Method</th>
+              <th>UID</th>
             </tr>
           </thead>
           <tbody>
             {users.map(user => (
               <tr key={user.uid}>
+                <td>{user.displayName || 'Not set'}</td>
                 <td>{user.email}</td>
-                <td>{user.progress?.level || 'N/A'}</td>
-                <td>{user.progress?.score || 'N/A'}</td>
-                <td>{user.progress?.chestsOpened || 'N/A'}</td>
-                <td>{user.progress?.streakDays || 'N/A'}</td>
-                <td>{user.progress?.userPoints || 'N/A'}</td>
-                <td>{formatDate(user.lastSignInTime)}</td>
                 <td>
-                  <span className={`status ${user.disabled ? 'disabled' : 'active'}`}>
-                    {user.disabled ? 'Disabled' : 'Active'}
-                  </span>
+                  <div className="provider-cell">
+                    {user.providerData && user.providerData.length > 0 && user.providerData.some(p => p.providerId === 'google.com') ? (
+                      <>
+                        <img src="https://www.google.com/favicon.ico" alt="Google" className="provider-logo" />
+                        <span className="provider-text">Google</span>
+                      </>
+                    ) : (
+                      <span className="provider-text">Email</span>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <div className="uid-cell">
+                    <span className="uid-text">{user.uid}</span>
+                    <button 
+                      className="copy-btn" 
+                      onClick={() => copyToClipboard(user.uid)}
+                      title="Copy UID"
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -322,7 +380,7 @@ function App() {
           <thead>
             <tr>
               <th>Rank</th>
-              <th>User ID</th>
+              <th>Name</th>
               <th>Level</th>
               <th>XP</th>
             </tr>
@@ -331,7 +389,7 @@ function App() {
             {leaderboard.map((user, idx) => (
               <tr key={user.userId}>
                 <td>{idx + 1}</td>
-                <td>{user.displayName || user.userId}</td>
+                <td>{user.displayName || user.email?.split('@')[0] || user.userId}</td>
                 <td>{user.level}</td>
                 <td>{user.score}</td>
               </tr>
@@ -400,20 +458,68 @@ function App() {
                       Mark Read
                     </button>
                   )}
-                  {item.status !== 'resolved' && (
-                    <button 
-                      className="action-btn resolve"
-                      onClick={() => updateFeedbackStatus(item.id, 'resolved')}
-                    >
-                      Resolve
-                    </button>
-                  )}
+                  <button 
+                    className="action-btn resolve"
+                    onClick={() => updateFeedbackStatus(item.id, 'resolved')}
+                  >
+                    Resolve
+                  </button>
                 </div>
               </div>
             </div>
           ))
         ) : (
           <p className="no-data">No feedback received yet</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const getDaysRemaining = (recycledDate) => {
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const recycledTime = new Date(recycledDate).getTime();
+    const expiryTime = recycledTime + thirtyDaysMs;
+    const now = Date.now();
+    const daysRemaining = Math.ceil((expiryTime - now) / (24 * 60 * 60 * 1000));
+    return Math.max(0, daysRemaining);
+  };
+
+  const RecycleBinTab = () => (
+    <div className="tab-content">
+      <h2>Recycle Bin (30-day retention)</h2>
+      <div className="feedback-grid">
+        {recycledFeedback.length > 0 ? (
+          recycledFeedback.map(item => (
+            <div key={item.id} className="feedback-card resolved">
+              <div className="feedback-header">
+                <div className="feedback-user">
+                  <strong>{item.userName}</strong>
+                  <span className="feedback-email">{item.userEmail}</span>
+                </div>
+                <span className="status-badge resolved">
+                  {getDaysRemaining(item.recycledAt)} days left
+                </span>
+              </div>
+              <div className="feedback-message">
+                {item.message}
+              </div>
+              <div className="feedback-footer">
+                <span className="feedback-time">
+                  Resolved: {formatDate(item.recycledAt)}
+                </span>
+                <div className="feedback-actions">
+                  <button 
+                    className="action-btn restore"
+                    onClick={() => restoreFeedback(item.id)}
+                  >
+                    Restore
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="no-data">No recycled feedback</p>
         )}
       </div>
     </div>
@@ -534,13 +640,19 @@ function App() {
             Feedback
           </button>
           <button 
+            className={activeTab === 'recycleBin' ? 'active' : ''}
+            onClick={() => setActiveTab('recycleBin')}
+          >
+            Recycle Bin
+          </button>
+          <button 
             className={activeTab === 'admins' ? 'active' : ''}
             onClick={() => setActiveTab('admins')}
           >
             Admin Management
           </button>
         </div>
-        <button className="refresh-btn" onClick={() => {fetchData(); fetchLeaderboard(); fetchDisplayNameChanges(); fetchFeedback();}}>
+        <button className="refresh-btn" onClick={() => {fetchData(); fetchLeaderboard(); fetchDisplayNameChanges(); fetchFeedback(); fetchRecycledFeedback();}}>
           Refresh
         </button>
       </header>
@@ -554,6 +666,7 @@ function App() {
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'displayNameChanges' && <DisplayNameChangesTab />}
         {activeTab === 'feedback' && <FeedbackTab />}
+        {activeTab === 'recycleBin' && <RecycleBinTab />}
         {activeTab === 'admins' && <AdminManagement />}
       </main>
     </div>

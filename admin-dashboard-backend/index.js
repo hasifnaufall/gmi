@@ -256,7 +256,8 @@ app.get('/users/combined', verifyAuth, requireAdmin, async (req, res) => {
       emailVerified: user.emailVerified,
       disabled: user.disabled,
       creationTime: user.metadata.creationTime,
-      lastSignInTime: user.metadata.lastSignInTime
+      lastSignInTime: user.metadata.lastSignInTime,
+      providerData: user.providerData
     }));
 
     const progressSnapshot = await db.collection('progress').get();
@@ -336,17 +337,24 @@ app.get('/leaderboard', verifyAuth, requireAdmin, async (req, res) => {
     // Fetch usernames for each user
     const leaderboard = await Promise.all(snapshot.docs.map(async (doc) => {
       const data = doc.data();
-      let displayName = doc.id; // Default to userId
+      let displayName = 'Unknown'; // Default fallback
       
-      // Priority: changeName > displayName > email (before @)
-      if (data.changeName) {
-        displayName = data.changeName;
-      } else if (data.displayName) {
-        displayName = data.displayName;
-      } else if (data.email) {
-        // Extract part before @ from email
-        displayName = data.email.split('@')[0];
+      // Priority: changeName > displayName > email (before @) > userId substring
+      const changeName = data.changeName;
+      const storedDisplayName = data.displayName;
+      const email = data.email;
+      
+      if (changeName && typeof changeName === 'string' && changeName !== 'undefined' && changeName !== 'null' && changeName.trim()) {
+        displayName = changeName.trim();
+      } else if (storedDisplayName && typeof storedDisplayName === 'string' && storedDisplayName !== 'undefined' && storedDisplayName !== 'null' && storedDisplayName.trim()) {
+        displayName = storedDisplayName.trim();
+      } else if (email && typeof email === 'string' && email.includes('@')) {
+        displayName = email.split('@')[0];
+      } else {
+        displayName = 'Player ' + doc.id.substring(0, 6);
       }
+      
+      console.log(`User ${doc.id}: displayName="${displayName}" (from changeName="${changeName}", displayName="${storedDisplayName}", email="${email}")`);
       
       return {
         userId: doc.id,
@@ -398,14 +406,14 @@ app.get('/feedback', verifyAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Update feedback status
-app.put('/feedback/:feedbackId/status', verifyAuth, requireAdmin, async (req, res) => {
+// Update feedback status (non-resolved statuses only)
+app.patch('/feedback/:feedbackId/status', verifyAuth, requireAdmin, async (req, res) => {
   try {
     const { feedbackId } = req.params;
     const { status } = req.body;
     
-    if (!['new', 'read', 'resolved'].includes(status)) {
-      return res.status(400).send({ error: 'Invalid status. Must be: new, read, or resolved' });
+    if (!['new', 'read'].includes(status)) {
+      return res.status(400).send({ error: 'Invalid status. Must be: new or read. Use /resolve endpoint for resolved status.' });
     }
 
     await db.collection('feedback').doc(feedbackId).update({
@@ -416,6 +424,112 @@ app.put('/feedback/:feedbackId/status', verifyAuth, requireAdmin, async (req, re
     res.send({ success: true, feedbackId, status });
   } catch (error) {
     console.error('Error updating feedback status:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Resolve feedback (move to recycle bin)
+app.post('/feedback/:feedbackId/resolve', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    const { feedbackId } = req.params;
+    
+    // Get the feedback document
+    const feedbackDoc = await db.collection('feedback').doc(feedbackId).get();
+    if (!feedbackDoc.exists) {
+      return res.status(404).send({ error: 'Feedback not found' });
+    }
+
+    // Move to recycleBin collection
+    const feedbackData = feedbackDoc.data();
+    await db.collection('recycleBin').doc(feedbackId).set({
+      ...feedbackData,
+      status: 'resolved',
+      recycledAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+    });
+
+    // Delete from feedback collection
+    await db.collection('feedback').doc(feedbackId).delete();
+
+    res.send({ success: true, feedbackId, message: 'Feedback moved to recycle bin' });
+  } catch (error) {
+    console.error('Error resolving feedback:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Get recycled feedback
+app.get('/feedback/recycled', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    const now = new Date();
+    
+    // Get all recycled feedback
+    const snapshot = await db.collection('recycleBin')
+      .orderBy('recycledAt', 'desc')
+      .get();
+    
+    const recycledFeedback = [];
+    const batch = db.batch();
+    let hasExpired = false;
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const expiresAt = data.expiresAt?.toDate() || new Date(data.recycledAt?.toDate()?.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      // Check if expired (older than 30 days)
+      if (expiresAt < now) {
+        // Mark for deletion
+        batch.delete(doc.ref);
+        hasExpired = true;
+      } else {
+        // Include in results
+        recycledFeedback.push({
+          id: doc.id,
+          ...data,
+          recycledAt: data.recycledAt?.toDate()?.toISOString() || null
+        });
+      }
+    });
+
+    // Execute batch deletion if any expired items found
+    if (hasExpired) {
+      await batch.commit();
+    }
+
+    res.send(recycledFeedback);
+  } catch (error) {
+    console.error('Error fetching recycled feedback:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Restore feedback from recycle bin
+app.post('/feedback/:feedbackId/restore', verifyAuth, requireAdmin, async (req, res) => {
+  try {
+    const { feedbackId } = req.params;
+    
+    // Get the recycled feedback
+    const recycledDoc = await db.collection('recycleBin').doc(feedbackId).get();
+    if (!recycledDoc.exists) {
+      return res.status(404).send({ error: 'Recycled feedback not found' });
+    }
+
+    // Restore to feedback collection
+    const feedbackData = recycledDoc.data();
+    const { recycledAt, expiresAt, ...originalData } = feedbackData; // Remove recycle-specific fields
+    
+    await db.collection('feedback').doc(feedbackId).set({
+      ...originalData,
+      status: 'read', // Restore as 'read' status
+      restoredAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Delete from recycle bin
+    await db.collection('recycleBin').doc(feedbackId).delete();
+
+    res.send({ success: true, feedbackId, message: 'Feedback restored' });
+  } catch (error) {
+    console.error('Error restoring feedback:', error);
     res.status(500).send({ error: error.message });
   }
 });

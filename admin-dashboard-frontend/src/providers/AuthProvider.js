@@ -27,11 +27,25 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loginWithGoogle = async () => {
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      // Ignore popup cancelled errors - user intentionally closed the popup
+      if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+        console.log('Login cancelled by user');
+        return;
+      }
+      // Log other errors but don't crash
+      console.error('Login error:', error);
+    }
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (

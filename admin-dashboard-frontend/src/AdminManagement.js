@@ -6,7 +6,7 @@ import { useAuth } from './providers/AuthProvider';
 import './App.css';
 
 function AdminManagement() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [admins, setAdmins] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminUid, setNewAdminUid] = useState('');
@@ -92,6 +92,12 @@ function AdminManagement() {
   };
 
   const removeAdmin = async (uid) => {
+    // Prevent removing self
+    if (user && user.uid === uid) {
+      setMessage('Error: You cannot remove your own admin permissions');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to remove this admin?')) {
       return;
     }
@@ -248,23 +254,33 @@ function AdminManagement() {
                       {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => removeAdmin(admin.uid)}
-                        disabled={loading}
-                        style={{
-                          backgroundColor: '#f44336',
-                          color: 'white',
-                          padding: '6px 16px',
-                          border: 'none',
-                          borderRadius: '4px',
+                      {user && user.uid === admin.uid ? (
+                        <span style={{
+                          color: '#666',
                           fontSize: '12px',
-                          fontWeight: '600',
-                          cursor: loading ? 'not-allowed' : 'pointer',
-                          opacity: loading ? 0.6 : 1
-                        }}
-                      >
-                        Remove
-                      </button>
+                          fontStyle: 'italic'
+                        }}>
+                          You (cannot remove)
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => removeAdmin(admin.uid)}
+                          disabled={loading}
+                          style={{
+                            backgroundColor: '#f44336',
+                            color: 'white',
+                            padding: '6px 16px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            opacity: loading ? 0.6 : 1
+                          }}
+                        >
+                          Remove
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
