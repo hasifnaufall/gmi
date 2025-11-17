@@ -256,7 +256,8 @@ app.get('/users/combined', verifyAuth, requireAdmin, async (req, res) => {
       emailVerified: user.emailVerified,
       disabled: user.disabled,
       creationTime: user.metadata.creationTime,
-      lastSignInTime: user.metadata.lastSignInTime
+      lastSignInTime: user.metadata.lastSignInTime,
+      providerData: user.providerData || []
     }));
 
     const progressSnapshot = await db.collection('progress').get();

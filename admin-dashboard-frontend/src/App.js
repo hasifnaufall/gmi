@@ -57,7 +57,17 @@ function App() {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(''); // Clear previous errors
     try {
+      // Check if backend is reachable first
+      const healthCheck = await fetch(`${API_BASE}/`).catch(() => null);
+      
+      if (!healthCheck) {
+        setError('Backend server not running. Please start the backend with the Firebase service account key.');
+        setLoading(false);
+        return;
+      }
+
       // Fetch all data in parallel
       const [usersRes, analyticsRes, activitiesRes] = await Promise.all([
         fetch(`${API_BASE}/users/combined`, authHeaders()).catch(e => null),
@@ -65,16 +75,16 @@ function App() {
         fetch(`${API_BASE}/activities/recent`, authHeaders()).catch(e => null)
       ]);
 
-      const usersData = usersRes ? await usersRes.json().catch(() => []) : [];
-      const analyticsData = analyticsRes ? await analyticsRes.json().catch(() => ({})) : {};
-      const activitiesData = activitiesRes ? await activitiesRes.json().catch(() => []) : [];
+      const usersData = usersRes && usersRes.ok ? await usersRes.json().catch(() => []) : [];
+      const analyticsData = analyticsRes && analyticsRes.ok ? await analyticsRes.json().catch(() => ({})) : {};
+      const activitiesData = activitiesRes && activitiesRes.ok ? await activitiesRes.json().catch(() => []) : [];
 
       setUsers(usersData);
       setAnalytics(analyticsData);
       setActivities(activitiesData);
-      setError((!usersRes && !analyticsRes && !activitiesRes) ? 'Backend server not running. Please start the backend with the Firebase service account key.' : '');
       setLoading(false);
     } catch (err) {
+      console.error('Error fetching data:', err);
       setError('Backend server not running. Please start the backend with the Firebase service account key.');
       setLoading(false);
     }
@@ -82,22 +92,23 @@ function App() {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await fetch(`${API_BASE}/leaderboard`, authHeaders());
-      if (!res) {
+      const res = await fetch(`${API_BASE}/leaderboard`, authHeaders()).catch(() => null);
+      if (!res || !res.ok) {
         setLeaderboard([]);
         return;
       }
       const data = await res.json();
       setLeaderboard(data);
     } catch (err) {
+      console.error('Error fetching leaderboard:', err);
       setLeaderboard([]);
     }
   };
 
   const fetchDisplayNameChanges = async () => {
     try {
-      const res = await fetch(`${API_BASE}/display-name-changes`, authHeaders());
-      if (!res) {
+      const res = await fetch(`${API_BASE}/display-name-changes`, authHeaders()).catch(() => null);
+      if (!res || !res.ok) {
         setDisplayNameChanges([]);
         return;
       }
@@ -112,8 +123,8 @@ function App() {
 
   const fetchFeedback = async () => {
     try {
-      const res = await fetch(`${API_BASE}/feedback`, authHeaders());
-      if (!res) {
+      const res = await fetch(`${API_BASE}/feedback`, authHeaders()).catch(() => null);
+      if (!res || !res.ok) {
         setFeedback([]);
         return;
       }
@@ -203,6 +214,14 @@ function App() {
     </div>
   );
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('UID copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy UID');
+    });
+  };
+
   const UsersTab = () => (
     <div className="tab-content">
       <h2>User Management</h2>
@@ -211,32 +230,49 @@ function App() {
           <thead>
             <tr>
               <th>Email</th>
-              <th>Level</th>
-              <th>XP</th>
-              <th>Chests</th>
-              <th>Streak</th>
-              <th>User Points</th>
+              <th>UID</th>
+              <th>Auth Provider</th>
               <th>Last Sign In</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
-              <tr key={user.uid}>
-                <td>{user.email}</td>
-                <td>{user.progress?.level || 'N/A'}</td>
-                <td>{user.progress?.score || 'N/A'}</td>
-                <td>{user.progress?.chestsOpened || 'N/A'}</td>
-                <td>{user.progress?.streakDays || 'N/A'}</td>
-                <td>{user.progress?.userPoints || 'N/A'}</td>
-                <td>{formatDate(user.lastSignInTime)}</td>
-                <td>
-                  <span className={`status ${user.disabled ? 'disabled' : 'active'}`}>
-                    {user.disabled ? 'Disabled' : 'Active'}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {users.map(user => {
+              const isGoogleUser = user.providerData?.some(provider => provider.providerId === 'google.com');
+              
+              return (
+                <tr key={user.uid}>
+                  <td>{user.email}</td>
+                  <td>
+                    <div className="uid-cell">
+                      <span className="uid-text">{user.uid}</span>
+                      <button 
+                        className="copy-btn" 
+                        onClick={() => copyToClipboard(user.uid)}
+                        title="Copy UID"
+                      >
+                        📋
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    {isGoogleUser ? (
+                      <div className="provider-cell">
+                        <img 
+                          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                          alt="Google" 
+                          className="provider-logo"
+                          title="Google Sign-In"
+                        />
+                        <span>Google</span>
+                      </div>
+                    ) : (
+                      <span className="provider-text">Email</span>
+                    )}
+                  </td>
+                  <td>{formatDate(user.lastSignInTime)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -249,7 +285,16 @@ function App() {
       <div className="progress-grid">
         {users.filter(user => user.progress).map(user => (
           <div key={user.uid} className="progress-card">
-            <h3>{user.email}</h3>
+            <div className="progress-card-header">
+              <h3>{user.email}</h3>
+              <button 
+                className="copy-btn" 
+                onClick={() => copyToClipboard(user.uid)}
+                title="Copy UID"
+              >
+                📋 Copy UID
+              </button>
+            </div>
             <div className="progress-details">
               <div className="progress-row">
                 <span>Level:</span>
@@ -370,54 +415,99 @@ function App() {
     </div>
   );
 
-  const FeedbackTab = () => (
-    <div className="tab-content">
-      <h2>User Feedback</h2>
-      <div className="feedback-grid">
-        {feedback.length > 0 ? (
-          feedback.map(item => (
-            <div key={item.id} className={`feedback-card ${item.status}`}>
-              <div className="feedback-header">
-                <div className="feedback-user">
-                  <strong>{item.userName}</strong>
-                  <span className="feedback-email">{item.userEmail}</span>
+  const FeedbackTab = () => {
+    const activeFeedback = feedback.filter(item => item.status !== 'resolved');
+    
+    return (
+      <div className="tab-content">
+        <h2>User Feedback</h2>
+        <div className="feedback-grid">
+          {activeFeedback.length > 0 ? (
+            activeFeedback.map(item => (
+              <div key={item.id} className={`feedback-card ${item.status}`}>
+                <div className="feedback-header">
+                  <div className="feedback-user">
+                    <strong>{item.userName}</strong>
+                    <span className="feedback-email">{item.userEmail}</span>
+                  </div>
+                  <span className={`status-badge ${item.status}`}>
+                    {item.status || 'new'}
+                  </span>
                 </div>
-                <span className={`status-badge ${item.status}`}>
-                  {item.status || 'new'}
-                </span>
-              </div>
-              <div className="feedback-message">
-                {item.message}
-              </div>
-              <div className="feedback-footer">
-                <span className="feedback-time">{formatDate(item.timestamp)}</span>
-                <div className="feedback-actions">
-                  {item.status !== 'read' && (
-                    <button 
-                      className="action-btn read"
-                      onClick={() => updateFeedbackStatus(item.id, 'read')}
-                    >
-                      Mark Read
-                    </button>
-                  )}
-                  {item.status !== 'resolved' && (
+                <div className="feedback-message">
+                  {item.message}
+                </div>
+                <div className="feedback-footer">
+                  <span className="feedback-time">{formatDate(item.timestamp)}</span>
+                  <div className="feedback-actions">
+                    {item.status !== 'read' && (
+                      <button 
+                        className="action-btn read"
+                        onClick={() => updateFeedbackStatus(item.id, 'read')}
+                      >
+                        Mark Read
+                      </button>
+                    )}
                     <button 
                       className="action-btn resolve"
                       onClick={() => updateFeedbackStatus(item.id, 'resolved')}
                     >
                       Resolve
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="no-data">No feedback received yet</p>
-        )}
+            ))
+          ) : (
+            <p className="no-data">No feedback received yet</p>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const RecycleBinTab = () => {
+    const resolvedFeedback = feedback.filter(item => item.status === 'resolved');
+    
+    return (
+      <div className="tab-content">
+        <h2>Resolved Feedback (Recycle Bin)</h2>
+        <div className="feedback-grid">
+          {resolvedFeedback.length > 0 ? (
+            resolvedFeedback.map(item => (
+              <div key={item.id} className="feedback-card resolved">
+                <div className="feedback-header">
+                  <div className="feedback-user">
+                    <strong>{item.userName}</strong>
+                    <span className="feedback-email">{item.userEmail}</span>
+                  </div>
+                  <span className="status-badge resolved">
+                    Resolved
+                  </span>
+                </div>
+                <div className="feedback-message">
+                  {item.message}
+                </div>
+                <div className="feedback-footer">
+                  <span className="feedback-time">{formatDate(item.timestamp)}</span>
+                  <div className="feedback-actions">
+                    <button 
+                      className="action-btn restore"
+                      onClick={() => updateFeedbackStatus(item.id, 'new')}
+                    >
+                      🗑️ Restore
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="no-data">No resolved feedback</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   if (authLoading) {
     return (
@@ -460,19 +550,15 @@ function App() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="App">
-        <div className="error">
-          <h2>Error: {error}</h2>
-          <button onClick={fetchData}>Retry</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="App">
+      {error && (
+        <div className="error-banner">
+          <span>⚠️ {error}</span>
+          <button className="retry-btn-small" onClick={fetchData}>Retry</button>
+          <button className="close-btn-small" onClick={() => setError('')}>×</button>
+        </div>
+      )}
       <header className="app-header">
         <div className="header-title-row">
           <img src="/waveact.png" alt="WaveAct Logo" className="logo-img" />
@@ -534,6 +620,12 @@ function App() {
             Feedback
           </button>
           <button 
+            className={activeTab === 'recycleBin' ? 'active' : ''}
+            onClick={() => setActiveTab('recycleBin')}
+          >
+            Recycle Bin
+          </button>
+          <button 
             className={activeTab === 'admins' ? 'active' : ''}
             onClick={() => setActiveTab('admins')}
           >
@@ -554,6 +646,7 @@ function App() {
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'displayNameChanges' && <DisplayNameChangesTab />}
         {activeTab === 'feedback' && <FeedbackTab />}
+        {activeTab === 'recycleBin' && <RecycleBinTab />}
         {activeTab === 'admins' && <AdminManagement />}
       </main>
     </div>

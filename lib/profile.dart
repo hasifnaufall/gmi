@@ -606,21 +606,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: sending ? null : doSend,
                   icon: sending
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
+                          width: 18,
+                          height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.send_rounded, size: 18),
+                      : const Icon(Icons.send_rounded, size: 20),
                   label: const Text('Send'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeManager.isDarkMode
                         ? const Color(0xFFD23232)
                         : const Color(0xFF0891B2),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 24,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -2372,6 +2372,7 @@ class _GreatWorkDialog extends StatelessWidget {
   });
 
   bool get isPerfect => score == total;
+  bool get isPoorScore => score < (total * 0.5); // Less than 50%
 
   @override
   Widget build(BuildContext context) {
@@ -2414,7 +2415,9 @@ class _GreatWorkDialog extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isPerfect
                         ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                        : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
+                        : isPoorScore
+                            ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
+                            : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2424,7 +2427,9 @@ class _GreatWorkDialog extends StatelessWidget {
                       color:
                           (isPerfect
                                   ? const Color(0xFFFFD700)
-                                  : const Color(0xFF69D3E4))
+                                  : isPoorScore
+                                      ? const Color(0xFFEF4444)
+                                      : const Color(0xFF69D3E4))
                               .withOpacity(0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
@@ -2443,12 +2448,14 @@ class _GreatWorkDialog extends StatelessWidget {
                 shaderCallback: (bounds) => LinearGradient(
                   colors: isPerfect
                       ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
-                      : (themeManager.isDarkMode
-                            ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
-                            : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]),
+                      : isPoorScore
+                          ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
+                          : (themeManager.isDarkMode
+                                ? const [Color(0xFF8B1F1F), Color(0xFFD23232)]
+                                : const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]),
                 ).createShader(bounds),
                 child: Text(
-                  isPerfect ? "Perfection!" : "Great Work!",
+                  isPerfect ? "Perfection!" : isPoorScore ? "Try Again!" : "Great Work!",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     fontSize: 34,
@@ -2462,7 +2469,9 @@ class _GreatWorkDialog extends StatelessWidget {
               Text(
                 isPerfect
                     ? "You answered every question flawlessly."
-                    : "You completed this quiz successfully!",
+                    : isPoorScore
+                        ? "Keep practicing! You'll do better next time."
+                        : "You completed this quiz successfully!",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(
                   fontSize: 16,

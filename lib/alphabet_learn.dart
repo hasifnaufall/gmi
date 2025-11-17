@@ -45,11 +45,19 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
   }
 
   Future<void> _openVideo(Map<String, String> item) async {
-    final watched = await Navigator.push<bool>(
+    // Get index of the clicked item in the full list
+    final initialIndex = _all.indexWhere((m) => m['label'] == item['label']);
+    
+    final result = await Navigator.push<dynamic>(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
+            SignVideoPlayer(
+              title: item['label']!,
+              videoPath: item['video']!,
+              allItems: _all, // Pass all videos for swipe navigation
+              initialIndex: initialIndex,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = 0.0;
           const end = 1.0;
@@ -76,29 +84,50 @@ class _AlphabetLearnScreenState extends State<AlphabetLearnScreen> {
       ),
     );
 
-    if (watched == true) {
-      setState(() => QuestStatus.watchedAlphabet.add(item['label']!));
+    // Handle result - can be bool (single video) or Set<String> (multiple videos watched)
+    Set<String> newlyWatched = {};
+    
+    if (result is bool && result == true) {
+      newlyWatched.add(item['label']!);
+    } else if (result is Set<String>) {
+      newlyWatched = result;
+    }
+
+    if (newlyWatched.isNotEmpty) {
+      setState(() {
+        QuestStatus.watchedAlphabet.addAll(newlyWatched);
+      });
 
       print(
-        'alphabet_learn: Added ${item['label']} to watchedAlphabet. Total watched: ${QuestStatus.watchedAlphabet.length}',
+        'alphabet_learn: Added ${newlyWatched.join(", ")} to watchedAlphabet. Total watched: ${QuestStatus.watchedAlphabet.length}',
       );
 
       // Save progress to database
       await QuestStatus.autoSaveProgress();
 
       print(
-        'alphabet_learn: autoSaveProgress() completed for ${item['label']}',
+        'alphabet_learn: autoSaveProgress() completed',
       );
 
-      // one-letter toast
+      // Show toast for watched items
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Marked ${item['label']} as watched ✅'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
-          ),
-        );
+        if (newlyWatched.length == 1) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Marked ${newlyWatched.first} as watched ✅'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Marked ${newlyWatched.length} videos as watched ✅'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       // If all 26 are learned, mark quest flag and auto-claim Quest 2
