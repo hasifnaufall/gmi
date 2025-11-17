@@ -616,12 +616,6 @@ function App() {
           </button>
           */}
           <button 
-            className={activeTab === 'activities' ? 'active' : ''}
-            onClick={() => setActiveTab('activities')}
-          >
-            Activities
-          </button>
-          <button 
             className={activeTab === 'leaderboard' ? 'active' : ''}
             onClick={() => setActiveTab('leaderboard')}
           >
@@ -662,7 +656,6 @@ function App() {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'progress' && <ProgressTab />}
   {/* {activeTab === 'learnProgress' && <LearnProgressTab token={token} />} */}
-        {activeTab === 'activities' && <ActivitiesTab />}
         {activeTab === 'leaderboard' && <LeaderboardTab />}
         {activeTab === 'displayNameChanges' && <DisplayNameChangesTab />}
         {activeTab === 'feedback' && <FeedbackTab />}
