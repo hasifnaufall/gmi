@@ -3,24 +3,10 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
-// Try environment variables first (for deployment), fallback to local file
-let credential;
-if (process.env.FIREBASE_PRIVATE_KEY) {
-  // Use environment variables (Vercel deployment)
-  credential = admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-  });
-} else {
-  // Use local service account file (local development)
-  const serviceAccount = require('./serviceAccountKey.json');
-  credential = admin.credential.cert(serviceAccount);
-}
-
+const serviceAccount = require('./serviceAccountKey.json'); // <--- Download this from Firebase Console
 admin.initializeApp({
-  credential: credential,
-  projectId: process.env.FIREBASE_PROJECT_ID || 'waveact-e419c'
+  credential: admin.credential.cert(serviceAccount),
+  projectId: 'waveact-e419c'
 });
 
 const db = admin.firestore();
@@ -270,8 +256,7 @@ app.get('/users/combined', verifyAuth, requireAdmin, async (req, res) => {
       emailVerified: user.emailVerified,
       disabled: user.disabled,
       creationTime: user.metadata.creationTime,
-      lastSignInTime: user.metadata.lastSignInTime,
-      providerData: user.providerData || []
+      lastSignInTime: user.metadata.lastSignInTime
     }));
 
     const progressSnapshot = await db.collection('progress').get();
