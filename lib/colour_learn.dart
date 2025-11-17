@@ -98,11 +98,24 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
   }
 
   Future<void> _openVideo(_ColourItem item) async {
-    final watched = await Navigator.push<bool>(
+    // Convert _ColourItem list to Map format for SignVideoPlayer
+    final allItemsAsMap = _all.map((c) => {
+      'label': c.name,
+      'video': c.videoPath,
+    }).toList();
+    
+    final initialIndex = _all.indexWhere((c) => c.name == item.name);
+    
+    final result = await Navigator.push<dynamic>(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            SignVideoPlayer(title: item.name, videoPath: item.videoPath),
+            SignVideoPlayer(
+              title: item.name,
+              videoPath: item.videoPath,
+              allItems: allItemsAsMap,
+              initialIndex: initialIndex,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = 0.0;
           const end = 1.0;
@@ -129,21 +142,38 @@ class _ColourLearnScreenState extends State<ColourLearnScreen> {
       ),
     );
 
-    if (watched == true) {
-      setState(() => QuestStatus.watchedColours.add(item.name));
+    Set<String> newlyWatched = {};
+    if (result is bool && result == true) {
+      newlyWatched.add(item.name);
+    } else if (result is Set<String>) {
+      newlyWatched = result;
+    }
+
+    if (newlyWatched.isNotEmpty) {
+      setState(() => QuestStatus.watchedColours.addAll(newlyWatched));
 
       // Save progress to database
       await QuestStatus.autoSaveProgress();
 
       _checkIfAllColoursLearned();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Marked ${item.name} as watched ✅'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      if (newlyWatched.length == 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Marked ${newlyWatched.first} as watched ✅'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Marked ${newlyWatched.length} videos as watched ✅'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 

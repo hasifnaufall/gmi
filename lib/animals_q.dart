@@ -2691,6 +2691,7 @@ class _GreatWorkDialog extends StatelessWidget {
   });
 
   bool get isPerfect => score == total;
+  bool get isPoorScore => score < (total * 0.5);
 
   @override
   Widget build(BuildContext context) {

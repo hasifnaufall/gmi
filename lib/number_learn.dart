@@ -30,11 +30,18 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
   }
 
   Future<void> _openVideo(Map<String, String> item) async {
-    final watched = await Navigator.push<bool>(
+    final initialIndex = _all.indexWhere((m) => m['label'] == item['label']);
+    
+    final result = await Navigator.push<dynamic>(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            SignVideoPlayer(title: item['label']!, videoPath: item['video']!),
+            SignVideoPlayer(
+              title: item['label']!,
+              videoPath: item['video']!,
+              allItems: _all,
+              initialIndex: initialIndex,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = 0.0;
           const end = 1.0;
@@ -61,20 +68,37 @@ class _NumberLearnScreenState extends State<NumberLearnScreen> {
       ),
     );
 
-    if (watched == true) {
-      setState(() => QuestStatus.watchedNumbers.add(item['label']!));
+    Set<String> newlyWatched = {};
+    if (result is bool && result == true) {
+      newlyWatched.add(item['label']!);
+    } else if (result is Set<String>) {
+      newlyWatched = result;
+    }
+
+    if (newlyWatched.isNotEmpty) {
+      setState(() => QuestStatus.watchedNumbers.addAll(newlyWatched));
 
       // Save progress to database
       await QuestStatus.autoSaveProgress();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Marked ${item['label']} as watched ✅'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
-          ),
-        );
+        if (newlyWatched.length == 1) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Marked ${newlyWatched.first} as watched ✅'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Marked ${newlyWatched.length} videos as watched ✅'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       // ✅ FIXED: If all 20 learned, only mark the flag for Quest 6 (no auto-claim)

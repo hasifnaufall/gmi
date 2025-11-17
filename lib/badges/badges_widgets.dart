@@ -63,6 +63,7 @@ class _ProgressPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final p = (badge.progress / badge.target).clamp(0.0, 1.0);
     final label = badge.state == BadgeState.unlocked
         ? 'Done'
@@ -91,7 +92,12 @@ class _ProgressPill extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          Text(label, style: theme.textTheme.labelSmall),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isDarkMode ? Colors.white : null,
+            ),
+          ),
         ],
       ),
     );

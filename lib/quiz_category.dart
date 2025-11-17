@@ -460,8 +460,9 @@ class _QuizCategoryScreenState extends State<QuizCategoryScreen> {
           'Your current streak: ${QuestStatus.streakDays} day${QuestStatus.streakDays != 1 ? "s" : ""}!\n\n'
           '🔥 Come back daily to maintain your streak\n'
           '📚 Complete at least one quiz per day\n'
+          '⚠️ Your streak resets if you miss a day\n'
           '🏆 Build longer streaks for consistency\n\n'
-          'Keep learning every day to build your sign language skills and maintain your streak!',
+          'Just like Snapchat streaks, you need to stay active every day! If you don\'t complete a quiz for more than 1 day, your streak will reset to zero.',
           style: GoogleFonts.montserrat(
             color: isDark ? const Color(0xFFE8E8E8) : const Color(0xFF2D5263),
             fontSize: 15,

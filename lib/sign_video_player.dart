@@ -5,11 +5,15 @@ import 'package:chewie/chewie.dart';
 class SignVideoPlayer extends StatefulWidget {
   final String title;
   final String videoPath;
+  final List<Map<String, String>>? allItems; // All videos in the category
+  final int? initialIndex; // Starting position
 
   const SignVideoPlayer({
     super.key,
     required this.title,
     required this.videoPath,
+    this.allItems,
+    this.initialIndex,
   });
 
   @override
@@ -27,9 +31,23 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
 
+  // PageView support
+  late PageController _pageController;
+  late int _currentIndex;
+  String _currentTitle = "";
+  String _currentVideoPath = "";
+  final Set<String> _watchedInSession = {}; // Track watched videos in this session
+
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex ?? 0;
+    _currentTitle = widget.title;
+    _currentVideoPath = widget.videoPath;
+
+    // Initialize PageController
+    _pageController = PageController(initialPage: _currentIndex);
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -53,10 +71,18 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
   }
 
   Future<void> _init() async {
+    if (!mounted) return;
+    
     try {
-      final vc = VideoPlayerController.asset(widget.videoPath);
+      final vc = VideoPlayerController.asset(_currentVideoPath);
       await vc.initialize();
-      // build chewie only after successful init
+      
+      if (!mounted) {
+        vc.dispose();
+        return;
+      }
+      
+      // build chewie only after successful init and mount check
       final cc = ChewieController(
         videoPlayerController: vc,
         autoPlay: true,
@@ -69,23 +95,78 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
           bufferedColor: Colors.white24,
         ),
       );
+      
       if (!mounted) {
-        vc.dispose();
         cc.dispose();
+        vc.dispose();
         return;
       }
+      
       setState(() {
         _videoController = vc;
         _chewieController = cc;
         _ready = true;
       });
     } catch (e) {
-      // you can show a friendly error UI if needed
+      // Handle errors gracefully
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Couldn't load video: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Couldn't load video: $e"),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
+    }
+  }
+
+  void _onPageChanged(int index) async {
+    if (index == _currentIndex) return; // Prevent duplicate calls
+    
+    // Mark previous video as watched if played for 1.5s
+    await _markCurrentAsWatchedIfNeeded();
+
+    // Store old controllers to dispose after new ones are created
+    final oldChewieController = _chewieController;
+    final oldVideoController = _videoController;
+    
+    // Clear references first
+    _chewieController = null;
+    _videoController = null;
+
+    // Update to new video
+    if (mounted) {
+      setState(() {
+        _currentIndex = index;
+        _currentTitle = widget.allItems![index]['label']!;
+        _currentVideoPath = widget.allItems![index]['video']!;
+        _ready = false;
+      });
+    }
+
+    // Dispose old controllers after a short delay
+    Future.delayed(const Duration(milliseconds: 100), () {
+      oldChewieController?.dispose();
+      oldVideoController?.dispose();
+    });
+
+    // Initialize new video
+    if (mounted) {
+      await _init();
+    }
+  }
+
+  Future<void> _markCurrentAsWatchedIfNeeded() async {
+    try {
+      final vc = _videoController;
+      if (vc != null && vc.value.isInitialized) {
+        final pos = await vc.position ?? Duration.zero;
+        if (pos.inMilliseconds >= 1500) {
+          _watchedInSession.add(_currentTitle);
+        }
+      }
+    } catch (_) {
+      // Silently handle errors
     }
   }
 
@@ -94,19 +175,18 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
     if (_popped) return false;
     _popped = true;
 
-    bool watched = false;
-    try {
-      final vc = _videoController;
-      if (vc != null && vc.value.isInitialized) {
-        final pos = await vc.position ?? Duration.zero;
-        watched = pos.inMilliseconds >= 1500; // >= 1.5s counts as watched
-      }
-    } catch (_) {
-      watched = false;
-    }
+    // Mark current video as watched if needed
+    await _markCurrentAsWatchedIfNeeded();
 
     if (mounted) {
-      Navigator.of(context).pop(watched);
+      // If using swipe mode (allItems provided), return the set of watched videos
+      // Otherwise, return single bool
+      if (widget.allItems != null) {
+        Navigator.of(context).pop(_watchedInSession);
+      } else {
+        bool watched = _watchedInSession.contains(_currentTitle);
+        Navigator.of(context).pop(watched);
+      }
     }
     return false; // we already popped
   }
@@ -114,8 +194,18 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
   @override
   void dispose() {
     _animationController.dispose();
-    _chewieController?.dispose();
-    _videoController?.dispose();
+    _pageController.dispose();
+    
+    // Dispose video controllers safely
+    try {
+      _chewieController?.pause();
+      _chewieController?.dispose();
+    } catch (_) {}
+    
+    try {
+      _videoController?.dispose();
+    } catch (_) {}
+    
     super.dispose();
   }
 
@@ -126,6 +216,10 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
         ? _videoController!.value.aspectRatio
         : 16 / 9;
 
+    // Show swipe hint if multiple items available
+    final bool hasMultipleItems = (widget.allItems?.length ?? 0) > 1;
+    final int totalItems = widget.allItems?.length ?? 1;
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -134,7 +228,7 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
             position: _slideAnimation,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: Text("Learn ${widget.title}"),
+              child: Text("Learn $_currentTitle"),
             ),
           ),
           elevation: 0,
@@ -153,6 +247,30 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
               await _onWillPop();
             },
           ),
+          actions: hasMultipleItems
+              ? [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          "${_currentIndex + 1} / $totalItems",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
+              : null,
         ),
         body: Stack(
           children: [
@@ -168,21 +286,96 @@ class _SignVideoPlayerState extends State<SignVideoPlayer>
             ),
             // subtle dark overlay for focus
             Container(color: Colors.black.withOpacity(0.15)),
-            // Player with animations
-            Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: !_ready || _chewieController == null
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : AspectRatio(
-                          aspectRatio: ar == 0 ? (16 / 9) : ar,
-                          child: Chewie(controller: _chewieController!),
+            // PageView for swipe support OR single player
+            if (hasMultipleItems)
+              PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                physics: const PageScrollPhysics(),
+                itemCount: totalItems,
+                itemBuilder: (context, index) {
+                  // Only show video player for current page
+                  if (index == _currentIndex) {
+                    return Center(
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: !_ready || _chewieController == null
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : (_videoController?.value.isInitialized ?? false)
+                                  ? AspectRatio(
+                                      aspectRatio: ar == 0 ? (16 / 9) : ar,
+                                      child: Chewie(controller: _chewieController!),
+                                    )
+                                  : const CircularProgressIndicator(color: Colors.white),
                         ),
+                      ),
+                    );
+                  } else {
+                    // Empty placeholder for other pages
+                    return const SizedBox.shrink();
+                  }
+                },
+              )
+            else
+              // Single video mode (no swipe)
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: !_ready || _chewieController == null
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : (_videoController?.value.isInitialized ?? false)
+                            ? AspectRatio(
+                                aspectRatio: ar == 0 ? (16 / 9) : ar,
+                                child: Chewie(controller: _chewieController!),
+                              )
+                            : const CircularProgressIndicator(color: Colors.white),
+                  ),
                 ),
               ),
-            ),
+            // Swipe hint overlay (shows for first 3 seconds)
+            if (hasMultipleItems)
+              Positioned(
+                bottom: 100,
+                left: 0,
+                right: 0,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 1.0, end: 0.0),
+                  duration: const Duration(seconds: 3),
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.swipe, color: Colors.white, size: 22),
+                              SizedBox(width: 12),
+                              Text(
+                                "Swipe to navigate",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

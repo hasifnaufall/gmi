@@ -730,13 +730,59 @@ class QuestStatus {
     return true;
   }
 
-  // ================= Streak (24h window) =================
+  // ================= Streak (24h window - Snapchat style) =================
   static int longestStreak = 0;
   static DateTime? lastStreakUtc;
 
+  /// Check if the user has been inactive for more than 1 day and reset streak
+  /// This should be called when loading user progress (on app startup/login)
+  static void checkStreakInactivity({DateTime? now}) {
+    final n = (now ?? DateTime.now()).toUtc();
+    
+    // If no last streak time, nothing to check
+    if (lastStreakUtc == null) {
+      return;
+    }
+    
+    // Calculate day difference from last activity
+    final lastStreakDate = DateTime(lastStreakUtc!.year, lastStreakUtc!.month, lastStreakUtc!.day);
+    final currentDate = DateTime(n.year, n.month, n.day);
+    final dayDifference = currentDate.difference(lastStreakDate).inDays;
+    
+    // If more than 1 day has passed, reset the streak (Snapchat style)
+    if (dayDifference > 1) {
+      print('Streak reset due to inactivity: $dayDifference days since last activity');
+      streakDays = 0;
+      lastStreakUtc = null;
+      Future.microtask(() => autoSaveProgress());
+    }
+  }
+
   static bool addStreakForLevel({DateTime? now}) {
     final n = (now ?? DateTime.now()).toUtc();
-    if (lastStreakUtc == null || n.difference(lastStreakUtc!).inHours >= 24) {
+    
+    // First time playing - start streak
+    if (lastStreakUtc == null) {
+      streakDays = 1;
+      if (streakDays > longestStreak) longestStreak = streakDays;
+      lastStreakUtc = n;
+      _autoClaimAll(); // no-op
+      Future.microtask(() => autoSaveProgress());
+      return true;
+    }
+    
+    // Calculate day difference (using date comparison, not hours)
+    final lastStreakDate = DateTime(lastStreakUtc!.year, lastStreakUtc!.month, lastStreakUtc!.day);
+    final currentDate = DateTime(n.year, n.month, n.day);
+    final dayDifference = currentDate.difference(lastStreakDate).inDays;
+    
+    // Same day - no change
+    if (dayDifference == 0) {
+      return false;
+    }
+    
+    // Next day - increment streak
+    if (dayDifference == 1) {
       streakDays += 1;
       if (streakDays > longestStreak) longestStreak = streakDays;
       lastStreakUtc = n;
@@ -744,7 +790,14 @@ class QuestStatus {
       Future.microtask(() => autoSaveProgress());
       return true;
     }
-    return false;
+    
+    // Missed a day or more - reset streak to 1 (start fresh)
+    print('Streak reset: $dayDifference days since last activity');
+    streakDays = 1;
+    lastStreakUtc = n;
+    _autoClaimAll(); // no-op
+    Future.microtask(() => autoSaveProgress());
+    return true; // Still return true to play streak sound for new streak start
   }
 
   static void resetStreak() {
@@ -847,6 +900,10 @@ class QuestStatus {
 
       if (progress != null) {
         loadFromProgress(progress);
+        
+        // Check if streak should be reset due to inactivity (Snapchat style)
+        checkStreakInactivity();
+        
         print('Progress loaded for user: $userId');
         print('Level after loading: $level, XP: $xp, Chests: $chestsOpened, Streak: $streakDays, UserPoints: $userPoints');
       } else {
