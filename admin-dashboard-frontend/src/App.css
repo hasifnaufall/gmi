@@ -98,6 +98,7 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .tab-nav button {
@@ -107,14 +108,15 @@
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   font-weight: 500;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .tab-nav button:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: #ffffff;
-  transform: translateY(-2px);
 }
 
 .tab-nav button.active {
@@ -131,14 +133,14 @@
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .refresh-btn:hover {
   background: #ffffff;
   color: #0891B2;
-  transform: translateY(-2px);
 }
 
 .app-main {
