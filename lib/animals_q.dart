@@ -2106,8 +2106,8 @@ class _SlideInBadgeState extends State<_SlideInBadge>
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: widget.color == const Color(0xFFEF4444)
-                  ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
+              colors: widget.color == const Color(0xFF2C5CB0)
+                  ? const [Color(0xFF69D3E4), Color(0xFF4FC3E4)]
                   : [widget.color, widget.color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -2115,8 +2115,8 @@ class _SlideInBadgeState extends State<_SlideInBadge>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: widget.color == const Color(0xFFEF4444)
-                    ? const Color(0xFFEF4444).withOpacity(0.4)
+                color: widget.color == const Color(0xFF2C5CB0)
+                    ? const Color(0xFF69D3E4).withOpacity(0.4)
                     : widget.color.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
