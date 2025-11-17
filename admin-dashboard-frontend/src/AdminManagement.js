@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { app } from './firebase';
+import { useAuth } from './providers/AuthProvider';
 import './App.css';
 
 function AdminManagement() {
+  const { token } = useAuth();
   const [admins, setAdmins] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminUid, setNewAdminUid] = useState('');
@@ -12,8 +14,10 @@ function AdminManagement() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
+    if (token) {
+      fetchAdmins();
+    }
+  }, [token]);
 
   const fetchAdmins = async () => {
     setLoading(true);
@@ -24,6 +28,32 @@ function AdminManagement() {
         uid: doc.id,
         ...doc.data()
       }));
+
+      // Fetch user emails from backend API
+      if (token) {
+        try {
+          const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_BASE}/users/combined`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const users = await response.json();
+            const userEmailMap = {};
+            users.forEach(user => {
+              userEmailMap[user.uid] = user.email;
+            });
+            // Merge emails into admins list
+            adminsList.forEach(admin => {
+              if (!admin.email && userEmailMap[admin.uid]) {
+                admin.email = userEmailMap[admin.uid];
+              }
+            });
+          }
+        } catch (err) {
+          console.log('Could not fetch user emails from backend:', err);
+        }
+      }
+
       setAdmins(adminsList);
     } catch (error) {
       console.error('Error fetching admins:', error);
