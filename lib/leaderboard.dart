@@ -45,7 +45,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   List<Map<String, dynamic>> _leaderboard = [];
   bool _isLoading = true;
   String? _currentUserId;
-  int? _currentUserRank;
 
   @override
   void initState() {
@@ -139,10 +138,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           'isCurrentUser': user['isCurrentUser'],
         });
 
-        if (user['isCurrentUser'] == true) {
-          _currentUserRank = rank;
-        }
-
         rank++;
       }
 
@@ -210,9 +205,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               'isCurrentUser': userId == _currentUserId,
             });
 
-            if (userId == _currentUserId) {
-              _currentUserRank = rank;
-            }
             rank++;
           }
 
@@ -534,87 +526,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                     _buildTopThreePodium(themeManager),
 
-                    // Current User Rank Card
-                    if (_currentUserRank != null && _currentUserRank! > 3)
-                      Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        padding: EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: themeManager.isDarkMode
-                              ? LinearGradient(
-                                  colors: [
-                                    Color(0xFF8B1F1F),
-                                    Color(0xFFD23232),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : LinearGradient(
-                                  colors: [
-                                    Color(0xFF0891B2),
-                                    Color(0xFF7C7FCC),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: themeManager.primary.withOpacity(0.4),
-                              blurRadius: 16,
-                              offset: Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Your Rank',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  '#$_currentUserRank',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(18),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.emoji_events_rounded,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
                     // Table Container
                     Expanded(
                       child: Container(
@@ -725,17 +636,38 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                   final rank = entry['rank'] as int;
 
                                   return Container(
-                                    color: isCurrentUser
-                                        ? (themeManager.isDarkMode
-                                              ? Color(
-                                                  0xFFD23232,
-                                                ).withOpacity(0.1)
-                                              : Color(
-                                                  0xFFFFFFD0,
-                                                ).withOpacity(0.5))
-                                        : (themeManager.isDarkMode
+                                    decoration: BoxDecoration(
+                                      gradient: isCurrentUser
+                                          ? (themeManager.isDarkMode
+                                              ? LinearGradient(
+                                                  colors: [
+                                                    Color(0xFFD23232).withOpacity(0.3),
+                                                    Color(0xFF8B1F1F).withOpacity(0.3),
+                                                  ],
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                )
+                                              : LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF0891B2).withOpacity(0.2),
+                                                    Color(0xFF7C7FCC).withOpacity(0.2),
+                                                  ],
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                ))
+                                          : null,
+                                      color: !isCurrentUser
+                                          ? (themeManager.isDarkMode
                                               ? Color(0xFF2C2C2E)
-                                              : Colors.white),
+                                              : Colors.white)
+                                          : null,
+                                      border: isCurrentUser
+                                          ? Border.all(
+                                              color: themeManager.primary.withOpacity(0.6),
+                                              width: 2,
+                                            )
+                                          : null,
+                                    ),
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 20,
                                       vertical: 16,
