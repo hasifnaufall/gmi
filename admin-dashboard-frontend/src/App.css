@@ -76,9 +76,7 @@
   padding: 20px;
   box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 20px;
 }
 
@@ -86,12 +84,16 @@
   color: #ffffff;
   font-size: 2rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .header-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 15px;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 
 .tab-nav {
@@ -117,6 +119,7 @@
 .tab-nav button:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: #ffffff;
+  transform: translateY(-2px);
 }
 
 .tab-nav button.active {
@@ -133,14 +136,14 @@
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
   font-weight: 500;
-  white-space: nowrap;
 }
 
 .refresh-btn:hover {
   background: #ffffff;
   color: #0891B2;
+  transform: translateY(-2px);
 }
 
 .app-main {
@@ -670,8 +673,21 @@ tr:hover {
   box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
 }
 
-.user-chip { display: flex; align-items: center; gap: 10px; }
-.user-chip span { color: #ffffff; font-weight: 500; }
+.user-chip { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.user-chip span { 
+  color: #ffffff; 
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
 .logout-btn {
   background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
