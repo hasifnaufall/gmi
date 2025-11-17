@@ -563,10 +563,10 @@ function App() {
         <div className="header-title-row">
           <img src="/waveact.png" alt="WaveAct Logo" className="logo-img" />
           <h1>WaveAct Admin Dashboard</h1>
-        </div>
-        <div className="user-chip">
-          <span>{user.email}</span>
-          <button className="logout-btn" onClick={logout}>Log out</button>
+          <div className="user-chip">
+            <span>{user.email}</span>
+            <button className="logout-btn" onClick={logout}>Log out</button>
+          </div>
         </div>
         <div className="tab-nav">
           <button 
