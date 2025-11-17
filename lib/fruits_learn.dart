@@ -42,6 +42,7 @@ class _FruitsLearnScreenState extends State<FruitsLearnScreen> {
 
   String _query = "";
   int _columns = 3;
+  bool _notifiedAllLearned = false; // ✅ ADDED: avoid duplicate notifications
 
   List<Map<String, String>> get _filtered {
     if (_query.trim().isEmpty) return _all;
@@ -446,47 +447,47 @@ class _FruitCardState extends State<_FruitCard>
           decoration: BoxDecoration(
             gradient: widget.themeManager.isDarkMode
                 ? (widget.watched
-                      ? const LinearGradient(
-                          colors: [Color(0xFF3C3C3E), Color(0xFF2C2C2E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : const LinearGradient(
-                          colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ))
+                ? const LinearGradient(
+              colors: [Color(0xFF3C3C3E), Color(0xFF2C2C2E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+                : const LinearGradient(
+              colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ))
                 : (widget.watched
-                      ? const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )),
+                ? const LinearGradient(
+              colors: [Color(0xFFFFFFFF), Color(0xFFF0FDFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )
+                : const LinearGradient(
+              colors: [Color(0xFFFFFFFF), Color(0xFFFAFAFA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            )),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: widget.watched
                   ? (widget.themeManager.isDarkMode
-                        ? const Color(0xFFD23232)
-                        : const Color(0xFF0891B2))
+                  ? const Color(0xFFD23232)
+                  : const Color(0xFF0891B2))
                   : (widget.themeManager.isDarkMode
-                        ? const Color(0xFF636366)
-                        : Colors.grey.shade200),
+                  ? const Color(0xFF636366)
+                  : Colors.grey.shade200),
               width: widget.watched ? 2.5 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: widget.watched
                     ? (widget.themeManager.isDarkMode
-                          ? const Color(0xFFD23232).withOpacity(0.25)
-                          : const Color(0xFF0891B2).withOpacity(0.25))
+                    ? const Color(0xFFD23232).withOpacity(0.25)
+                    : const Color(0xFF0891B2).withOpacity(0.25))
                     : (widget.themeManager.isDarkMode
-                          ? Colors.black.withOpacity(0.3)
-                          : Colors.black.withOpacity(0.08)),
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.08)),
                 blurRadius: widget.watched ? 16 : 8,
                 offset: const Offset(0, 4),
               ),
@@ -503,15 +504,15 @@ class _FruitCardState extends State<_FruitCard>
                       gradient: RadialGradient(
                         colors: widget.themeManager.isDarkMode
                             ? [
-                                const Color(0xFFD23232).withOpacity(0.1),
-                                const Color(0xFF8B1F1F).withOpacity(0.05),
-                                Colors.transparent,
-                              ]
+                          const Color(0xFFD23232).withOpacity(0.1),
+                          const Color(0xFF8B1F1F).withOpacity(0.05),
+                          Colors.transparent,
+                        ]
                             : [
-                                const Color(0xFF06B6D4).withOpacity(0.1),
-                                const Color(0xFF0891B2).withOpacity(0.05),
-                                Colors.transparent,
-                              ],
+                          const Color(0xFF06B6D4).withOpacity(0.1),
+                          const Color(0xFF0891B2).withOpacity(0.05),
+                          Colors.transparent,
+                        ],
                         center: Alignment.topRight,
                         radius: 1.5,
                       ),
@@ -528,11 +529,11 @@ class _FruitCardState extends State<_FruitCard>
                     fontWeight: FontWeight.w800,
                     color: widget.themeManager.isDarkMode
                         ? (widget.watched
-                              ? const Color(0xFFD23232)
-                              : const Color(0xFFE8E8E8))
+                        ? const Color(0xFFD23232)
+                        : const Color(0xFFE8E8E8))
                         : (widget.watched
-                              ? const Color(0xFF0891B2)
-                              : const Color(0xFF2D5263)),
+                        ? const Color(0xFF0891B2)
+                        : const Color(0xFF2D5263)),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -549,50 +550,50 @@ class _FruitCardState extends State<_FruitCard>
                   decoration: BoxDecoration(
                     gradient: widget.themeManager.isDarkMode
                         ? (widget.watched
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFFD23232),
-                                    Color(0xFF8B1F1F),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : const LinearGradient(
-                                  colors: [
-                                    Color(0xFF2C2C2E),
-                                    Color(0xFF1C1C1E),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ))
+                        ? const LinearGradient(
+                      colors: [
+                        Color(0xFFD23232),
+                        Color(0xFF8B1F1F),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                        : const LinearGradient(
+                      colors: [
+                        Color(0xFF2C2C2E),
+                        Color(0xFF1C1C1E),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ))
                         : (widget.watched
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFF0891B2),
-                                    Color(0xFF06B6D4),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : LinearGradient(
-                                  colors: [
-                                    Colors.grey.shade100,
-                                    Colors.grey.shade50,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )),
+                        ? const LinearGradient(
+                      colors: [
+                        Color(0xFF0891B2),
+                        Color(0xFF06B6D4),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                        : LinearGradient(
+                      colors: [
+                        Colors.grey.shade100,
+                        Colors.grey.shade50,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: widget.watched
                         ? [
-                            BoxShadow(
-                              color: widget.themeManager.isDarkMode
-                                  ? const Color(0xFFD23232).withOpacity(0.3)
-                                  : const Color(0xFF0891B2).withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
+                      BoxShadow(
+                        color: widget.themeManager.isDarkMode
+                            ? const Color(0xFFD23232).withOpacity(0.3)
+                            : const Color(0xFF0891B2).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
                         : null,
                   ),
                   child: Row(
@@ -605,11 +606,11 @@ class _FruitCardState extends State<_FruitCard>
                         size: 16,
                         color: widget.themeManager.isDarkMode
                             ? (widget.watched
-                                  ? Colors.white
-                                  : const Color(0xFF8E8E93))
+                            ? Colors.white
+                            : const Color(0xFF8E8E93))
                             : (widget.watched
-                                  ? Colors.white
-                                  : Colors.grey.shade600),
+                            ? Colors.white
+                            : Colors.grey.shade600),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -619,11 +620,11 @@ class _FruitCardState extends State<_FruitCard>
                           fontWeight: FontWeight.w700,
                           color: widget.themeManager.isDarkMode
                               ? (widget.watched
-                                    ? Colors.white
-                                    : const Color(0xFF8E8E93))
+                              ? Colors.white
+                              : const Color(0xFF8E8E93))
                               : (widget.watched
-                                    ? Colors.white
-                                    : Colors.grey.shade600),
+                              ? Colors.white
+                              : Colors.grey.shade600),
                         ),
                       ),
                     ],

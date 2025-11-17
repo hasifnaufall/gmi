@@ -472,9 +472,8 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
     super.initState();
     Sfx().init();
 
-    if (!QuestStatus.alphabetQuizStarted) {
-      QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
+    if (!QuestStatus.fruitsQuizStarted) {
+      QuestStatus.markFruitsQuizStarted();
     }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
@@ -573,6 +572,24 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
 
     _sessionAnswers[qIdx] = isCorrect;
     QuestStatus.level1Answers[currentSlot] = isCorrect;
+
+    // ✅ FIX: Track streak for Fruits (Quest 15) - CORRECTED VARIABLE NAME
+    if (isCorrect) {
+      // Calculate current streak
+      int streak = 1; // ✅ CHANGED: Was 'currentStreak', now 'streak'
+
+      // Count backwards from current slot to find consecutive correct answers
+      for (int i = currentSlot - 1; i >= 0; i--) {
+        if (_sessionAnswers[activeIndices[i]] == true) {
+          streak++;
+        } else {
+          break; // Stop at first wrong answer
+        }
+      }
+
+      // Update best streak for Fruits category
+      QuestStatus.updateFruitsBestStreak(streak); // ✅ Uses 'streak' variable
+    }
 
     if (isCorrect) {
       showAnimatedPopup(
@@ -789,6 +806,8 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
     if (!mounted) return;
 
     int sessionScore = 0;
+    // Correct implementation:
+    QuestStatus.incFruitsRoundsCompleted();  // ✅ Use Fruits counter
 
     // Count MC correct answers
     for (final i in activeIndices) {
@@ -822,22 +841,16 @@ class _FruitQuizScreenState extends State<FruitQuizScreen>
     }
 
     // Mark category played
-    QuestStatus.playedAlphabet = true;
+    QuestStatus.playedFruits = true;
 
     // Evaluate & show any newly unlocked badge popup
     await BadgeEngine.checkAndToast(context);
     // ========= END BADGES =========
 
     // Your existing quest logic
-    QuestStatus.alphabetRoundsCompleted += 1;
+    QuestStatus.incFruitsRoundsCompleted();
 
-    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-        !QuestStatus.quest5Claimed) {
-      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
-    }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
-      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
-    }
+
 
     QuestStatus.markFirstQuizMedalEarned();
 

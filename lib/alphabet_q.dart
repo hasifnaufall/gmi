@@ -393,7 +393,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     if (!QuestStatus.alphabetQuizStarted) {
       QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
     }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
@@ -774,14 +773,6 @@ class _AlphabetQuizScreenState extends State<AlphabetQuizScreen>
 
     // Your existing quest logic
     QuestStatus.alphabetRoundsCompleted += 1;
-
-    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-        !QuestStatus.quest5Claimed) {
-      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
-    }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
-      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
-    }
 
     QuestStatus.markFirstQuizMedalEarned();
 

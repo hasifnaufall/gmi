@@ -404,11 +404,6 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     super.initState();
     Sfx().init();
 
-    if (!QuestStatus.alphabetQuizStarted) {
-      QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
-    }
-
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
 
     // Adjust based on quiz type
@@ -774,13 +769,21 @@ class _AnimalQuizScreenState extends State<AnimalQuizScreen>
     // Your existing quest logic
     QuestStatus.alphabetRoundsCompleted += 1;
 
-    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-        !QuestStatus.quest5Claimed) {
-      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
+    // Track perfect rounds (Quest 20)
+    if (sessionScore == totalQuestions) {
+      QuestStatus.incAnimalsPerfectRounds();
     }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
-      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
+
+// Quest 19: Finish 3 Animals rounds
+    if (QuestStatus.animalsRoundsCompleted >= 3 && !QuestStatus.quest19Claimed) {
+      if (QuestStatus.canClaimQuest19()) QuestStatus.claimQuest19();
     }
+
+// Quest 20: Complete ONE Animals round without mistakes
+    if (QuestStatus.animalsPerfectRounds >= 1 && !QuestStatus.quest20Claimed) {
+      if (QuestStatus.canClaimQuest20()) QuestStatus.claimQuest20();
+    }
+// =======================================
 
     QuestStatus.markFirstQuizMedalEarned();
 

@@ -1,3 +1,4 @@
+//animals_learn.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -103,7 +104,6 @@ class _AnimalsLearnScreenState extends State<AnimalsLearnScreen> {
     if (newlyWatched.isNotEmpty) {
       setState(() => QuestStatus.watchedAnimals.addAll(newlyWatched));
 
-      // Save progress to database
       await QuestStatus.autoSaveProgress();
 
       if (newlyWatched.length == 1) {

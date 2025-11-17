@@ -377,10 +377,6 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
     super.initState();
     Sfx().init();
 
-    if (!QuestStatus.alphabetQuizStarted) {
-      QuestStatus.markAlphabetQuizStarted();
-      if (QuestStatus.canClaimQuest3()) QuestStatus.claimQuest3();
-    }
 
     final all = List<int>.generate(questions.length, (i) => i)..shuffle();
 
@@ -723,20 +719,13 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
 
     final totalQuestions = activeIndices.length + mixMatchIndices.length;
 
-    // ========= INCREMENT COLOUR ROUNDS ==========
-    QuestStatus.incColourRoundsCompleted();
-    // ============================================
-
     // ========= BADGES: update counters for this completed quiz =========
-    // Count this quiz
     QuestStatus.quizzesCompleted++;
 
-    // Perfect run (all correct, no hints used here — you can add your own 'usedHints' flag if needed)
     if (sessionScore == totalQuestions) {
       QuestStatus.perfectQuizzes++;
     }
 
-    // Mark modes completed
     if (widget.quizType == QuizType.multipleChoice ||
         widget.quizType == QuizType.both) {
       QuestStatus.completedMC = true;
@@ -746,23 +735,22 @@ class _ColourQuizScreenState extends State<ColourQuizScreen>
       QuestStatus.completedMM = true;
     }
 
-    // Mark category played
-    QuestStatus.playedAlphabet = true;
+    QuestStatus.playedColours = true; // ✅ This is correct
 
-    // Evaluate & show any newly unlocked badge popup
     await BadgeEngine.checkAndToast(context);
     // ========= END BADGES =========
 
-    // Your existing quest logic
-    QuestStatus.alphabetRoundsCompleted += 1;
+    // ========= COLOUR QUEST LOGIC =========
+    // Increment Colour rounds counter (Quest 12: Finish 2 Colour rounds)
+    QuestStatus.incColourRoundsCompleted();
 
-    if (QuestStatus.alphabetRoundsCompleted >= 3 &&
-        !QuestStatus.quest5Claimed) {
-      if (QuestStatus.canClaimQuest5()) QuestStatus.claimQuest5();
-    }
-    if (sessionScore == totalQuestions && !QuestStatus.quest6Claimed) {
-      if (QuestStatus.canClaimQuest6()) QuestStatus.claimQuest6();
-    }
+
+    // ❌ DELETE THIS LINE - Colour doesn't have a perfect rounds quest!
+    // QuestStatus.incColourPerfectRounds();
+
+    // Note: Quest 11 (5-correct streak) should be tracked during the quiz
+    // in handleAnswer() method, similar to how Fruits does it
+    // ========= END COLOUR QUEST LOGIC =========
 
     QuestStatus.markFirstQuizMedalEarned();
 
