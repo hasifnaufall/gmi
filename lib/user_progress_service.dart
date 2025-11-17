@@ -52,6 +52,7 @@ class UserProgressService {
       'level1Answers': level1Answers,
       'displayName':
           displayName, // Store displayName in progress for leaderboard
+      'email': user.email, // Store email for username fallback
       'timestamp': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
